@@ -19,7 +19,7 @@
                 </span>
                 <span style="font-size: 20px">{{ labelFor(element.id) }}</span>
               </div>
-              <component :is="components[element.id]" v-bind="widgetProps(element.id)" />
+              <component v-if="widgetVisible(element.id)" :is="components[element.id]" v-bind="widgetProps(element.id)" />
             </div>
           </template>
         </draggable>
@@ -34,7 +34,7 @@
                 </span>
                 <span style="font-size: 20px">{{ labelFor(element.id) }}</span>
               </div>
-              <component :is="components[element.id]" v-bind="widgetProps(element.id)" />
+              <component v-if="widgetVisible(element.id)" :is="components[element.id]" v-bind="widgetProps(element.id)" />
             </div>
           </template>
         </draggable>
