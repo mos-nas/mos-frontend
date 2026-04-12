@@ -30,7 +30,7 @@
                     </v-card-text>
                     <v-card-text class="py-2 px-4" style="min-height: 96px">
                       <div class="font-weight-bold mb-1" style="line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1.1rem">
-                        {{ plugin.displayName || plugin.name }}
+                        {{ pluginTitle(plugin) }}
                       </div>
                       <div
                         style="
@@ -45,7 +45,7 @@
                           font-size: 0.9rem;
                         "
                       >
-                        {{ plugin.description }}
+                        {{ pluginDescription(plugin) }}
                       </div>
                     </v-card-text>
                     <v-spacer />
@@ -88,10 +88,10 @@
 
   <v-dialog v-model="deleteDialog.value" max-width="500">
     <v-card class="pa-0">
-      <v-card-title class="text-h6">{{ $t('delete') }} {{ deleteDialog.plugin?.displayName || deleteDialog.plugin?.name }}</v-card-title>
+      <v-card-title class="text-h6">{{ $t('delete') }} {{ deleteDialog.plugin ? pluginTitle(deleteDialog.plugin) : '' }}</v-card-title>
       <v-card-text>
         {{ $t('are you sure you want to delete') }}
-        <strong>{{ deleteDialog.plugin?.displayName || deleteDialog.plugin?.name }}</strong>
+        <strong>{{ deleteDialog.plugin ? pluginTitle(deleteDialog.plugin) : '' }}</strong>
         ?
       </v-card-text>
       <v-divider />
@@ -136,13 +136,14 @@
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { usePlugins, hasMdiIcon, getPluginIconUrl, getPluginRoute } from '@/composables/usePlugins';
+import { usePlugins, hasMdiIcon, getPluginIconUrl, getPluginRoute, loadPluginLocales } from '@/composables/usePlugins';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const router = useRouter();
-const { t } = useI18n();
+const i18n = useI18n();
+const { t, te } = i18n;
 const { plugins, getPlugins } = usePlugins();
 const loading = ref(true);
 const overlay = ref(false);
@@ -152,9 +153,24 @@ const deleteDialog = reactive({
   plugin: null,
 });
 
+const pluginLocaleKey = (plugin, key) => `plugin_${plugin.name.replace(/-/g, '_')}.${key}`;
+
+const pluginTitle = (plugin) => {
+  const key = pluginLocaleKey(plugin, 'title');
+  return te(key) ? t(key) : (plugin.displayName || plugin.name);
+};
+
+const pluginDescription = (plugin) => {
+  const key = pluginLocaleKey(plugin, 'description');
+  return te(key) ? t(key) : (plugin.description || '');
+};
+
 onMounted(async () => {
   try {
     await getPlugins();
+    for (const plugin of plugins.value) {
+      await loadPluginLocales(plugin, i18n);
+    }
   } catch {
     showSnackbarError(t('error loading plugins'));
   } finally {

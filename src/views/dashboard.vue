@@ -19,7 +19,7 @@
                 </span>
                 <span style="font-size: 20px">{{ labelFor(element.id) }}</span>
               </div>
-              <component :is="components[element.id]" v-bind="widgetProps(element.id)" />
+              <component v-if="widgetVisible(element.id)" :is="components[element.id]" v-bind="widgetProps(element.id)" />
             </div>
           </template>
         </draggable>
@@ -34,7 +34,7 @@
                 </span>
                 <span style="font-size: 20px">{{ labelFor(element.id) }}</span>
               </div>
-              <component :is="components[element.id]" v-bind="widgetProps(element.id)" />
+              <component v-if="widgetVisible(element.id)" :is="components[element.id]" v-bind="widgetProps(element.id)" />
             </div>
           </template>
         </draggable>
@@ -105,7 +105,7 @@ import Other from '../components/cards/other.vue';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const i18n = useI18n();
-const { t } = i18n;
+const { t, te } = i18n;
 const { getPlugins, loadPluginWidget, loadPluginLocales } = usePlugins();
 const components = shallowRef({
   os: OS,
@@ -122,6 +122,7 @@ const components = shallowRef({
   other: Other,
 });
 const pluginLabels = ref({});
+
 const cpu = ref(null);
 const network = ref(null);
 const memory = ref(null);
@@ -207,6 +208,11 @@ onUnmounted(() => {
 });
 
 const labelFor = (x) => {
+  if (x.startsWith('plugin:')) {
+    const pluginName = x.replace('plugin:', '');
+    const titleKey = `plugin_${pluginName.replace(/-/g, '_')}.title`;
+    if (te(titleKey)) return t(titleKey);
+  }
   if (pluginLabels.value[x]) return pluginLabels.value[x];
   const key = nameKeyMap?.[x] || String(x || '').toLowerCase();
   return t(key);
