@@ -1405,5 +1405,10 @@
   "expired": "Abgelaufen",
   "certificates could not be recreated": "Zertifikate konnten nicht neu erstellt werden",
   "certificates recreated successfully": "Zertifikate erfolgreich neu erstellt",
-  "recreate certificates": "Zertifikate neu erstellen"
+  "recreate certificates": "Zertifikate neu erstellen",
+  "raw value": "Rohwert",
+  "certificate could not be downloaded": "Zertifikat konnte nicht heruntergeladen werden",
+  "download root ca": "Root CA herunterladen",
+  "download certificate": "Zertifikat herunterladen",
+  "download": "Herunterladen"
 }

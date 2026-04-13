@@ -1405,5 +1405,10 @@
   "expired": "Expired",
   "certificates could not be recreated": "Certificates could not be recreated",
   "certificates recreated successfully": "Certificates recreated successfully",
-  "recreate certificates": "Recreate Certificates"
+  "recreate certificates": "Recreate Certificates",
+  "raw value": "Raw value",
+  "certificate could not be downloaded": "Certificate could not be downloaded",
+  "download root ca": "Download Root CA",
+  "download certificate": "Download Certificate",
+  "download": "Download"
 }

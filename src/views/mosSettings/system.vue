@@ -25,7 +25,8 @@
             <span class="text-subtitle-1 font-weight-medium">{{ $t('web ui') }}</span>
             <v-switch :label="$t('https enabled')" color="green" inset v-model="settingsSystem.webui.https_enabled" density="compact" class="pt-4 pb-4" hide-details="auto"></v-switch>
             <v-btn color="primary" variant="outlined" @click="openShowCertificatesDialog()" :disabled="!settingsSystem.webui.https_enabled">{{ $t('show certificates') }}</v-btn>
-            <v-btn color="primary" variant="outlined" class="ml-2" @click="recreateCertificates" :disabled="!settingsSystem.webui.https_enabled">{{ $t('recreate certificates') }}</v-btn>
+            <v-btn color="primary" variant="outlined" class="ml-2" @click="recreateCertificates()" :disabled="!settingsSystem.webui.https_enabled">{{ $t('recreate certificates') }}</v-btn>
+            <v-btn color="primary" variant="outlined" class="ml-2" @click="downloadCertificate()" :disabled="!settingsSystem.webui.https_enabled">{{ $t('download root ca') }}</v-btn>
             <v-text-field class="mt-6" :label="$t('http port')" type="number" v-model="settingsSystem.webui.ports.http"></v-text-field>
             <v-text-field :label="$t('https port')" type="number" v-model="settingsSystem.webui.ports.https"></v-text-field>
             <v-text-field :label="$t('local dns searchname')" v-model="settingsSystem.webui.local_dns_searchname" class="mb-4" hide-details="auto"></v-text-field>
@@ -717,6 +718,39 @@ const recreateCertificates = async () => {
     }
 
     showSnackbarSuccess(t('certificates recreated successfully'));
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const downloadCertificate = async () => {
+  overlay.value = true;
+
+  try {
+    const res = await fetch(`/api/v1/mos/download?path=${encodeURIComponent('/boot/config/system/ssl/root/ca.crt')}`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('certificate could not be downloaded')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    let filename = `ca.crt`;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);

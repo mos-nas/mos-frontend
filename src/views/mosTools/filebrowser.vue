@@ -128,6 +128,13 @@
                 </v-btn>
               </template>
             </v-tooltip>
+            <v-tooltip :text="$t('download')" location="top">
+              <template #activator="{ props }">
+                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="!activeItem" @click="downloadFile(activeItem.path)">
+                  <v-icon size="20">mdi-download</v-icon>
+                </v-btn>
+              </template>
+            </v-tooltip>
             <v-divider vertical class="mx-1 align-self-center" style="height: 24px" />
             <v-tooltip :text="$t('adjust permissions')" location="top">
               <template #activator="{ props }">
@@ -785,6 +792,40 @@ const renameFile = async (item, newName) => {
     overlay.value = false;
   }
 };
+
+const downloadFile = async (filePath) => {
+  overlay.value = true;
+
+  try {
+    const res = await fetch(`/api/v1/mos/download?path=${encodeURIComponent(filePath)}`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('certificate could not be downloaded')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    let filename = filePath.split('/').pop() || 'download';
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
 
 const isSelectable = (item) => {
   if (!item) return false;

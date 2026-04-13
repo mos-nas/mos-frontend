@@ -284,24 +284,20 @@
                 <tr>
                   <th>{{ $t('id') }}</th>
                   <th>{{ $t('name') }}</th>
-                  <th>{{ $t('status') }}</th>
                   <th>{{ $t('value') }}</th>
                   <th>{{ $t('worst') }}</th>
                   <th>{{ $t('threshold') }}</th>
+                  <th>{{ $t('raw value') }}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="attr in smartDialog.smartInfos.attributes" :key="attr.id">
                   <td>{{ attr.id }}</td>
                   <td>{{ attr.name }}</td>
-                  <td>
-                    <v-chip v-if="attr.status && attr.status !== '' && attr.status !== null" :color="attr.status === 'ok' ? 'green' : 'red'" size="x-small">
-                      {{ attr.status }}
-                    </v-chip>
-                  </td>
                   <td>{{ attr.value }}</td>
                   <td>{{ attr.worst }}</td>
                   <td>{{ attr.threshold }}</td>
+                  <td>{{ attr.rawValue }}</td>
                 </tr>
               </tbody>
             </v-table>
