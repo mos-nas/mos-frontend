@@ -3,10 +3,10 @@
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
-          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px;">
-            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle;">mdi-arrow-left</v-icon>
+          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px">
+            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle">mdi-arrow-left</v-icon>
           </v-col>
-          <div class="d-flex align-center ga-3 mb-4" style="height: 40px;">
+          <div class="d-flex align-center ga-3 mb-4" style="height: 40px">
             <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
             <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ $t('system') }}</h2>
           </div>
@@ -22,35 +22,30 @@
             <v-text-field :label="$t('global spindown (min)')" type="number" v-model="settingsSystem.global_spindown" hide-details="auto"></v-text-field>
             <v-switch :label="$t('persist history')" color="green" inset v-model="settingsSystem.persist_history" hide-details="auto"></v-switch>
             <v-divider class="my-2"></v-divider>
-            <span class="text-subtitle-1 font-weight-medium">{{ $t('web ui') }}</span>            
-            <v-text-field class="mt-4 mb-4" :label="$t('http port')" type="number" v-model="settingsSystem.webui.ports.http" hide-details="auto"></v-text-field>
-            <v-select :items="listenInterfaces" :label="$t('network interfaces')" v-model="settingsSystem.webui.listen_interfaces" item-title="interface" item-value="interface" multiple chips></v-select>
+            <span class="text-subtitle-1 font-weight-medium">{{ $t('web ui') }}</span>
+            <v-switch :label="$t('https enabled')" color="green" inset v-model="settingsSystem.webui.https_enabled" density="compact" class="pt-4 pb-4" hide-details="auto"></v-switch>
+            <v-btn color="green" variant="outlined" @click="openShowCertificatesDialog()" :disabled="!settingsSystem.webui.https_enabled">{{ $t('show certificates') }}</v-btn>            
+            <v-text-field class="mt-6" :label="$t('http port')" type="number" v-model="settingsSystem.webui.ports.http"></v-text-field>
+            <v-text-field :label="$t('https port')" type="number" v-model="settingsSystem.webui.ports.https"></v-text-field>
+            <v-text-field :label="$t('local dns searchname')" v-model="settingsSystem.webui.local_dns_searchname" class="mb-4" hide-details="auto"></v-text-field>
+            <v-select :items="listenInterfaces" :label="$t('network interfaces')" v-model="settingsSystem.webui.listen_interfaces" multiple chips></v-select>
             <v-divider class="my-2"></v-divider>
             <span class="text-subtitle-1 font-weight-medium">{{ $t('update settings') }}</span>
             <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" class="pt-4" density="compact"></v-switch>
-            <v-text-field :label="$t('update check schedule (cron)')" v-model="settingsSystem.update_check.update_check_schedule" :disabled="!settingsSystem.update_check.enabled" hide-details="auto"></v-text-field>
+            <v-text-field :label="$t('update check schedule (cron)')" v-model="settingsSystem.update_check.update_check_schedule" :disabled="!settingsSystem.update_check.enabled"></v-text-field>
             <v-divider class="my-2"></v-divider>
             <span class="text-subtitle-1 font-weight-medium">{{ $t('display settings') }}</span>
-            <v-switch
-              :label="$t('powersave')"
-              color="green"
-              inset
-              v-model="settingsSystem.display.powersave"
-              :true-value="'on'"
-              :false-value="'off'"
-              class="pt-4"
-              density="compact"
-            />
+            <v-switch :label="$t('powersave')" color="green" inset v-model="settingsSystem.display.powersave" :true-value="'on'" :false-value="'off'" class="pt-4" density="compact" />
             <v-text-field :label="$t('powerdown (min)')" type="number" v-model="settingsSystem.display.powerdown"></v-text-field>
-            <v-text-field :label="$t('timeout (min)')" type="number" v-model="settingsSystem.display.timeout" hide-details="auto" class="mb-4"></v-text-field>
+            <v-text-field :label="$t('timeout (min)')" type="number" v-model="settingsSystem.display.timeout" class="mb-4"></v-text-field>
             <v-divider class="my-2"></v-divider>
             <span class="text-subtitle-1 font-weight-medium">{{ $t('notification sounds') }}</span>
             <v-switch class="pt-2" :label="$t('sound on reboot')" color="green" inset v-model="settingsSystem.notification_sound.reboot" hide-details="auto" density="compact"></v-switch>
-            <v-switch :label="$t('sound on shutdown')" color="green" inset v-model="settingsSystem.notification_sound.shutdown" hide-details="auto" density="compact"></v-switch>
-            <v-switch :label="$t('sound on startup')" color="green" inset v-model="settingsSystem.notification_sound.startup" hide-details="auto" density="compact"></v-switch>
+            <v-switch :label="$t('sound on shutdown')" color="green" inset v-model="settingsSystem.notification_sound.shutdown" density="compact" hide-details="auto"></v-switch>
+            <v-switch :label="$t('sound on startup')" color="green" inset v-model="settingsSystem.notification_sound.startup" density="compact"></v-switch>
             <v-divider class="my-2"></v-divider>
             <span class="text-subtitle-1 font-weight-medium">{{ $t('swapfile') }}</span>
-            <v-switch class="pt-2" :label="$t('enable swapfile')" color="green" inset v-model="settingsSystem.swapfile.enabled" hide-details="auto" density="compact"></v-switch>
+            <v-switch class="pt-2" :label="$t('enable swapfile')" color="green" inset v-model="settingsSystem.swapfile.enabled" density="compact"></v-switch>
             <v-text-field
               :label="$t('swapfile path')"
               v-model="settingsSystem.swapfile.path"
@@ -64,8 +59,25 @@
             ></v-text-field>
             <v-text-field :label="$t('swapfile size')" v-model="settingsSystem.swapfile.size" :disabled="!settingsSystem.swapfile.enabled"></v-text-field>
             <v-text-field :label="$t('swapfile priority')" type="number" v-model="settingsSystem.swapfile.priority" :disabled="!settingsSystem.swapfile.enabled" hide-details="auto"></v-text-field>
-            <v-switch class="pt-2" :label="$t('zswap enabled')" color="green" inset v-model="settingsSystem.swapfile.config.zswap" :disabled="!settingsSystem.swapfile.enabled" hide-details="auto" density="compact"></v-switch>
-            <v-switch class="pb-2" :label="$t('shrinker enabled')" color="green" inset v-model="settingsSystem.swapfile.config.shrinker" :disabled="!settingsSystem.swapfile.enabled" hide-details="auto" density="compact"></v-switch>
+            <v-switch
+              class="pt-2"
+              :label="$t('zswap enabled')"
+              color="green"
+              inset
+              v-model="settingsSystem.swapfile.config.zswap"
+              :disabled="!settingsSystem.swapfile.enabled"
+              hide-details="auto"
+              density="compact"
+            ></v-switch>
+            <v-switch
+              class="pb-2"
+              :label="$t('shrinker enabled')"
+              color="green"
+              inset
+              v-model="settingsSystem.swapfile.config.shrinker"
+              :disabled="!settingsSystem.swapfile.enabled"
+              density="compact"
+            ></v-switch>
             <v-text-field :label="$t('zswap max pool percent')" type="number" v-model="settingsSystem.swapfile.config.max_pool_percent" :disabled="!settingsSystem.swapfile.enabled"></v-text-field>
             <v-select
               :items="zswapAlgorithms"
@@ -80,12 +92,11 @@
               type="number"
               v-model="settingsSystem.swapfile.config.accept_threshold_percent"
               :disabled="!settingsSystem.swapfile.enabled"
-              hide-details="auto"
             ></v-text-field>
             <v-divider class="my-4"></v-divider>
             <span class="text-subtitle-1 font-weight-medium">{{ $t('binfmt') }}</span>
             <v-switch :label="$t('enable binfmt')" color="green" inset v-model="settingsSystem.binfmt.enabled" hide-details="auto" class="mb-2 mt-2" density="compact"></v-switch>
-            <v-select multiple chips :items="architectures" :label="$t('binfmt architectures')" v-model="settingsSystem.binfmt.architectures" :disabled="!settingsSystem.binfmt.enabled" hide-details="auto"></v-select>
+            <v-select multiple chips :items="architectures" :label="$t('binfmt architectures')" v-model="settingsSystem.binfmt.architectures" :disabled="!settingsSystem.binfmt.enabled"></v-select>
             <v-divider class="my-4"></v-divider>
             <span class="text-subtitle-1 font-weight-medium">{{ $t('date & time') }}</span>
             <v-text-field class="mt-4" :label="$t('currently')" :model-value="`${currentTimeDate.date} ${currentTimeDate.time}`" readonly></v-text-field>
@@ -148,6 +159,58 @@
     </v-container>
   </v-container>
 
+  <!-- Show Certificates Dialog -->
+  <v-dialog v-model="showCertificatesDialog.value" max-width="600px">
+    <v-card :title="$t('certificates')" prepend-icon="mdi-certificate">
+      <v-card-text class="py-0">
+        <div v-for="(cert, name) in showCertificatesDialog.certificates" :key="name" class="mb-4">
+          <h3 class="subtitle ma-0 mb-2">{{ name }}</h3>
+          <p class="ma-0">
+            <strong>{{ $t('subject') }}:</strong>
+            {{ cert.subject.C }}, {{ cert.subject.ST }}, {{ cert.subject.L }}, {{ cert.subject.O }}, {{ cert.subject.OU }}, {{ cert.subject.CN }}
+          </p>
+          <p class="ma-0">
+            <strong>{{ $t('issuer') }}:</strong>
+            {{ cert.issuer.C }}, {{ cert.issuer.ST }}, {{ cert.issuer.L }}, {{ cert.issuer.O }}, {{ cert.issuer.OU }}, {{ cert.issuer.CN }}
+          </p>
+          <p class="ma-0">
+            <strong>{{ $t('valid from') }}:</strong>
+            {{ cert.not_before }}
+          </p>
+          <p class="ma-0">
+            <strong>{{ $t('valid until') }}:</strong>
+            {{ cert.not_after }}
+          </p>
+          <p class="ma-0">
+            <strong>{{ $t('serial number') }}:</strong>
+            {{ cert.serial }}
+          </p>
+          <p class="ma-0">
+            <strong>{{ $t('fingerprint (sha-256)') }}:</strong>
+            {{ cert.fingerprint_sha256 }}
+          </p>
+          <p v-if="cert.san && cert.san.length" class="ma-0">
+            <strong>{{ $t('subject alternative names') }}:</strong>
+            {{ cert.san.join(', ') }}
+          </p>
+          <p class="ma-0">
+            <strong>{{ $t('days remaining') }}:</strong>
+            {{ cert.days_remaining }}
+          </p>
+          <p class="ma-0">
+            <strong>{{ $t('expired') }}:</strong>
+            {{ cert.expired ? $t('yes') : $t('no') }}
+          </p>
+        </div>
+      </v-card-text>
+      <v-divider></v-divider>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="primary" text @click="showCertificatesDialog.value = false">{{ $t('close') }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <!-- File System Navigator Dialog -->
   <fsNavigatorDialog v-model="fsDialog" :initial-path="'/mnt'" :roots="'/mnt'" select-type="directory" :title="$t('select directory')" @selected="handleFsSelected" />
 
@@ -162,7 +225,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, reactive } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
@@ -210,7 +273,7 @@ const settingsSystem = ref({
   },
   update_check: {
     enabled: true,
-    update_check_schedule: "0 1 * * *"
+    update_check_schedule: '0 1 * * *',
   },
   binfmt: {
     enabled: false,
@@ -219,9 +282,12 @@ const settingsSystem = ref({
   webui: {
     ports: {
       http: 80,
+      https: 443,
     },
+    https_enabled: false,
+    local_dns_searchname: 'local',
     listen_interfaces: [],
-  }
+  },
 });
 const listenInterfaces = ref([]);
 const zswapAlgorithms = ref([]);
@@ -240,6 +306,63 @@ const { t } = useI18n();
 const timedate = ref({
   date: '',
   time: '',
+});
+const showCertificatesDialog = reactive({
+  value: false,
+  certificates: {
+    nginx: {
+      subject: {
+        C: '',
+        ST: '',
+        L: '',
+        O: '',
+        OU: '',
+        CN: '',
+      },
+      issuer: {
+        C: '',
+        ST: '',
+        L: '',
+        O: '',
+        OU: '',
+        CN: '',
+      },
+      not_before: '',
+      not_after: '',
+      serial: '',
+      fingerprint_sha256: '',
+      san: [''],
+      days_remaining: 0,
+      expired: false,
+      file: '',
+    },
+    root_ca: {
+      subject: {
+        C: '',
+        ST: '',
+        L: '',
+        O: '',
+        OU: '',
+        CN: '',
+      },
+      issuer: {
+        C: '',
+        ST: '',
+        L: '',
+        O: '',
+        OU: '',
+        CN: '',
+      },
+      not_before: '',
+      not_after: '',
+      serial: '',
+      fingerprint_sha256: '',
+      san: null,
+      days_remaining: 0,
+      expired: false,
+      file: '',
+    },
+  },
 });
 let dateTimeInterval = null;
 
@@ -416,7 +539,7 @@ const setSystemSettings = async () => {
     if (!res.ok) {
       const errorDetails = await res.json();
       throw new Error(`${t('system settings could not be changed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }    
+    }
     if (!resProxy.ok) {
       const errorDetails = await resProxy.json();
       throw new Error(`${t('proxies could not be changed')}|$| ${errorDetails.error || t('unknown error')}`);
@@ -528,9 +651,10 @@ const getBinFmtArchitectures = async () => {
       const errorDetails = await res.json();
       throw new Error(`${t('binfmt architectures could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
     }
-    
+
     architectures.value = await res.json();
-  } catch (e) {    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
   }
 };
@@ -547,13 +671,41 @@ const getInterfaces = async () => {
       const errorDetails = await res.json();
       throw new Error(`${t('network interfaces could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
     }
-    
+
     const data = await res.json();
-    listenInterfaces.value = data.map((iface) => ( iface.name ));
-  } catch (e) {    
+    listenInterfaces.value = data.map((iface) => iface.name);
+  } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
   }
 };
 
+const getCertificates = async () => {
+  try {
+    const res = await fetch('/api/v1/mos/certificates', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('certificates could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+
+    return await res.json();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  }
+};
+
+const openShowCertificatesDialog = async () => {
+  showCertificatesDialog.value = true;
+  const certs = await getCertificates();
+  if (certs) {
+    showCertificatesDialog.certificates = certs;
+    showCertificatesDialog.value = true;
+  }
+};
 </script>

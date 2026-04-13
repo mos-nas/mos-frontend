@@ -1388,5 +1388,10 @@
   "order": "Order",
   "asc": "Ascending",
   "desc": "Descending",
-  "update plugins": "Update Plugins"
+  "update plugins": "Update Plugins",
+  "https enabled": "HTTPS enabled",
+  "local dns searchname": "Local DNS Searchname",
+  "certificates could not be loaded": "Certificates could not be loaded",
+  "show certificates": "Show Certificates",
+  "certificates": "Certificates"
 }
