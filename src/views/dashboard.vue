@@ -459,6 +459,7 @@ const getLoadWS = () => {
   padding: 8px 12px 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   border: 1px solid color-mix(in srgb, rgb(var(--v-theme-on-surface)) 15%, transparent);
+  min-height: 160px;
 }
 .card-head {
   display: flex;

@@ -24,7 +24,7 @@
     </div>
   </template>
   <template v-else>
-    <v-skeleton-loader type="article" :loading="true" class="my-2" />
+    <v-skeleton-loader type="article" :loading="true" height="160" class="my-2" />
   </template>
 </template>
 

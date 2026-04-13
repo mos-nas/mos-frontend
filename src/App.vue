@@ -12,7 +12,7 @@
     <template v-else-if="loginChecked && loggedIn && !token">
       <v-app-bar v-if="!$route.meta.hideAppBar" :color="appBarColor" app>
         <v-app-bar-nav-icon variant="text" @click.stop="toggleDrawer"></v-app-bar-nav-icon>
-        <v-img :src="logoSrc" alt="MOS Logo" max-width="50" class="ml-3 mr-3" contain />
+        <v-img :src="logoSrc" alt="MOS Logo" max-width="50" width="50" height="40" class="ml-3 mr-3" contain />
         <v-toolbar-title>{{ hostname || $t('mos') }}</v-toolbar-title>
         <v-badge :model-value="notificationsBadge" color="green" dot floating bordered location="bottom end" offset-x="18" offset-y="18">
           <v-btn icon variant="text" :aria-label="$t('notifications')" to="/notifications">

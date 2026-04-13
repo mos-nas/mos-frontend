@@ -24,7 +24,8 @@
             <v-divider class="my-2"></v-divider>
             <span class="text-subtitle-1 font-weight-medium">{{ $t('web ui') }}</span>
             <v-switch :label="$t('https enabled')" color="green" inset v-model="settingsSystem.webui.https_enabled" density="compact" class="pt-4 pb-4" hide-details="auto"></v-switch>
-            <v-btn color="green" variant="outlined" @click="openShowCertificatesDialog()" :disabled="!settingsSystem.webui.https_enabled">{{ $t('show certificates') }}</v-btn>            
+            <v-btn color="primary" variant="outlined" @click="openShowCertificatesDialog()" :disabled="!settingsSystem.webui.https_enabled">{{ $t('show certificates') }}</v-btn>
+            <v-btn color="primary" variant="outlined" class="ml-2" @click="recreateCertificates" :disabled="!settingsSystem.webui.https_enabled">{{ $t('recreate certificates') }}</v-btn>
             <v-text-field class="mt-6" :label="$t('http port')" type="number" v-model="settingsSystem.webui.ports.http"></v-text-field>
             <v-text-field :label="$t('https port')" type="number" v-model="settingsSystem.webui.ports.https"></v-text-field>
             <v-text-field :label="$t('local dns searchname')" v-model="settingsSystem.webui.local_dns_searchname" class="mb-4" hide-details="auto"></v-text-field>
@@ -697,6 +698,30 @@ const getCertificates = async () => {
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
+  }
+};
+
+const recreateCertificates = async () => {
+  overlay.value = true;
+  try {
+    const res = await fetch('/api/v1/mos/recreatecerts', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('certificates could not be recreated')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+
+    showSnackbarSuccess(t('certificates recreated successfully'));
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
   }
 };
 

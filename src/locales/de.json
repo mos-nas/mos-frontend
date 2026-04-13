@@ -1393,5 +1393,18 @@
   "local dns searchname": "Lokaler DNS Suchname",
   "certificates could not be loaded": "Zertifikate konnten nicht geladen werden",
   "show certificates": "Zertifikate anzeigen",
-  "certificates": "Zertifikate"
+  "certificates": "Zertifikate",
+  "subject": "Betreff",
+  "issuer": "Aussteller",
+  "valid from": "Gültig von",
+  "valid until": "Gültig bis",
+  "serial number": "Seriennummer",
+  "fingerprint (sha-256)": "Fingerabdruck (SHA-256)",
+  "subject alternative names": "Alternative Namen",
+  "days remaining": "Tage verbleibend",
+  "expired": "Abgelaufen",
+  "certificates could not be recreated": "Zertifikate konnten nicht neu erstellt werden",
+  "certificates recreated successfully": "Zertifikate erfolgreich neu erstellt",
+  "recreate certificates": "Zertifikate neu erstellen"
+
 }

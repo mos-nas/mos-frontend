@@ -101,7 +101,7 @@
     </v-row>
   </template>
   <template v-else>
-    <v-skeleton-loader type="article" :loading="true" />
+    <v-skeleton-loader type="article" :loading="true" height="160" />
   </template>
 </template>
 
