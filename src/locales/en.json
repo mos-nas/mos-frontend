@@ -1410,5 +1410,6 @@
   "certificate could not be downloaded": "Certificate could not be downloaded",
   "download root ca": "Download Root CA",
   "download certificate": "Download Certificate",
-  "download": "Download"
+  "download": "Download",
+  "file could not be downloaded": "File could not be downloaded"
 }

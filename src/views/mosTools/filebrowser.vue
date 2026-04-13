@@ -113,6 +113,13 @@
                 </v-btn>
               </template>
             </v-tooltip>
+            <v-tooltip :text="$t('download')" location="top">
+              <template #activator="{ props }">
+                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="!activeItem || activeItem.type === 'directory'" @click="downloadFile(activeItem.path)">
+                  <v-icon size="20">mdi-download</v-icon>
+                </v-btn>
+              </template>
+            </v-tooltip>            
             <v-divider vertical class="mx-1 align-self-center" style="height: 24px" />
             <v-tooltip :text="$t('copy')" location="top">
               <template #activator="{ props }">
@@ -125,13 +132,6 @@
               <template #activator="{ props }">
                 <v-btn v-bind="props" variant="text" color="primary" icon :disabled="!activeItem" @click="openOperationDialog(activeItem, 'move')">
                   <v-icon size="20">mdi-arrow-right-bold</v-icon>
-                </v-btn>
-              </template>
-            </v-tooltip>
-            <v-tooltip :text="$t('download')" location="top">
-              <template #activator="{ props }">
-                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="!activeItem" @click="downloadFile(activeItem.path)">
-                  <v-icon size="20">mdi-download</v-icon>
                 </v-btn>
               </template>
             </v-tooltip>
@@ -805,7 +805,7 @@ const downloadFile = async (filePath) => {
 
     if (!res.ok) {
       const error = await res.json();
-      throw new Error(`${t('certificate could not be downloaded')}|$| ${error.error || t('unknown error')}`);
+      throw new Error(`${t('file could not be downloaded')}|$| ${error.error || t('unknown error')}`);
     }
 
     const blob = await res.blob();
