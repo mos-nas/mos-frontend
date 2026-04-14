@@ -101,6 +101,7 @@
     </v-container>
   </v-container>
 
+  <!-- Create Admin Token Dialog -->
   <v-dialog v-model="createAdminTokenDialog.value" max-width="600">
     <v-card>
       <v-card-title>{{ $t('create admin api token') }}</v-card-title>
@@ -119,7 +120,7 @@
 
   <!-- Token Validation Dialog -->
   <v-dialog v-model="showValidateResult.value" max-width="600">
-    <v-card class="pa-0" :title="$t('client token validation')" :prepend-icon="mdi-key">
+    <v-card class="pa-0" :title="$t('client token validation')" prepend-icon="mdi-key">
       <v-card-text class="py-0" style="max-height: 60vh; overflow-y: auto; padding-right: 12px">
           <div>
             <h3 class="ma-0 mb-2">{{ $t('github') }}</h3>
