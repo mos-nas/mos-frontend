@@ -59,7 +59,7 @@
               ></v-select>
               <v-divider class="my-4"></v-divider>
               <div class="d-flex align-center mb-2">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('ipv4') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('ipv4') }}</span>
               </div>
               <v-row v-if="iface.ipv4.length > 0">
                 <v-col cols="12">
@@ -78,7 +78,7 @@
                 </template>
               </v-row>
               <div class="d-flex align-center mb-2 mt-4">
-                <span class="text-subtitle-1 font-weight-medium mr-4">{{ $t('ipv6') }}</span>
+                <span class="text-title-medium font-weight-medium mr-4">{{ $t('ipv6') }}</span>
               </div>
               <v-switch
                 :label="$t('enable ipv6')"
@@ -130,7 +130,7 @@
 
               <v-divider class="my-4"></v-divider>
               <div class="d-flex align-center mb-4">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('bridge') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('bridge') }}</span>
               </div>
               <v-row>
                 <v-col cols="12">
@@ -154,7 +154,7 @@
               <v-switch :label="$t('vlan filtering')" v-model="iface.vlan_filtering" inset density="compact" color="green" hide-details="auto"></v-switch>
               <v-divider class="my-2"></v-divider>
               <div class="d-flex align-center mb-2">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('ipv4') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('ipv4') }}</span>
               </div>
               <v-row v-if="iface.ipv4.length > 0">
                 <v-col cols="12">
@@ -174,7 +174,7 @@
               </v-row>
 
               <div class="d-flex align-center mb-2 mt-4">
-                <span class="text-subtitle-1 font-weight-medium mr-4">{{ $t('ipv6') }}</span>
+                <span class="text-title-medium font-weight-medium mr-4">{{ $t('ipv6') }}</span>
               </div>
               <v-switch
                 :label="$t('enable ipv6')"
@@ -207,7 +207,7 @@
             <v-divider class="my-4"></v-divider>
             <v-row>
               <v-col cols="12" class="d-flex align-center justify-space-between">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('vlan') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('vlan') }}</span>
                 <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0" @click="openVlanDialog(iface)" :title="$t('add vlan')" :aria-label="$t('add vlan')">
                   <v-icon size="18" class="mr-1">mdi-plus</v-icon>
                   {{ $t('add vlan') }}
@@ -279,7 +279,7 @@
         <v-switch :label="$t('no ip assignment')" v-model="addVlanDialog.no_ip_assignment" inset density="compact" color="green"></v-switch>
         <div v-if="!addVlanDialog.no_ip_assignment">
           <div class="d-flex align-center mb-2">
-            <span class="text-subtitle-1 font-weight-medium">{{ $t('ipv4') }}</span>
+            <span class="text-title-medium font-weight-medium">{{ $t('ipv4') }}</span>
           </div>
           <v-switch :label="$t('ipv4 dhcp')" v-model="addVlanDialog.ipv4.dhcp" inset density="compact" color="green" hide-details="auto"></v-switch>
           <template v-if="!addVlanDialog.ipv4.dhcp">
@@ -288,7 +288,7 @@
             <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="addVlanDialog.ipv4.dns" variant="outlined" hide-details="auto"></v-text-field>
           </template>
           <div class="d-flex align-center mb-2 mt-4">
-            <span class="text-subtitle-1 font-weight-medium mr-4">{{ $t('ipv6') }}</span>
+            <span class="text-title-medium font-weight-medium mr-4">{{ $t('ipv6') }}</span>
           </div>
           <v-switch
             :label="$t('enable ipv6')"

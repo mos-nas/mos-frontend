@@ -41,7 +41,7 @@
                 v-model="settingsLXC.backing_storage"
               />
               <v-divider class="my-2"></v-divider>
-              <span class="text-subtitle-1 font-weight-medium">{{ $t('backup') }}</span>
+              <span class="text-title-medium font-weight-medium">{{ $t('backup') }}</span>
               <v-text-field
                 class="mt-4"
                 :label="$t('backup path')"

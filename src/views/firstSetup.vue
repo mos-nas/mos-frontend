@@ -77,7 +77,7 @@
               inset color="green"
               @update:modelValue="setDarkMode()"
             />
-            <span class="text-subtitle-1 font-weight-medium">{{ $t('uicolor') }}</span>
+            <span class="text-title-medium font-weight-medium">{{ $t('uicolor') }}</span>
             <v-color-picker v-model="color" show-swatches hide-canvas hide-sliders hide-inputs @update:modelValue="changePrimaryColor" />
           </v-card-text>
         </v-card>

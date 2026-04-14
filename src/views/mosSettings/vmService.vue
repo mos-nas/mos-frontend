@@ -46,7 +46,7 @@
                 hide-details="auto"
               />
               <v-divider class="my-4"></v-divider>
-              <span class="text-subtitle-1 font-weight-medium">{{ $t('virtio isos') }}</span>
+              <span class="text-title-medium font-weight-medium">{{ $t('virtio isos') }}</span>
               <v-row>
                 <v-col cols="12" lg="12" md="12" sm="12">
                   <v-select

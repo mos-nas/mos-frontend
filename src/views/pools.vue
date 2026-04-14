@@ -293,7 +293,7 @@
             {{ $t('no pools have been created yet') }}
           </v-card-text>
         </v-card>
-        <div class="text-subtitle-1 font-weight-medium" style="margin-top: 20px">{{ $t('unassigned disks') }}</div>
+        <div class="text-title-medium font-weight-medium" style="margin-top: 20px">{{ $t('unassigned disks') }}</div>
         <v-card fluid style="margin-bottom: 80px" variant="outlined" rounded="lg" class="pa-0">
           <v-skeleton-loader v-if="unassignedDisksLoading" :loading="true" type="table-row@3" />
           <template v-if="unassignedDisks.length === 0 && !unassignedDisksLoading">

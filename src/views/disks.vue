@@ -231,7 +231,7 @@
             <v-chip color="orange" size="small">{{ $t('warning') }}</v-chip>
           </div>
           <v-divider class="my-4" />
-          <span class="text-subtitle-1 font-weight-medium">{{ $t('monitoring config') }}</span>
+          <span class="text-title-medium font-weight-medium">{{ $t('monitoring config') }}</span>
           <v-row class="pt-4">
             <v-col cols="12" md="6">
               <v-text-field

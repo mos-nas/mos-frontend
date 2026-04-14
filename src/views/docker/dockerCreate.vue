@@ -55,7 +55,7 @@
           <v-card-text>
             <v-row>
               <v-col cols="12" class="d-flex align-center justify-space-between">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('paths') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('paths') }}</span>
                 <v-btn
                   variant="text"
                   size="small"
@@ -131,7 +131,7 @@
             <v-divider class="my-2"></v-divider>
             <v-row>
               <v-col cols="12" class="d-flex align-center justify-space-between">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('ports') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('ports') }}</span>
                 <v-btn
                   variant="text"
                   size="small"
@@ -208,7 +208,7 @@
             <v-divider class="my-2"></v-divider>
             <v-row>
               <v-col cols="12" class="d-flex align-center justify-space-between">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('devices') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('devices') }}</span>
                 <v-btn
                   variant="text"
                   size="small"
@@ -270,7 +270,7 @@
             <v-divider class="my-2"></v-divider>
             <v-row>
               <v-col cols="12" class="d-flex align-center justify-space-between">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('variables') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('variables') }}</span>
                 <v-btn
                   variant="text"
                   size="small"
@@ -344,7 +344,7 @@
             <v-divider class="my-2"></v-divider>
             <v-row>
               <v-col cols="12" class="d-flex align-center justify-space-between">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('labels') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('labels') }}</span>
                 <v-btn
                   variant="text"
                   size="small"

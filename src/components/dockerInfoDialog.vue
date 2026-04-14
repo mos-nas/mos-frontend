@@ -8,7 +8,7 @@
         <v-row density="comfortable">
           <v-col cols="12" md="6">
             <v-sheet rounded="lg" variant="tonal" class="pa-2">
-              <div class="text-subtitle-1 font-weight-medium mb-1">{{ t('info') }}</div>
+              <div class="text-title-medium font-weight-medium mb-1">{{ t('info') }}</div>
               <v-list density="compact" class="bg-transparent pa-0">
                 <v-list-item class="px-0">
                   <template #prepend>
@@ -50,7 +50,7 @@
           </v-col>
           <v-col cols="12" md="6">
             <v-sheet rounded="lg" variant="tonal" class="pa-2">
-              <div class="text-subtitle-1 font-weight-medium mb-1">{{ t('ports') }}</div>
+              <div class="text-title-medium font-weight-medium mb-1">{{ t('ports') }}</div>
               <div v-if="portsFlat.length">
                 <v-row no-gutters>
                   <v-col cols="6">
@@ -74,7 +74,7 @@
           </v-col>
           <v-col cols="12">
             <v-sheet rounded="lg" variant="tonal" class="pa-2">
-              <div class="text-subtitle-1 font-weight-medium mb-1">{{ t('stats') }}</div>
+              <div class="text-title-medium font-weight-medium mb-1">{{ t('stats') }}</div>
               <v-row density="comfortable">
                 <v-col cols="12" md="3">
                   <div class="text-subtitle-2 font-weight-bold mb-1">{{ t('cpu') }}</div>
@@ -103,7 +103,7 @@
           </v-col>
           <v-col cols="12">
             <v-sheet rounded="lg" variant="tonal" class="pa-2">
-              <div class="text-subtitle-1 font-weight-medium mb-1">{{ t('mounts') }}</div>
+              <div class="text-title-medium font-weight-medium mb-1">{{ t('mounts') }}</div>
               <div v-if="mounts.length">
                 <v-expansion-panels variant="accordion" class="bg-transparent">
                   <v-expansion-panel v-for="(mount, idx) in mounts" :key="idx">

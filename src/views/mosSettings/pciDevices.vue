@@ -17,7 +17,7 @@
           <v-expansion-panel v-for="d in pciDevices" :key="`${d.slot}-${d.vendor_id}-${d.device_id}`">
             <v-expansion-panel-title>
               <div class="d-flex flex-column">
-                <div class="text-subtitle-1">
+                <div class="text-title-medium">
                   {{ d.name || d.class || d.slot }}
                 </div>
                 <div class="text-caption text-medium-emphasis">

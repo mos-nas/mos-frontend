@@ -39,7 +39,7 @@
               @update:modelValue="changeByteUnit()"
             />
             <v-text-field v-model="expiryDays" :label="$t('ui session expiry time (days)')" append-icon="mdi-content-save" type="number" min="1" max="365" @click:append="changeUiSessionExpiry()" />
-            <span class="text-subtitle-1 font-weight-medium">{{ $t('ui') }}</span>
+            <span class="text-title-medium font-weight-medium">{{ $t('ui') }}</span>
             <v-switch
               v-model="hideInactiveMenus"
               :label="$t('hide inactive menus')"
@@ -62,7 +62,7 @@
               density="compact"
               color="green"
             />
-            <span class="text-subtitle-1 font-weight-medium">{{ $t('color scheme') }}</span>
+            <span class="text-title-medium font-weight-medium">{{ $t('color scheme') }}</span>
             <v-color-picker v-model="color" show-swatches hide-canvas hide-sliders hide-inputs @update:modelValue="changePrimaryColor"/>
           </v-card-text>
         </v-card>

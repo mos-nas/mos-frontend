@@ -50,7 +50,7 @@
               </v-row>
               <v-text-field v-model.number="settingsDocker.start_wait" :label="$t('start wait')" type="number" min="0" hide-details="auto"></v-text-field>
               <v-divider class="my-4"></v-divider>
-              <span class="text-subtitle-1 font-weight-medium">{{ $t('update schedule') }}</span>
+              <span class="text-title-medium font-weight-medium">{{ $t('update schedule') }}</span>
               <v-row class="align-center pt-2">
                 <v-col cols="12" md="2">
                   <v-switch v-model="settingsDocker.update_check.enabled" :label="$t('update check')" inset color="green" hide-details></v-switch>

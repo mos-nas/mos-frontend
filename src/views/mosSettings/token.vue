@@ -17,7 +17,7 @@
           <v-card-text class="pt-0">
             <v-row class="mt-2">
               <v-col cols="12" class="d-flex align-center justify-space-between py-0">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('mos admin api token') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('mos admin api token') }}</span>
                 <v-btn
                   variant="text"
                   size="small"
@@ -70,7 +70,7 @@
           <v-card-text class="pt-0 pb-0">
             <v-row class="mt-2 mb-4">
               <v-col cols="12" class="d-flex align-center justify-space-between py-0">
-                <span class="text-subtitle-1 font-weight-medium">{{ $t('client token') }}</span>
+                <span class="text-title-medium font-weight-medium">{{ $t('client token') }}</span>
               </v-col>
             </v-row>
             <v-text-field
@@ -119,18 +119,17 @@
 
   <!-- Token Validation Dialog -->
   <v-dialog v-model="showValidateResult.value" max-width="600">
-    <v-card class="pa-0">
-      <v-card-title>{{ $t('client token validation') }}</v-card-title>
-      <v-card-text style="max-height: 60vh; overflow-y: auto; padding-right: 12px">
+    <v-card class="pa-0" :title="$t('client token validation')" :prepend-icon="mdi-key">
+      <v-card-text class="py-0" style="max-height: 60vh; overflow-y: auto; padding-right: 12px">
           <div>
-            <h3>{{ $t('github') }}</h3>
+            <h3 class="ma-0 mb-2">{{ $t('github') }}</h3>
             <div v-if="showValidateResult.github.configured">
-              <p>{{ $t('configured') }}: {{ showValidateResult.github.configured ? $t('yes') : $t('no') }}</p>
-              <p>{{ $t('valid') }}: {{ showValidateResult.github.valid ? $t('yes') : $t('no') }}</p>
-              <p>{{ $t('rate limit') }}: {{ showValidateResult.github.rate.limit }}</p>
-              <p>{{ $t('rate used') }}: {{ showValidateResult.github.rate.used }}</p>
-              <p>{{ $t('rate remaining') }}: {{ showValidateResult.github.rate.remaining }}</p>
-              <p>{{ $t('rate reset') }}: {{ new Date(showValidateResult.github.rate.reset * 1000).toLocaleString() }}</p>
+              <p class="ma-0">{{ $t('configured') }}: {{ showValidateResult.github.configured ? $t('yes') : $t('no') }}</p>
+              <p class="ma-0">{{ $t('valid') }}: {{ showValidateResult.github.valid ? $t('yes') : $t('no') }}</p>
+              <p class="ma-0">{{ $t('rate limit') }}: {{ showValidateResult.github.rate.limit }}</p>
+              <p class="ma-0">{{ $t('rate used') }}: {{ showValidateResult.github.rate.used }}</p>
+              <p class="ma-0">{{ $t('rate remaining') }}: {{ showValidateResult.github.rate.remaining }}</p>
+              <p class="ma-0">{{ $t('rate reset') }}: {{ new Date(showValidateResult.github.rate.reset * 1000).toLocaleString() }}</p>
             </div>
             <div v-else>
               {{ $t('github token not configured') }}
@@ -138,13 +137,13 @@
           </div>
           <v-divider class="my-4"></v-divider>
           <div>
-            <h3>{{ $t('dockerhub') }}</h3>
+            <h3 class="ma-0 mb-2">{{ $t('dockerhub') }}</h3>
             <div v-if="showValidateResult.dockerhub.configured">
-              <p>{{ $t('configured') }}: {{ showValidateResult.dockerhub.configured ? $t('yes') : $t('no') }}</p>
-              <p>{{ $t('valid') }}: {{ showValidateResult.dockerhub.valid ? $t('yes') : $t('no') }}</p>
-              <p>{{ $t('username') }}: {{ showValidateResult.dockerhub.username }}</p>
-              <p>{{ $t('rate limit') }}: {{ showValidateResult.dockerhub.rate.limit }}</p>
-              <p>{{ $t('rate remaining') }}: {{ showValidateResult.dockerhub.rate.remaining }}</p>
+              <p class="ma-0">{{ $t('configured') }}: {{ showValidateResult.dockerhub.configured ? $t('yes') : $t('no') }}</p>
+              <p class="ma-0">{{ $t('valid') }}: {{ showValidateResult.dockerhub.valid ? $t('yes') : $t('no') }}</p>
+              <p class="ma-0">{{ $t('username') }}: {{ showValidateResult.dockerhub.username }}</p>
+              <p class="ma-0">{{ $t('rate limit') }}: {{ showValidateResult.dockerhub.rate.limit }}</p>
+              <p class="ma-0">{{ $t('rate remaining') }}: {{ showValidateResult.dockerhub.rate.remaining }}</p>
             </div>
             <div v-else>
               {{ $t('dockerhub token not configured') }}

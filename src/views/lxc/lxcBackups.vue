@@ -13,7 +13,7 @@
         </v-row>
       </v-container>
       <v-container fluid class="pa-0">
-        <span class="text-subtitle-1 font-weight-medium">{{ $t('backups') }}</span>
+        <span class="text-title-medium font-weight-medium">{{ $t('backups') }}</span>
         <v-skeleton-loader v-if="backupsLoading" type="card" :loading="backupsLoading" class="mb-4" style="margin-bottom: 20px" />
         <v-card v-if="!backupsLoading && backups.length === 0" fluid class="mb-4 ml-0 mr-0 pa-0" style="margin-bottom: 20px">
           <v-card-text class="pa-4">
@@ -53,7 +53,7 @@
             </v-list>
           </v-card-text>
         </v-card>
-        <span class="text-subtitle-1 font-weight-medium">{{ $t('snapshots') }}</span>
+        <span class="text-title-medium font-weight-medium">{{ $t('snapshots') }}</span>
         <v-skeleton-loader v-if="snapshotsLoading" type="card" :loading="snapshotsLoading" class="mb-4" style="margin-bottom: 80px" />
         <v-card v-if="!snapshotsLoading && snapshots.length === 0" fluid class="mb-4 ml-0 mr-0 pa-0" style="margin-bottom: 80px">
           <v-card-text class="pa-4">

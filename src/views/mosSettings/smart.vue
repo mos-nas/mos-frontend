@@ -16,7 +16,7 @@
         <v-skeleton-loader :loading="dockerServiceLoading" type="card" class="w-100">
           <v-card fluid style="margin-bottom: 80px" class="pa-0">
             <v-card-text>
-              <span class="text-subtitle-1 font-weight-medium">{{ $t('temperature limits') }}</span>
+              <span class="text-title-medium">{{ $t('temperature limits') }}</span>
               <v-row class="pt-4">
                 <v-col cols="12" md="4">
                   <span class="text-caption">{{ $t('hdd') }}</span>
@@ -83,7 +83,7 @@
                 </v-col>
               </v-row>
               <v-divider class="my-4"></v-divider>
-              <span class="text-subtitle-1 font-weight-medium">{{ $t('default monitored attributes') }}</span>
+              <span class="text-title-medium">{{ $t('default monitored attributes') }}</span>
               <v-row class="pt-2 ga-2">
                 <v-col cols="12" sm="6">
                   <v-checkbox v-model="smartConfig.defaults.monitoredAttributes" :value="5" label="5 - Reallocated Sectors" density="compact" hide-details></v-checkbox>

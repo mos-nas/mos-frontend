@@ -18,7 +18,7 @@
               <v-expansion-panel v-for="d in usbDevices" :key="`${d.bus}-${d.device}-${d.vendor_id}-${d.product_id}`">
                 <v-expansion-panel-title>
                   <div class="d-flex flex-column">
-                    <div class="text-subtitle-1">{{ d.description }}</div>
+                    <div class="text-title-medium">{{ d.description }}</div>
                     <div class="text-caption text-medium-emphasis">{{ $t('bus') }} {{ d.bus }} · {{ $t('device') }} {{ d.device }} · {{ $t('vendor id') }} {{ d.vendor_id }} · {{ $t('product id') }} {{ d.product_id }}</div>
                   </div>
                 </v-expansion-panel-title >
