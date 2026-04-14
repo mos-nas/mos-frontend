@@ -459,7 +459,7 @@
   </v-dialog>
 
   <!-- File System Navigator Dialog -->
-  <fsNavigatorDialog v-model="fsDialog" :initial-path="'/'" select-type="directory" :title="$t('select directory')" @selected="handleFsSelected" />
+  <fsNavigatorDialog v-model="fsDialog" :initial-path="'/mnt'" :roots="'/mnt'" select-type="directory" :title="$t('select directory')" @selected="handleFsSelected" />
 
   <!-- Floating Action Button -->
   <v-fab color="primary" @click="updateDocker()" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
