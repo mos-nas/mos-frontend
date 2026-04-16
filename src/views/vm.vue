@@ -140,10 +140,9 @@
 
   <!-- Create VM Dialog -->
   <v-dialog v-model="createVmDialog" max-width="800">
-    <v-card class="pa-0">
-      <v-card-title>{{ $t('create vm') }}</v-card-title>
+    <v-card class="pa-0" :title="$t('create vm')" prepend-icon="mdi-plus">
       <v-card-text style="overflow: auto">
-        <v-text-field v-model="newVm.name" :label="$t('name')" variant="outlined" hide-details class="mb-3">
+        <v-text-field v-model="newVm.name" :label="$t('name')" variant="outlined" class="my-2" hide-details="auto">
           <template #append-inner>
             <v-menu :close-on-content-click="true" location="bottom end">
               <template #activator="{ props }">
@@ -188,12 +187,12 @@
           :max="availableSystemMemory - 4"
           thumb-label="always"
           variant="outlined"
-          class="mb-3 thumb-bottom"
+          class="mb-0 thumb-bottom"
         />
         <details>
-          <summary style="cursor: pointer; color: var(--v-theme-primary); text-decoration: underline" class="text-body-2 mb-1">{{ $t('core pinning') }}</summary>
-          <v-row v-for="(core, i) in (cpu.cores || []).filter((c) => c.isPhysical)" :key="i" density="comfortable">
-            <v-col>
+          <summary style="cursor: pointer; color: var(--v-theme-primary); text-decoration: underline" class="text-body-2 mb-0">{{ $t('core pinning') }}</summary>
+          <v-row v-for="(core, i) in (cpu.cores || []).filter((c) => c.isPhysical)" :key="i" density="comfortable" class="align-center flex-wrap ga-2" no-gutters>
+            <v-col cols="auto" class="py-0">
               <div class="core-row" style="min-width: 0; display: flex; align-items: center; gap: 6px">
                 <v-checkbox v-model="newVm.selectedCores" :name="`core-${core.number}`" :value="core.number" hide-details density="compact" />
                 <div class="core-label text-body-2">
@@ -203,7 +202,7 @@
                 </div>
               </div>
             </v-col>
-            <v-col v-for="(thread, ti) in (cpu.cores || []).filter((c) => c.isHyperThreaded && c.physicalCoreNumber === core.number)" :key="ti">
+            <v-col cols="auto" class="py-0" v-for="(thread, ti) in (cpu.cores || []).filter((c) => c.isHyperThreaded && c.physicalCoreNumber === core.number)" :key="ti">
               <div class="core-row" style="min-width: 0; display: flex; align-items: center; gap: 6px">
                 <v-checkbox v-model="newVm.selectedCores" :name="`thread-${thread.number}`" :value="thread.number" hide-details density="compact" />
                 <div class="core-label text-body-2">
@@ -230,13 +229,15 @@
         <v-divider class="my-4" />
         <!-- Disks Configuration -->
         <div class="mb-4">
-          <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('disks') }}</h3>
-            <v-spacer />
-            <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="addDisk">
-              {{ $t('Add Disk') }}
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="12" class="d-flex align-center justify-space-between">
+              <span class="text-title-medium font-weight-bold">{{ $t('disks') }}</span>
+              <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="addDisk()" title="Add" aria-label="add">
+                <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                {{ $t('add') }}
+              </v-btn>
+            </v-col>
+          </v-row>
           <v-card v-for="(disk, index) in newVm.disks" :key="index" class="mb-3 pa-3" variant="outlined">
             <div class="d-flex align-items-center mb-2">
               <span class="text-subtitle-2">{{ $t('disk') }} {{ index + 1 }}</span>
@@ -281,13 +282,15 @@
         <v-divider class="my-4" />
         <!-- CD-ROM Configuration -->
         <div class="mb-4">
-          <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('CD-ROM') }}</h3>
-            <v-spacer />
-            <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="addCdrom">
-              {{ $t('Add CD-ROM') }}
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="12" class="d-flex align-center justify-space-between">
+              <span class="text-title-medium font-weight-bold">{{ $t('CD-ROM') }}</span>
+              <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="addCdrom()" title="Add" aria-label="add">
+                <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                {{ $t('add') }}
+              </v-btn>
+            </v-col>
+          </v-row>
           <v-card v-for="(cdrom, index) in newVm.cdroms" :key="index" class="mb-3 pa-3" variant="outlined">
             <div class="d-flex align-items-center mb-2">
               <span class="text-subtitle-2">{{ $t('CD-ROM') }} {{ index + 1 }}</span>
@@ -327,14 +330,14 @@
         <!-- VirtIO ISO Configuration -->
         <div class="mb-4">
           <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('VirtIO Drivers') }}</h3>
+            <span class="text-title-medium font-weight-bold">{{ $t('virtio drivers') }}</span>
           </div>
           <v-select
             v-model="newVm.virtioIso"
             :items="virtioIsoOptions"
             item-title="title"
             item-value="value"
-            :label="$t('VirtIO ISO')"
+            :label="$t('virtio iso')"
             variant="outlined"
             density="compact"
             clearable
@@ -349,13 +352,15 @@
 
         <!-- Networks Configuration -->
         <div class="mb-4">
-          <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('network adapter') }}</h3>
-            <v-spacer />
-            <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="addNetwork">
-              {{ $t('Add adapter') }}
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="12" class="d-flex align-center justify-space-between">
+              <span class="text-title-medium font-weight-bold">{{ $t('network adapter') }}</span>
+              <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="addNetwork()" title="Add" aria-label="add">
+                <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                {{ $t('add') }}
+              </v-btn>
+            </v-col>
+          </v-row>
           <v-card v-for="(network, index) in newVm.networks" :key="index" class="mb-3 pa-3" variant="outlined">
             <div class="d-flex align-items-center mb-2">
               <span class="text-subtitle-2">{{ $t('network') }} {{ index + 1 }}</span>
@@ -382,7 +387,7 @@
 
         <!-- Graphics Configuration -->
         <div class="mb-4">
-          <h3 class="text-h6 mb-2">{{ $t('graphics') }}</h3>
+          <span class="text-title-medium font-weight-bold">{{ $t('graphics') }}</span>
           <v-card class="pa-3" variant="outlined">
             <v-row density="comfortable">
               <v-col cols="12" md="3">
@@ -404,16 +409,18 @@
 
         <!-- Host Devices Configuration -->
         <div class="mb-4">
-          <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('Host Devices') }}</h3>
-            <v-spacer />
-            <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="addHostDevice">
-              {{ $t('Add Host Device') }}
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="12" class="d-flex align-center justify-space-between">
+              <span class="text-title-medium font-weight-bold">{{ $t('host devices') }}</span>
+              <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="addHostDevice()" title="Add" aria-label="add">
+                <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                {{ $t('add') }}
+              </v-btn>
+            </v-col>
+          </v-row>
           <v-card v-for="(hostdevice, index) in newVm.hostdevices" :key="index" class="mb-3 pa-3" variant="outlined">
             <div class="d-flex align-items-center mb-2">
-              <span class="text-subtitle-2">{{ $t('Host Device') }} {{ index + 1 }}</span>
+              <span class="text-subtitle-2">{{ $t('host devices') }} {{ index + 1 }}</span>
               <v-spacer />
               <v-btn size="x-small" icon="mdi-delete" variant="text" color="error" @click="removeHostDevice(index)" />
             </div>
@@ -436,16 +443,18 @@
 
         <!-- USB Devices Configuration -->
         <div class="mb-4">
-          <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('USB Devices') }}</h3>
-            <v-spacer />
-            <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="addUsbDevice">
-              {{ $t('Add USB Device') }}
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="12" class="d-flex align-center justify-space-between">
+              <span class="text-title-medium font-weight-bold">{{ $t('usb devices') }}</span>
+              <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="addUsbDevice()" title="Add" aria-label="add">
+                <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                {{ $t('add') }}
+              </v-btn>
+            </v-col>
+          </v-row>
           <v-card v-for="(usbdevice, index) in newVm.usbdevices" :key="index" class="mb-3 pa-3" variant="outlined">
             <div class="d-flex align-items-center mb-2">
-              <span class="text-subtitle-2">{{ $t('USB Device') }} {{ index + 1 }}</span>
+              <span class="text-subtitle-2">{{ $t('usb devices') }} {{ index + 1 }}</span>
               <v-spacer />
               <v-btn size="x-small" icon="mdi-delete" variant="text" color="error" @click="removeUsbDevice(index)" />
             </div>
@@ -467,21 +476,20 @@
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="createVmDialog = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="primary" @click="createVM()">{{ $t('create') }}</v-btn>
+        <v-btn color="onPrimary" @click="createVmDialog = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="onPrimary" @click="createVM()">{{ $t('create') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <!-- Edit VM Dialog -->
   <v-dialog v-model="editVmDialog" max-width="800">
-    <v-card class="pa-0">
-      <v-card-title>{{ $t('edit vm') }}</v-card-title>
+    <v-card class="pa-0" :title="$t('edit vm')" prepend-icon="mdi-pencil">
       <v-card-text style="overflow: auto">
         <v-alert type="warning" variant="tonal" density="compact" class="mb-4">
           {{ $t('Custom XML changes will be overwritten by this dialog') }}
         </v-alert>
-        <v-text-field v-model="editedVm.name" :label="$t('name')" variant="outlined" hide-details class="mb-3" readonly>
+        <v-text-field v-model="editedVm.name" :label="$t('name')" variant="outlined" class="my-2" hide-details="auto" readonly>
           <template #append-inner>
             <v-menu :close-on-content-click="true" location="bottom end">
               <template #activator="{ props }">
@@ -526,12 +534,12 @@
           :max="availableSystemMemory - 4"
           thumb-label="always"
           variant="outlined"
-          class="mb-3 thumb-bottom"
+          class="mb-0 thumb-bottom"
         />
         <details>
-          <summary style="cursor: pointer; color: var(--v-theme-primary); text-decoration: underline" class="text-body-2 mb-1">{{ $t('core pinning') }}</summary>
-          <v-row v-for="(core, i) in (cpu.cores || []).filter((c) => c.isPhysical)" :key="i" density="comfortable">
-            <v-col>
+          <summary style="cursor: pointer; color: var(--v-theme-primary); text-decoration: underline" class="text-body-2 mb-0">{{ $t('core pinning') }}</summary>
+          <v-row v-for="(core, i) in (cpu.cores || []).filter((c) => c.isPhysical)" :key="i" density="comfortable" class="align-center flex-wrap ga-2" no-gutters>
+            <v-col cols="auto" class="py-0">
               <div class="core-row" style="min-width: 0; display: flex; align-items: center; gap: 6px">
                 <v-checkbox v-model="editedVm.selectedCores" :name="`core-${core.number}`" :value="core.number" hide-details density="compact" />
                 <div class="core-label text-body-2">
@@ -541,7 +549,7 @@
                 </div>
               </div>
             </v-col>
-            <v-col v-for="(thread, ti) in (cpu.cores || []).filter((c) => c.isHyperThreaded && c.physicalCoreNumber === core.number)" :key="ti">
+            <v-col cols="auto" class="py-0" v-for="(thread, ti) in (cpu.cores || []).filter((c) => c.isHyperThreaded && c.physicalCoreNumber === core.number)" :key="ti">
               <div class="core-row" style="min-width: 0; display: flex; align-items: center; gap: 6px">
                 <v-checkbox v-model="editedVm.selectedCores" :name="`thread-${thread.number}`" :value="thread.number" hide-details density="compact" />
                 <div class="core-label text-body-2">
@@ -568,13 +576,15 @@
         <v-divider class="my-4" />
         <!-- Disks Configuration -->
         <div class="mb-4">
-          <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('disks') }}</h3>
-            <v-spacer />
-            <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="addDiskEdit">
-              {{ $t('Add Disk') }}
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="12" class="d-flex align-center justify-space-between">
+              <span class="text-title-medium font-weight-bold">{{ $t('disks') }}</span>
+              <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="addDiskEdit" title="Add" aria-label="add">
+                <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                {{ $t('add') }}
+              </v-btn>
+            </v-col>
+          </v-row>
           <v-card v-for="(disk, index) in editedVm.disks" :key="index" class="mb-3 pa-3" variant="outlined">
             <div class="d-flex align-items-center mb-2">
               <span class="text-subtitle-2">{{ $t('disk') }} {{ index + 1 }}</span>
@@ -618,13 +628,15 @@
         <v-divider class="my-4" />
         <!-- CD-ROM Configuration -->
         <div class="mb-4">
-          <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('CD-ROM') }}</h3>
-            <v-spacer />
-            <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="addCdromEdit">
-              {{ $t('Add CD-ROM') }}
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="12" class="d-flex align-center justify-space-between">
+              <span class="text-title-medium font-weight-bold">{{ $t('CD-ROM') }}</span>
+              <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="addCdromEdit" title="Add" aria-label="add">
+                <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                {{ $t('add') }}
+              </v-btn>
+            </v-col>
+          </v-row>
           <v-card v-for="(cdrom, index) in editedVm.cdroms" :key="index" class="mb-3 pa-3" variant="outlined">
             <div class="d-flex align-items-center mb-2">
               <span class="text-subtitle-2">{{ $t('CD-ROM') }} {{ index + 1 }}</span>
@@ -664,31 +676,37 @@
         <!-- VirtIO ISO Configuration -->
         <div class="mb-4">
           <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('VirtIO Drivers') }}</h3>
+            <span class="text-title-medium font-weight-bold">{{ $t('virtio drivers') }}</span>
           </div>
           <v-select
             v-model="editedVm.virtioIso"
             :items="virtioIsoOptions"
             item-title="title"
             item-value="value"
-            :label="$t('VirtIO ISO')"
+            :label="$t('virtio iso')"
             variant="outlined"
             density="compact"
             clearable
             hide-details
+            append-icon="mdi-download"
+            @click:append="downloadVirtioIso()"
+            append-inner-icon="mdi-refresh"
+            @click:append-inner="getVmCapabilities()"
           />
         </div>
         <v-divider class="my-4" />
 
         <!-- Networks Configuration -->
         <div class="mb-4">
-          <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('network adapter') }}</h3>
-            <v-spacer />
-            <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="addNetworkEdit">
-              {{ $t('Add adapter') }}
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="12" class="d-flex align-center justify-space-between">
+              <span class="text-title-medium font-weight-bold">{{ $t('network adapter') }}</span>
+              <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="addNetworkEdit" title="Add" aria-label="add">
+                <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                {{ $t('add') }}
+              </v-btn>
+            </v-col>
+          </v-row>
           <v-card v-for="(network, index) in editedVm.networks" :key="index" class="mb-3 pa-3" variant="outlined">
             <div class="d-flex align-items-center mb-2">
               <span class="text-subtitle-2">{{ $t('network') }} {{ index + 1 }}</span>
@@ -715,7 +733,7 @@
 
         <!-- Graphics Configuration -->
         <div class="mb-4">
-          <h3 class="text-h6 mb-2">{{ $t('graphics') }}</h3>
+          <span class="text-title-medium font-weight-bold">{{ $t('graphics') }}</span>
           <v-card class="pa-3" variant="outlined">
             <v-row density="comfortable">
               <v-col cols="12" md="3">
@@ -737,13 +755,15 @@
 
         <!-- Host Devices Configuration -->
         <div class="mb-4">
-          <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('Host Devices') }}</h3>
-            <v-spacer />
-            <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="addHostDeviceEdit">
-              {{ $t('Add Host Device') }}
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="12" class="d-flex align-center justify-space-between">
+              <span class="text-title-medium font-weight-bold">{{ $t('host devices') }}</span>
+              <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="addHostDeviceEdit" title="Add" aria-label="add">
+                <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                {{ $t('add') }}
+              </v-btn>
+            </v-col>
+          </v-row>
           <v-card v-for="(hostdevice, index) in editedVm.hostdevices" :key="index" class="mb-3 pa-3" variant="outlined">
             <div class="d-flex align-items-center mb-2">
               <span class="text-subtitle-2">{{ $t('Host Device') }} {{ index + 1 }}</span>
@@ -769,13 +789,15 @@
 
         <!-- USB Devices Configuration -->
         <div class="mb-4">
-          <div class="d-flex align-items-center mb-2">
-            <h3 class="text-h6">{{ $t('USB Devices') }}</h3>
-            <v-spacer />
-            <v-btn size="small" color="primary" prepend-icon="mdi-plus" @click="addUsbDeviceEdit">
-              {{ $t('Add USB Device') }}
-            </v-btn>
-          </div>
+          <v-row>
+            <v-col cols="12" class="d-flex align-center justify-space-between">
+              <span class="text-title-medium font-weight-bold">{{ $t('usb devices') }}</span>
+              <v-btn variant="text" size="small" color="green" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="addUsbDeviceEdit" title="Add" aria-label="add">
+                <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                {{ $t('add') }}
+              </v-btn>
+            </v-col>
+          </v-row>
           <v-card v-for="(usbdevice, index) in editedVm.usbdevices" :key="index" class="mb-3 pa-3" variant="outlined">
             <div class="d-flex align-items-center mb-2">
               <span class="text-subtitle-2">{{ $t('USB Device') }} {{ index + 1 }}</span>
@@ -800,8 +822,8 @@
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="editVmDialog = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="primary" @click="editVM()">{{ $t('save changes') }}</v-btn>
+        <v-btn color="onPrimary" @click="editVmDialog = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="onPrimary" @click="editVM()">{{ $t('save changes') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -1811,7 +1833,6 @@ const openCreateVmDialog = async () => {
 
   createVmDialog.value = true;
 };
-
 const openEditVmDialog = async (name) => {
   try {
     const res = await fetch(`/api/v1/vm/machines/${name}/config`, {

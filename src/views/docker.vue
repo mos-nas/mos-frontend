@@ -74,7 +74,7 @@
                         </template>
 
                         <v-list v-if="group.compose">
-                          <v-list-item v-if="group.webui" @click="showComposeWebui(group)">
+                          <v-list-item v-if="group.webui && group.running" @click="showComposeWebui(group)">
                             <template #prepend>
                               <v-icon>mdi-web</v-icon>
                             </template>
