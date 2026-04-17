@@ -119,7 +119,14 @@
                   <v-icon size="20">mdi-download</v-icon>
                 </v-btn>
               </template>
-            </v-tooltip>            
+            </v-tooltip>
+            <v-tooltip :text="$t('upload')" location="top">
+              <template #activator="{ props }">
+                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="loading" @click="openUploadPicker()">
+                  <v-icon size="20">mdi-upload</v-icon>
+                </v-btn>
+              </template>
+            </v-tooltip>               
             <v-divider vertical class="mx-1 align-self-center" style="height: 24px" />
             <v-tooltip :text="$t('copy')" location="top">
               <template #activator="{ props }">
@@ -153,6 +160,8 @@
             <v-spacer />
               <v-checkbox v-model="includeHiddenFiles" :label="$t('hidden files')" :disabled="loading" hide-details="auto" density="compact" @update:modelValue="loadPath(currentPath)" />
           </v-card-actions>
+
+          <input ref="uploadInput" class="d-none" type="file" @change="onUploadPicked" />
         </v-card>
       </v-container>
     </v-container>
@@ -399,6 +408,7 @@ const overlay = ref(false);
 const editFileDialogVisible = ref(false);
 const fsDialog = ref(false);
 const fsDialogCallback = ref(null);
+const uploadInput = ref(null);
 const selectedFilePath = ref('');
 const runningProcesses = ref(0);
 const allOperationsDialogVisible = ref(false);
@@ -826,6 +836,60 @@ const downloadFile = async (filePath) => {
   }
 };
 
+const openUploadPicker = () => {
+  if (loading.value) return;
+  uploadInput.value?.click?.();
+};
+
+const onUploadPicked = async (e) => {
+  const input = e?.target;
+  const file = input?.files?.[0];
+  if (!file) return;
+  await uploadFile(file, currentPath.value);
+  if (input) input.value = '';
+};
+
+const uploadFile = async (file, path = currentPath.value) => {
+  if (!file) {
+    showSnackbarError(t('file cannot be empty'));
+    return;
+  }
+  if (!path || path.trim() === '') {
+    showSnackbarError(t('path cannot be empty'));
+    return;
+  }
+
+  try {
+    overlay.value = true;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('path', path);
+
+    const res = await fetch('/api/v1/mos/upload', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json().catch(() => ({}));
+      throw new Error(`${t('file could not be uploaded')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+
+    const result = await res.json().catch(() => null);
+    showSnackbarSuccess(t('file uploaded successfully'));
+    reload();
+    return result;
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = String(e?.message || e).split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
 
 const isSelectable = (item) => {
   if (!item) return false;

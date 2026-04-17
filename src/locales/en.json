@@ -1412,7 +1412,11 @@
   "download root certificate": "Download Root Certificate",
   "download certificate": "Download Certificate",
   "download": "Download",
+  "upload": "Upload",
   "file could not be downloaded": "File could not be downloaded",
+  "file could not be uploaded": "File could not be uploaded",
+  "file uploaded successfully": "File uploaded successfully",
+  "file cannot be empty": "File cannot be empty",
   "are you sure you want to recreate the certificates": "Are you sure you want to recreate the certificates",
   "recreate": "Recreate"
 }
