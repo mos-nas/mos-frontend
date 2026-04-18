@@ -1418,5 +1418,6 @@
   "file uploaded successfully": "File uploaded successfully",
   "file cannot be empty": "File cannot be empty",
   "are you sure you want to recreate the certificates": "Are you sure you want to recreate the certificates",
-  "recreate": "Recreate"
+  "recreate": "Recreate",
+  "page entries": "Page entries"
 }

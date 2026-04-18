@@ -18,7 +18,46 @@
             <v-card-text>
               <v-switch :label="$t('mos hub')" color="green" inset density="compact" v-model="settingsMosHub.enabled" hide-details="auto"></v-switch>
               <v-switch :label="$t('initial update')" color="green" inset density="compact" v-model="settingsMosHub.initial_update"></v-switch>
-              <v-text-field :label="$t('update schedule')" v-model="settingsMosHub.schedule" hide-details="auto"></v-text-field>
+              <v-text-field :label="$t('update schedule')" v-model="settingsMosHub.schedule"></v-text-field>
+              <v-text-field :label="$t('page entries')" v-model="settingsMosHub.page_entries" type="number" hide-details="auto"></v-text-field>
+              <v-divider class="my-4"></v-divider>
+              <span class="text-title-medium font-weight-medium">{{ $t('update schedule') }}</span>
+              <v-row class="align-center pt-2">
+                <v-col cols="12" md="2">
+                  <v-switch v-model="settingsMosHub.update_check.enabled" :label="$t('update check')" inset color="green" hide-details></v-switch>
+                </v-col>
+                <v-col cols="12" md="10">
+                  <v-text-field
+                    v-model="settingsMosHub.update_check.update_check_schedule"
+                    :label="$t('update check schedule')"
+                    :disabled="!settingsMosHub.update_check.enabled"
+                    density="comfortable"
+                    hide-details="auto"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row class="align-center mt-4">
+                <v-col cols="12" md="2">
+                  <v-switch
+                    v-model="settingsMosHub.update_check.auto_update.enabled"
+                    :label="$t('auto update')"
+                    inset
+                    density="compact"
+                    :disabled="!settingsMosHub.update_check.enabled"
+                    color="green"
+                    hide-details="auto"
+                  ></v-switch>
+                </v-col>
+                <v-col cols="12" md="10">
+                  <v-text-field
+                    v-model="settingsMosHub.update_check.auto_update.auto_update_schedule"
+                    :label="$t('auto update schedule')"
+                    :disabled="!settingsMosHub.update_check.enabled || !settingsMosHub.update_check.auto_update.enabled"
+                    density="comfortable"
+                    hide-details="auto"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
             </v-card-text>
           </v-card>
         </v-skeleton-loader>
@@ -46,6 +85,15 @@ const settingsMosHub = ref({
   enabled: false,
   initial_update: false,
   schedule: '',
+  page_entries: 24,
+  update_check: {
+    enabled: false,
+    update_check_schedule: '10 1 * * *',
+    auto_update: {
+      enabled: false,
+      auto_update_schedule: '10 2 * * *',
+    }
+  },
 });
 const overlay = ref(false);
 const { t } = useI18n();

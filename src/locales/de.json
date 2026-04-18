@@ -1418,5 +1418,6 @@
   "file uploaded successfully": "Datei erfolgreich hochgeladen",
   "file cannot be empty": "Datei darf nicht leer sein",
   "are you sure you want to recreate the certificates": "Bist du sicher, dass du die Zertifikate neu erstellen möchtest",
-  "recreate": "Neu erstellen"
+  "recreate": "Neu erstellen",
+  "page entries": "Seiteneinträge"
 }
