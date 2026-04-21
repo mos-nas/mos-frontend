@@ -113,14 +113,11 @@
                       <v-chip v-if="p.status?.mounted" size="x-small" color="green" label class="ml-2">
                         {{ $t('mounted') }}
                       </v-chip>
+                      <v-chip v-if="disk.powerStatus === 'standby'" size="x-small" color="blue" label class="ml-2">
+                        {{ $t('sleep') }}
+                      </v-chip>
                     </div>
                   </template>
-                  <span v-else>
-                    —
-                    <v-chip v-if="disk.powerStatus === 'standby'" size="x-small" color="blue" label class="ml-2">
-                      {{ $t('sleep') }}
-                    </v-chip>
-                  </span>
                 </td>
                 <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">
                   <v-chip size="small" label>{{ disk.type?.toUpperCase() }}</v-chip>
@@ -234,24 +231,10 @@
           <span class="text-title-medium font-weight-medium">{{ $t('monitoring config') }}</span>
           <v-row class="pt-4">
             <v-col cols="12" md="6">
-              <v-text-field
-                v-model.number="smartDialog.smartDiskConfig.temperatureWarning"
-                :label="$t('temperature warning')"
-                type="number"
-                density="compact"
-                hide-details="auto"
-                suffix="°C"
-              />
+              <v-text-field v-model.number="smartDialog.smartDiskConfig.temperatureWarning" :label="$t('temperature warning')" type="number" density="compact" hide-details="auto" suffix="°C" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-text-field
-                v-model.number="smartDialog.smartDiskConfig.temperatureCritical"
-                :label="$t('temperature critical')"
-                type="number"
-                density="compact"
-                hide-details="auto"
-                suffix="°C"
-              />
+              <v-text-field v-model.number="smartDialog.smartDiskConfig.temperatureCritical" :label="$t('temperature critical')" type="number" density="compact" hide-details="auto" suffix="°C" />
             </v-col>
           </v-row>
           <v-row class="pt-0 mt-4 ga-1">
