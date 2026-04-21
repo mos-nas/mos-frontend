@@ -1421,5 +1421,6 @@
   "recreate": "Recreate",
   "page entries": "Page entries",
   "plugin update schedule": "Plugin Update Schedule",
-  "it may be necessary to manually restart network services such as docker, vm, or lxc": "It may be necessary to manually restart network services such as Docker, VM, or LXC"
+  "it may be necessary to manually restart network services such as docker, vm, or lxc": "It may be necessary to manually restart network services such as Docker, VM, or LXC",
+  "cidr": "CIDR"
 }

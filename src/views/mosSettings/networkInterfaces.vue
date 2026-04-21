@@ -67,7 +67,10 @@
                 </v-col>
                 <template v-if="!iface.ipv4[0].dhcp">
                   <v-col cols="12" md="6">
+                    <v-row>
                     <v-text-field :label="$t('ipv4 address')" v-model="iface.ipv4[0].address" variant="outlined" hide-details="auto"></v-text-field>
+                    <v-text-field :label="$t('cidr')" v-model="iface.ipv4[0].cidr" variant="outlined" hide-details="auto" class="ml-0" style="max-width: 120px; margin-top: 0" min="0" max="32" type="number"></v-text-field>
+                    </v-row>
                   </v-col>
                   <v-col cols="12" md="6">
                     <v-text-field :label="$t('ipv4 gateway')" v-model="iface.ipv4[0].gateway" variant="outlined" hide-details="auto"></v-text-field>
@@ -162,8 +165,11 @@
                 </v-col>
                 <template v-if="!iface.ipv4[0].dhcp">
                   <v-col cols="12" md="6">
+                    <v-row>
                     <v-text-field :label="$t('ipv4 address')" v-model="iface.ipv4[0].address" variant="outlined" hide-details="auto"></v-text-field>
-                  </v-col>
+                    <v-text-field :label="$t('cidr')" v-model="iface.ipv4[0].cidr" variant="outlined" hide-details="auto" class="ml-0" style="max-width: 120px; margin-top: 0" min="0" max="32" type="number"></v-text-field>
+                    </v-row>
+                  </v-col>                  
                   <v-col cols="12" md="6">
                     <v-text-field :label="$t('ipv4 gateway')" v-model="iface.ipv4[0].gateway" variant="outlined" hide-details="auto"></v-text-field>
                   </v-col>
@@ -281,11 +287,16 @@
           <div class="d-flex align-center mb-2">
             <span class="text-title-medium font-weight-medium">{{ $t('ipv4') }}</span>
           </div>
-          <v-switch :label="$t('ipv4 dhcp')" v-model="addVlanDialog.ipv4.dhcp" inset density="compact" color="green" hide-details="auto"></v-switch>
+          <v-switch :label="$t('ipv4 dhcp')" v-model="addVlanDialog.ipv4.dhcp" inset density="compact" color="green"></v-switch>
           <template v-if="!addVlanDialog.ipv4.dhcp">
-            <v-text-field :label="$t('ipv4 address')" v-model="addVlanDialog.ipv4.address" variant="outlined" class="pt-2"></v-text-field>
-            <v-text-field :label="$t('ipv4 gateway')" v-model="addVlanDialog.ipv4.gateway" variant="outlined"></v-text-field>
-            <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="addVlanDialog.ipv4.dns" variant="outlined" hide-details="auto"></v-text-field>
+                <v-row>
+                  <v-text-field :label="$t('ipv4 address')" v-model="addVlanDialog.ipv4.address" variant="outlined"></v-text-field>
+                  <v-text-field :label="$t('cidr')" v-model="addVlanDialog.ipv4.cidr" variant="outlined" class="ml-0" style="max-width: 120px; margin-top: 0" min="0" max="32" type="number"></v-text-field>
+                </v-row>
+              <v-col cols="12" md="6" class="pb-0">
+                <v-text-field :label="$t('ipv4 gateway')" v-model="addVlanDialog.ipv4.gateway" variant="outlined"></v-text-field>
+              </v-col>
+            <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="addVlanDialog.ipv4.dns" variant="outlined"></v-text-field>
           </template>
           <div class="d-flex align-center mb-2 mt-4">
             <span class="text-title-medium font-weight-medium mr-4">{{ $t('ipv6') }}</span>
@@ -395,6 +406,7 @@ const addVlanDialog = reactive({
     address: '',
     gateway: '',
     dns: '',
+    cidr: '',
   },
   ipv6: null,
 });
@@ -451,9 +463,14 @@ const getNetworkSettings = async () => {
 
     settingsNetwork.value = await res.json();
     settingsNetwork.value.interfaces.forEach((iface) => {
-      if (!iface.ipv4 || iface.ipv4.length === 0) iface.ipv4 = [{ dhcp: false, address: null, gateway: null, dns: [] }];
+      if (!iface.ipv4 || iface.ipv4.length === 0) iface.ipv4 = [{ dhcp: false, address: null, cidr: null, gateway: null, dns: [] }];
+      if (iface.ipv4[0] && iface.ipv4[0].cidr === undefined) iface.ipv4[0].cidr = null;
       if (!iface.ipv6) iface.ipv6 = [];
       if (!iface.vlans) iface.vlans = [];
+
+      iface.vlans.forEach((vlan) => {
+        if (vlan.ipv4 && vlan.ipv4.length > 0 && vlan.ipv4[0] && vlan.ipv4[0].cidr === undefined) vlan.ipv4[0].cidr = null;
+      });
     });
     if (settingsNetwork.value.pending_changes) {
       opensettingsNetworkCountdownDialog(settingsNetwork.value);
@@ -558,6 +575,7 @@ const changeInterfaceType = (iface) => {
           {
             dhcp: true,
             address: null,
+            cidr: null,
             gateway: null,
             dns: [],
           },
@@ -627,6 +645,7 @@ const openVlanDialog = (iface) => {
   addVlanDialog.ipv4 = {
     dhcp: true,
     address: '',
+    cidr: '',
     gateway: '',
     dns: '',
   };
@@ -650,29 +669,34 @@ const addVlanToInterfaces = () => {
     mtu: addVlanDialog.mtu,
   };
   if (!addVlanDialog.no_ip_assignment) {
-    newVlan.ipv4 = {
-      dhcp: addVlanDialog.ipv4.dhcp,
-      address: addVlanDialog.ipv4.address,
-      gateway: addVlanDialog.ipv4.gateway,
-      dns: addVlanDialog.ipv4.dns
-        ? addVlanDialog.ipv4.dns
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : [],
-    };
-    if (addVlanDialog.ipv6) {
-      newVlan.ipv6 = {
-        dhcp: addVlanDialog.ipv6.dhcp,
-        address: addVlanDialog.ipv6.address,
-        gateway: addVlanDialog.ipv6.gateway,
-        dns: addVlanDialog.ipv6.dns
-          ? addVlanDialog.ipv6.dns
+    newVlan.ipv4 = [
+      {
+        dhcp: addVlanDialog.ipv4.dhcp,
+        address: addVlanDialog.ipv4.address,
+        cidr: addVlanDialog.ipv4.cidr,
+        gateway: addVlanDialog.ipv4.gateway,
+        dns: addVlanDialog.ipv4.dns
+          ? addVlanDialog.ipv4.dns
               .split(',')
               .map((s) => s.trim())
               .filter(Boolean)
           : [],
-      };
+      },
+    ];
+    if (addVlanDialog.ipv6) {
+      newVlan.ipv6 = [
+        {
+          dhcp: addVlanDialog.ipv6.dhcp,
+          address: addVlanDialog.ipv6.address,
+          gateway: addVlanDialog.ipv6.gateway,
+          dns: addVlanDialog.ipv6.dns
+            ? addVlanDialog.ipv6.dns
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : [],
+        },
+      ];
     }
   } else {
     newVlan.ipv4 = [{}];
