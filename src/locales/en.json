@@ -632,8 +632,8 @@
   "failed to fetch drivers": "Failed to fetch drivers",
   "drivers": "Drivers",
   "no drivers installed": "No drivers installed",
-  "failed to remove drivers": "Failed to remove drivers",
-  "drivers removed successfully": "Drivers removed successfully",
+  "failed to remove driver": "Failed to remove driver",
+  "driver removed successfully": "Driver removed successfully",
   "failed to fetch installed drivers": "Failed to fetch installed drivers",
   "network interfaces": "Network Interfaces",
   "docker start parameters": "Docker Start Parameters",
@@ -1423,5 +1423,7 @@
   "plugin update schedule": "Plugin Update Schedule",
   "it may be necessary to manually restart network services such as docker, vm, or lxc": "It may be necessary to manually restart network services such as Docker, VM, or LXC",
   "cidr": "CIDR",
-  "select file or directory": "Select file or directory"
+  "select file or directory": "Select file or directory",
+  "set schedule": "Set schedule",
+  "apply": "Apply"
 }

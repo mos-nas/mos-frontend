@@ -18,7 +18,12 @@
             <v-card-text>
               <v-switch :label="$t('mos hub')" color="green" inset density="compact" v-model="settingsMosHub.enabled" hide-details="auto"></v-switch>
               <v-switch :label="$t('initial update')" color="green" inset density="compact" v-model="settingsMosHub.initial_update"></v-switch>
-              <v-text-field :label="$t('update schedule')" v-model="settingsMosHub.schedule"></v-text-field>
+              <v-text-field
+                :label="$t('update schedule')"
+                v-model="settingsMosHub.schedule"
+                append-inner-icon="mdi-calendar-clock"
+                @click:append-inner="openCronDialog(settingsMosHub.schedule, (schedule) => (settingsMosHub.schedule = schedule))"
+              ></v-text-field>
               <v-text-field :label="$t('page entries')" v-model="settingsMosHub.page_entries" type="number" hide-details="auto"></v-text-field>
               <v-divider class="my-4"></v-divider>
               <span class="text-title-medium font-weight-medium">{{ $t('plugin update schedule') }}</span>
@@ -33,6 +38,8 @@
                     :disabled="!settingsMosHub.update_check.enabled"
                     density="comfortable"
                     hide-details="auto"
+                    append-inner-icon="mdi-calendar-clock"
+                    @click:append-inner="openCronDialog(settingsMosHub.update_check.update_check_schedule, (schedule) => (settingsMosHub.update_check.update_check_schedule = schedule))"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -55,6 +62,8 @@
                     :disabled="!settingsMosHub.update_check.enabled || !settingsMosHub.update_check.auto_update.enabled"
                     density="comfortable"
                     hide-details="auto"
+                    append-inner-icon="mdi-calendar-clock"
+                    @click:append-inner="openCronDialog(settingsMosHub.update_check.auto_update.auto_update_schedule, (schedule) => (settingsMosHub.update_check.auto_update.auto_update_schedule = schedule))"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -64,6 +73,8 @@
       </v-container>
     </v-container>
   </v-container>
+
+  <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialog.schedule" @apply="applyCronSchedule" @cancel="resetCronDialog" />
 
   <!-- Floating Action Button -->
   <v-fab @click="setMosHubSettings()" color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
@@ -76,11 +87,17 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, reactive, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
+const cronDialogApplyCallback = ref(null);
+const cronDialog = reactive({
+  value: false,
+  schedule: '* * * * *',
+});
 const settingsMosHub = ref({
   enabled: false,
   initial_update: false,
@@ -102,6 +119,32 @@ const mosHubLoading = ref(true);
 onMounted(() => {
   getMosHubSettings();
 });
+
+const resetCronDialog = () => {
+  cronDialogApplyCallback.value = null;
+};
+
+const openCronDialog = (schedule, applyCallback) => {
+  cronDialog.schedule = schedule && String(schedule).trim().length > 0 ? schedule : '* * * * *';
+  cronDialogApplyCallback.value = applyCallback;
+  cronDialog.value = true;
+};
+
+const applyCronSchedule = (schedule) => {
+  if (typeof cronDialogApplyCallback.value === 'function') {
+    cronDialogApplyCallback.value(schedule);
+  }
+  resetCronDialog();
+};
+
+watch(
+  () => cronDialog.value,
+  (isOpen) => {
+    if (!isOpen) {
+      resetCronDialog();
+    }
+  },
+);
 
 const getMosHubSettings = async () => {
   try {

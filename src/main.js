@@ -10,6 +10,8 @@ import de from './locales/de.json'
 import en from './locales/en.json'
 import router from './router'
 import 'vue-sonner/style.css'
+import CronVuetifyPlugin from '@vue-js-cron/vuetify'
+import '@vue-js-cron/vuetify/dist/vuetify.css'
 
 // Vuetify
 import 'vuetify/styles'
@@ -80,4 +82,5 @@ createApp(App)
   .use(router)
   .use(i18n)
   .use(createAutoOnColorsPlugin(vuetify))
+  .use(CronVuetifyPlugin)
   .mount('#app')

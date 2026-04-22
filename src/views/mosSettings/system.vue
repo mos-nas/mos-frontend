@@ -42,7 +42,13 @@
             <v-divider class="my-2"></v-divider>
             <span class="text-title-medium font-weight-medium">{{ $t('update settings') }}</span>
             <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" class="pt-4" density="compact"></v-switch>
-            <v-text-field :label="$t('update check schedule (cron)')" v-model="settingsSystem.update_check.update_check_schedule" :disabled="!settingsSystem.update_check.enabled"></v-text-field>
+            <v-text-field
+              :label="$t('update check schedule (cron)')"
+              v-model="settingsSystem.update_check.update_check_schedule"
+              :disabled="!settingsSystem.update_check.enabled"
+              append-inner-icon="mdi-calendar-clock"
+              @click:append-inner="openCronDialog(settingsSystem.update_check.update_check_schedule, (schedule) => (settingsSystem.update_check.update_check_schedule = schedule))"
+            ></v-text-field>
             <v-divider class="my-2"></v-divider>
             <span class="text-title-medium font-weight-medium">{{ $t('display settings') }}</span>
             <v-switch :label="$t('powersave')" color="green" inset v-model="settingsSystem.display.powersave" :true-value="'on'" :false-value="'off'" class="pt-4" density="compact" />
@@ -239,6 +245,8 @@
   <!-- File System Navigator Dialog -->
   <fsNavigatorDialog v-model="fsDialog" :initial-path="'/mnt'" :roots="'/mnt'" select-type="directory" :title="$t('select directory')" @selected="handleFsSelected" />
 
+  <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialog.schedule" @apply="applyCronSchedule" @cancel="resetCronDialog" />
+
   <!-- Floating Action Button -->
   <v-fab @click="setSystemSettings()" color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
     <v-icon>mdi-content-save</v-icon>
@@ -250,13 +258,19 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, reactive } from 'vue';
+import { onMounted, onUnmounted, ref, reactive, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
+import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
 const fsDialog = ref(false);
 const fsDialogCallback = ref(null);
+const cronDialogApplyCallback = ref(null);
+const cronDialog = reactive({
+  value: false,
+  schedule: '* * * * *',
+});
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const settingsSystemOriginal = ref(null);
 const settingsSystem = ref({
@@ -392,6 +406,32 @@ const showCertificatesDialog = reactive({
 const recreateCertificatesDialog = reactive({
   value: false,
 });
+
+const resetCronDialog = () => {
+  cronDialogApplyCallback.value = null;
+};
+
+const openCronDialog = (schedule, applyCallback) => {
+  cronDialog.schedule = schedule && String(schedule).trim().length > 0 ? schedule : '* * * * *';
+  cronDialogApplyCallback.value = applyCallback;
+  cronDialog.value = true;
+};
+
+const applyCronSchedule = (schedule) => {
+  if (typeof cronDialogApplyCallback.value === 'function') {
+    cronDialogApplyCallback.value(schedule);
+  }
+  resetCronDialog();
+};
+
+watch(
+  () => cronDialog.value,
+  (isOpen) => {
+    if (!isOpen) {
+      resetCronDialog();
+    }
+  },
+);
 let dateTimeInterval = null;
 
 onMounted(() => {

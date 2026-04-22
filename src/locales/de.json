@@ -1423,5 +1423,7 @@
   "plugin update schedule": "Plugin Update Zeitplan",
   "it may be necessary to manually restart network services such as docker, vm, or lxc": "Es kann notwendig sein, Netzwerkdienste wie Docker, VM oder LXC manuell neu zu starten",
   "cidr": "CIDR",
-  "select file or directory": "Datei oder Verzeichnis auswählen"
+  "select file or directory": "Datei oder Verzeichnis auswählen",
+  "set schedule": "Zeitplan festlegen",
+  "apply": "Anwenden"
 }

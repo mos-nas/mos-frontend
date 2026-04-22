@@ -3,10 +3,10 @@
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
-          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px;">
-            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle;">mdi-arrow-left</v-icon>
+          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px">
+            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle">mdi-arrow-left</v-icon>
           </v-col>
-          <div class="d-flex align-center ga-3 mb-4" style="height: 40px;">
+          <div class="d-flex align-center ga-3 mb-4" style="height: 40px">
             <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
             <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ $t('cron jobs') }}</h2>
           </div>
@@ -109,7 +109,7 @@
         <v-form>
           <v-switch v-model="createCronJobDialog.enabled" :label="$t('enabled')" inset color="green" density="compact"></v-switch>
           <v-text-field v-model="createCronJobDialog.name" :label="$t('name')" required></v-text-field>
-          <v-text-field v-model="createCronJobDialog.schedule" :label="$t('schedule')" required></v-text-field>
+          <v-text-field v-model="createCronJobDialog.schedule" :label="$t('schedule')" required append-inner-icon="mdi-calendar-clock" @click:append-inner="openCronDialog('create')"></v-text-field>
           <v-text-field v-model="createCronJobDialog.command" :label="$t('command')" required></v-text-field>
           <v-textarea v-model="createCronJobDialog.script" :label="$t('script')" rows="5" required></v-textarea>
         </v-form>
@@ -131,7 +131,7 @@
         <v-form>
           <v-switch v-model="changeCronJobDialog.enabled" :label="$t('enabled')" inset color="green" density="compact"></v-switch>
           <v-text-field v-model="changeCronJobDialog.name" :label="$t('name')" required></v-text-field>
-          <v-text-field v-model="changeCronJobDialog.schedule" :label="$t('schedule')" required></v-text-field>
+          <v-text-field v-model="changeCronJobDialog.schedule" :label="$t('schedule')" required append-inner-icon="mdi-calendar-clock" @click:append-inner="openCronDialog('change')"></v-text-field>
           <v-text-field v-model="changeCronJobDialog.command" :label="$t('command')" required></v-text-field>
         </v-form>
       </v-card-text>
@@ -139,7 +139,9 @@
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="onPrimary" @click="changeCronJobDialog.value = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="onPrimary" @click="changeCronJob(changeCronJobDialog.id, changeCronJobDialog.name, changeCronJobDialog.schedule, changeCronJobDialog.command, changeCronJobDialog.enabled)">{{ $t('save') }}</v-btn>
+        <v-btn color="onPrimary" @click="changeCronJob(changeCronJobDialog.id, changeCronJobDialog.name, changeCronJobDialog.schedule, changeCronJobDialog.command, changeCronJobDialog.enabled)">
+          {{ $t('save') }}
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -165,11 +167,9 @@
     <v-card class="pa-0">
       <v-card-title>{{ $t('change script') }} - {{ changeScriptDialog.name }}</v-card-title>
       <v-card-text>
-        <v-form>
-          <v-text-field v-model="changeScriptDialog.path" :label="$t('path')" readonly></v-text-field>
-          <v-text-field v-model="changeScriptDialog.size" :label="$t('size')" readonly></v-text-field>
-          <v-textarea v-model="changeScriptDialog.content" :label="$t('script')" rows="10"></v-textarea>
-        </v-form>
+        <v-text-field v-model="changeScriptDialog.path" :label="$t('path')" readonly></v-text-field>
+        <v-text-field v-model="changeScriptDialog.size" :label="$t('size')" readonly></v-text-field>
+        <v-textarea v-model="changeScriptDialog.content" :label="$t('script')" rows="10"></v-textarea>
       </v-card-text>
       <v-divider />
       <v-card-actions>
@@ -178,6 +178,8 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialogSchedule" @apply="applyAndClose" @cancel="resetCronDialogContext" />
 
   <!-- Floating Action Button -->
   <v-fab @click="openCreateCronJobDialog()" color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
@@ -190,9 +192,10 @@
 </template>
 
 <script setup>
-import { onMounted, ref, reactive } from 'vue';
+import { onMounted, ref, reactive, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const cronJobs = ref([]);
@@ -229,6 +232,12 @@ const changeScriptDialog = reactive({
   modified: '',
   content: '',
 });
+const cronValue = ref('* * * * *');
+const cronDialogSchedule = ref(cronValue.value);
+const cronDialog = reactive({
+  value: false,
+});
+const cronDialogContext = ref(null); // 'create' | 'change' | null
 
 onMounted(() => {
   getCron();
@@ -444,6 +453,37 @@ const stopScript = async (cronId) => {
     overlay.value = false;
   }
 };
+
+const resetCronDialogContext = () => {
+  cronDialogContext.value = null;
+};
+
+const openCronDialog = (context) => {
+  cronDialogContext.value = context;
+  const currentSchedule =
+    context === 'create' ? createCronJobDialog.schedule : context === 'change' ? changeCronJobDialog.schedule : '';
+  cronDialogSchedule.value = currentSchedule && String(currentSchedule).trim().length > 0 ? currentSchedule : cronValue.value;
+  cronDialog.value = true;
+};
+
+const applyAndClose = (schedule) => {
+  cronValue.value = schedule;
+  if (cronDialogContext.value === 'create') {
+    createCronJobDialog.schedule = schedule;
+  } else if (cronDialogContext.value === 'change') {
+    changeCronJobDialog.schedule = schedule;
+  }
+  resetCronDialogContext();
+};
+
+watch(
+  () => cronDialog.value,
+  (isOpen) => {
+    if (!isOpen) {
+      resetCronDialogContext();
+    }
+  },
+);
 
 const openCreateCronJobDialog = () => {
   createCronJobDialog.value = true;

@@ -62,6 +62,8 @@
                     :disabled="!settingsDocker.update_check.enabled"
                     density="comfortable"
                     hide-details="auto"
+                    append-inner-icon="mdi-calendar-clock"
+                    @click:append-inner="openCronDialog(settingsDocker.update_check.update_check_schedule, (schedule) => (settingsDocker.update_check.update_check_schedule = schedule))"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -84,6 +86,8 @@
                     :disabled="!settingsDocker.update_check.enabled || !settingsDocker.update_check.auto_update.enabled"
                     density="comfortable"
                     hide-details="auto"
+                    append-inner-icon="mdi-calendar-clock"
+                    @click:append-inner="openCronDialog(settingsDocker.update_check.auto_update.auto_update_schedule, (schedule) => (settingsDocker.update_check.auto_update.auto_update_schedule = schedule))"
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -93,6 +97,8 @@
       </v-container>
     </v-container>
   </v-container>
+
+  <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialog.schedule" @apply="applyCronSchedule" @cancel="resetCronDialog" />
 
   <!-- File System Navigator Dialog -->
   <fsNavigatorDialog v-model="fsDialog" :initial-path="'/'" select-type="directory" :title="$t('select directory')" @selected="handleFsSelected" />
@@ -108,13 +114,19 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, reactive, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
+import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
 const fsDialog = ref(false);
 const fsDialogCallback = ref(null);
+const cronDialogApplyCallback = ref(null);
+const cronDialog = reactive({
+  value: false,
+  schedule: '* * * * *',
+});
 const settingsDocker = ref({
   enabled: false,
   directory: '',
@@ -155,6 +167,32 @@ const handleFsSelected = (item) => {
   fsDialogCallback.value = null;
   fsDialog.value = false;
 };
+
+const resetCronDialog = () => {
+  cronDialogApplyCallback.value = null;
+};
+
+const openCronDialog = (schedule, applyCallback) => {
+  cronDialog.schedule = schedule && String(schedule).trim().length > 0 ? schedule : '* * * * *';
+  cronDialogApplyCallback.value = applyCallback;
+  cronDialog.value = true;
+};
+
+const applyCronSchedule = (schedule) => {
+  if (typeof cronDialogApplyCallback.value === 'function') {
+    cronDialogApplyCallback.value(schedule);
+  }
+  resetCronDialog();
+};
+
+watch(
+  () => cronDialog.value,
+  (isOpen) => {
+    if (!isOpen) {
+      resetCronDialog();
+    }
+  },
+);
 
 const getDockerService = async () => {
   try {

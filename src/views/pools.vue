@@ -749,11 +749,32 @@
       <v-card-text style="overflow: auto">
         <v-form>
           <v-switch v-model="snapraidSchedulesDialog.sync.enabled" :label="$t('sync')" hide-details="auto" density="compact" color="green" inset />
-          <v-text-field v-model="snapraidSchedulesDialog.sync.schedule" :label="$t('sync schedule (cron)')" hide-details="auto" class="mt-2 mb-4" />
+          <v-text-field
+            v-model="snapraidSchedulesDialog.sync.schedule"
+            :label="$t('sync schedule (cron)')"
+            hide-details="auto"
+            class="mt-2 mb-4"
+            append-inner-icon="mdi-calendar-clock"
+            @click:append-inner="openCronDialog(snapraidSchedulesDialog.sync.schedule, (schedule) => (snapraidSchedulesDialog.sync.schedule = schedule))"
+          />
           <v-switch v-model="snapraidSchedulesDialog.sync.check.enabled" :label="$t('check')" hide-details="auto" density="compact" color="green" inset />
-          <v-text-field v-model="snapraidSchedulesDialog.sync.check.schedule" :label="$t('check schedule (cron)')" hide-details="auto" class="mt-2 mb-4" />
+          <v-text-field
+            v-model="snapraidSchedulesDialog.sync.check.schedule"
+            :label="$t('check schedule (cron)')"
+            hide-details="auto"
+            class="mt-2 mb-4"
+            append-inner-icon="mdi-calendar-clock"
+            @click:append-inner="openCronDialog(snapraidSchedulesDialog.sync.check.schedule, (schedule) => (snapraidSchedulesDialog.sync.check.schedule = schedule))"
+          />
           <v-switch v-model="snapraidSchedulesDialog.sync.scrub.enabled" :label="$t('scrub')" hide-details="auto" density="compact" color="green" inset />
-          <v-text-field v-model="snapraidSchedulesDialog.sync.scrub.schedule" :label="$t('scrub schedule (cron)')" hide-details="auto" class="mt-2" />
+          <v-text-field
+            v-model="snapraidSchedulesDialog.sync.scrub.schedule"
+            :label="$t('scrub schedule (cron)')"
+            hide-details="auto"
+            class="mt-2"
+            append-inner-icon="mdi-calendar-clock"
+            @click:append-inner="openCronDialog(snapraidSchedulesDialog.sync.scrub.schedule, (schedule) => (snapraidSchedulesDialog.sync.scrub.schedule = schedule))"
+          />
         </v-form>
       </v-card-text>
       <v-divider />
@@ -773,7 +794,14 @@
     <v-card class="pa-0" :title="t('nonraid schedules')" prepend-icon="mdi-clock-outline" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <v-switch v-model="nonRaidSchedulesDialog.check.enabled" :label="$t('check')" hide-details="auto" density="compact" color="green" inset />
-        <v-text-field v-model="nonRaidSchedulesDialog.check.schedule" :label="$t('check schedule (cron)')" hide-details="auto" class="mt-2 mb-4" />
+        <v-text-field
+          v-model="nonRaidSchedulesDialog.check.schedule"
+          :label="$t('check schedule (cron)')"
+          hide-details="auto"
+          class="mt-2 mb-4"
+          append-inner-icon="mdi-calendar-clock"
+          @click:append-inner="openCronDialog(nonRaidSchedulesDialog.check.schedule, (schedule) => (nonRaidSchedulesDialog.check.schedule = schedule))"
+        />
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
@@ -866,6 +894,8 @@
     </v-card>
   </v-dialog>
 
+  <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialog.schedule" @apply="applyCronSchedule" @cancel="resetCronDialog" />
+
   <!-- Floating Action Button -->
   <v-fab color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon @click="openCreatePoolDialog()">
     <v-icon>mdi-plus</v-icon>
@@ -881,6 +911,7 @@ import { ref, onMounted, reactive, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
+import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const pools = ref([]);
@@ -889,6 +920,11 @@ const unassignedDisks = ref([]);
 const unassignedDisksLoading = ref(true);
 const overlay = ref(false);
 const { t } = useI18n();
+const cronDialogApplyCallback = ref(null);
+const cronDialog = reactive({
+  value: false,
+  schedule: '* * * * *',
+});
 const poolTypes = ref([]);
 const raidLevels = ['raid0', 'raid1', 'raid5'];
 const formatDialog = reactive({
@@ -1068,6 +1104,33 @@ watch(
     }
   },
 );
+
+const resetCronDialog = () => {
+  cronDialogApplyCallback.value = null;
+};
+
+const openCronDialog = (schedule, applyCallback) => {
+  cronDialog.schedule = schedule && String(schedule).trim().length > 0 ? schedule : '* * * * *';
+  cronDialogApplyCallback.value = applyCallback;
+  cronDialog.value = true;
+};
+
+const applyCronSchedule = (schedule) => {
+  if (typeof cronDialogApplyCallback.value === 'function') {
+    cronDialogApplyCallback.value(schedule);
+  }
+  resetCronDialog();
+};
+
+watch(
+  () => cronDialog.value,
+  (isOpen) => {
+    if (!isOpen) {
+      resetCronDialog();
+    }
+  },
+);
+
 const openAddMergerfsDevicesDialog = (pool) => {
   addMergerfsDevicesDialog.value = true;
   addMergerfsDevicesDialog.pool = pool;
