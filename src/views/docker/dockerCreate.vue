@@ -1,12 +1,24 @@
 <template>
   <v-container fluid class="d-flex justify-center">
+    <v-navigation-drawer v-model="sidePanel.open" location="right" temporary width="400" :scrim="false">
+      <template #prepend>
+        <v-toolbar density="compact" class="bg-transparent">
+          <v-btn icon size="small" @click="sidePanel.open = false" class="ml-auto">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <div class="pa-4">
+        Hier sind dann Ichis Fancy Ports aufgelistet: <br />- Port 80: HTTP <br />- Port 443: HTTPS <br />- Port 22: SSH <br />- Port 3306: MySQL <br />- Port 6379: Redis <br />- Port 27017: MongoDB <br />- Port 8080: Alternative HTTP <br />- Port 8443: Alternative HTTPS <br />- Port 21: FTP <br />- Port 25: SMTP <br />- Port 53: DNS <br />- Port 110: POP3 <br />- Port 143: IMAP <br />- Port 5900: VNC <br />- Port 6379: Redis
+        </div>
+      </template>
+    </v-navigation-drawer>
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
-          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px;">
-            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle;">mdi-arrow-left</v-icon>
+          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px">
+            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle">mdi-arrow-left</v-icon>
           </v-col>
-          <div class="d-flex align-center ga-3 mb-4" style="height: 40px;">
+          <div class="d-flex align-center ga-3 mb-4" style="height: 40px">
             <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
             <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ $t('create docker containers') }}</h2>
           </div>
@@ -15,7 +27,15 @@
       <v-container fluid class="pa-0">
         <v-card class="px-0" style="margin-bottom: 80px">
           <v-card-text>
-            <v-select :items="allTemplatesMixed || []" :label="$t('template')" v-model="form.selectedTemplate" @update:model-value="selectTemplate" hide-details="auto" density="comfortable" outlined></v-select>
+            <v-select
+              :items="allTemplatesMixed || []"
+              :label="$t('template')"
+              v-model="form.selectedTemplate"
+              @update:model-value="selectTemplate"
+              hide-details="auto"
+              density="comfortable"
+              outlined
+            ></v-select>
           </v-card-text>
           <v-divider :color="$vuetify.theme.name === 'dark' ? 'white' : 'black'"></v-divider>
           <v-card-text>
@@ -61,7 +81,7 @@
                   size="small"
                   color="green"
                   class="ma-1 pa-0 float-right"
-                  style="min-width: 0; color: green;"
+                  style="min-width: 0; color: green"
                   @click="form.paths.push({ name: '', mode: '', host: '', container: '', _uid: uid() })"
                   title="Add path"
                   aria-label="add path"
@@ -132,11 +152,16 @@
             <v-row>
               <v-col cols="12" class="d-flex align-center justify-space-between">
                 <span class="text-title-medium font-weight-medium">{{ $t('ports') }}</span>
+                <v-spacer />
+                <!--<v-btn variant="text" size="small" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="sidePanel.open = true" title="inspect" aria-label="inspect">
+                  <v-icon size="18" class="mr-1">mdi-eye</v-icon>
+                  {{ $t('inspect') }}
+                </v-btn>-->
                 <v-btn
                   variant="text"
                   size="small"
                   class="ma-1 pa-0 float-right"
-                  style="min-width: 0; color: green;"
+                  style="min-width: 0; color: green"
                   @click="form.ports.push({ name: '', protocol: '', host: '', container: '', _uid: uid() })"
                   title="Add port"
                   aria-label="add port"
@@ -213,7 +238,7 @@
                   variant="text"
                   size="small"
                   class="ma-1 pa-0 float-right"
-                  style="min-width: 0; color: green;"
+                  style="min-width: 0; color: green"
                   @click="form.devices.push({ name: '', host: '', container: '', _uid: uid() })"
                   title="Add device"
                   aria-label="add device"
@@ -275,7 +300,7 @@
                   variant="text"
                   size="small"
                   class="ma-1 pa-0 float-right"
-                  style="min-width: 0; color: green;"
+                  style="min-width: 0; color: green"
                   @click="form.variables.push({ name: '', key: '', value: '', mask: false, _uid: uid() })"
                   title="Add variable"
                   aria-label="add variable"
@@ -349,7 +374,7 @@
                   variant="text"
                   size="small"
                   class="ma-1 pa-0 float-right"
-                  style="min-width: 0; color: green;"
+                  style="min-width: 0; color: green"
                   @click="form.labels.push({ name: '', key: '', value: '', mask: false, _uid: uid() })"
                   title="Add label"
                   aria-label="add label"
@@ -369,7 +394,7 @@
                       size="x-small"
                       color="green"
                       class="pa-0"
-                      style="width: 24px; height: 24px; min-width: 24px; margin-bottom: 6px;"
+                      style="width: 24px; height: 24px; min-width: 24px; margin-bottom: 6px"
                       @click="form.labels.splice(i + 1, 0, { name: '', key: '', value: '', mask: false, _uid: uid() })"
                       title="Add label"
                       aria-label="add label"
@@ -526,6 +551,11 @@ const allTemplates = ref({});
 const allTemplatesMixed = ref([]);
 const fsDialog = ref(false);
 const fsDialogCallback = ref(null);
+const sidePanel = ref({
+  open: false,
+  component: null,
+  props: {},
+});
 
 onMounted(() => {
   window.scrollTo(0, 0);
