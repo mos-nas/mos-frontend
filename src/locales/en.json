@@ -1126,7 +1126,7 @@
   "usb devices": "USB Devices",
   "no usb devices found": "No USB devices found",
   "usb device": "USB device",
-  "device path": "",
+  "device path": "Device path",
   "mount point": "Mount point",
   "filesystem type": "Filesystem type",
   "mount options": "Mount options",
@@ -1451,5 +1451,8 @@
   "code": "Code",
   "secure login": "Secure Login",
   "authenticator code": "Authenticator code",
-  "must be 6 digits": "Must be 6 digits"
+  "must be 6 digits": "Must be 6 digits",
+  "failed to copy value": "Failed to copy value",
+  "value copied to clipboard": "Value copied to clipboard",
+  "enter authenticator code to confirm": "Enter authenticator code to confirm"
 }

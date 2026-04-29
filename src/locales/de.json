@@ -1451,5 +1451,8 @@
   "code": "Code",
   "secure login": "Sicherer Login",
   "authenticator code": "Authenticator Code",
-  "must be 6 digits": "Muss 6 Ziffern lang sein"
+  "must be 6 digits": "Muss 6 Ziffern lang sein",
+  "failed to copy value": "Wert konnte nicht kopiert werden",
+  "value copied to clipboard": "Wert in die Zwischenablage kopiert",
+  "enter authenticator code to confirm": "Gib den Authenticator Code ein, um zu bestätigen"
 }

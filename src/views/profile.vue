@@ -80,11 +80,28 @@
         <div class="d-flex justify-center">
           <v-img :src="mfaQrDialog.qrCode" width="200" height="200" aspect-ratio="1" />
         </div>
-        <v-text-field :model-value="mfaQrDialog.secret" :label="$t('key')" readonly active variant="outlined" density="compact" class="mt-2" />
-        <v-text-field :model-value="mfaQrDialog.otpauth_url" :label="$t('otp auth url')" readonly active variant="outlined" density="compact" />
+        <v-text-field
+          v-model="mfaQrDialog.secret"
+          :label="$t('key')"
+          readonly
+          variant="outlined"
+          density="compact"
+          class="mt-2"
+          append-inner-icon="mdi-content-copy"
+          @click:append-inner="copyToClipboard(mfaQrDialog.secret)"
+        />
+        <v-text-field
+          v-model="mfaQrDialog.otpauth_url"
+          :label="$t('otp auth url')"
+          readonly
+          variant="outlined"
+          density="compact"
+          append-inner-icon="mdi-content-copy"
+          @click:append-inner="copyToClipboard(mfaQrDialog.otpauth_url)"
+        />
         <v-text-field
           v-model="mfaQrDialog.code"
-          :label="$t('enter totp code to confirm')"
+          :label="$t('enter authenticator code to confirm')"
           autocomplete="one-time-code"
           variant="outlined"
           density="compact"
@@ -107,7 +124,16 @@
   <v-dialog v-model="mfaDeleteDialog.value" max-width="400px">
     <v-card :title="t('disable mfa')" prepend-icon="mdi-lock">
       <v-card-text>
-        <v-text-field v-model="mfaDeleteDialog.password" :label="t('password')" type="password" variant="outlined" density="comfortable" class="mb-4" hide-details="auto" @keydown.enter="deleteMfa()" />
+        <v-text-field
+          v-model="mfaDeleteDialog.password"
+          :label="t('password')"
+          type="password"
+          variant="outlined"
+          density="comfortable"
+          class="mb-4"
+          hide-details="auto"
+          @keydown.enter="deleteMfa()"
+        />
       </v-card-text>
       <v-divider />
       <v-card-actions>
@@ -481,6 +507,39 @@ const setupMfa = async () => {
     mfaQrDialog.secret = result.secret;
     mfaQrDialog.otpauth_url = result.otpauth_url;
     mfaQrDialog.value = true;
+  }
+};
+
+const copyToClipboard = async (value) => {
+  try {
+    if (!window.isSecureContext || !navigator.clipboard) {
+      throw new Error(t('clipboard api not available in this context'));
+    }
+    await navigator.clipboard.writeText(value);
+    showSnackbarSuccess(t('value copied to clipboard'));
+  } catch (err) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = value;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '0';
+      ta.style.left = '0';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+
+      if (ok) {
+        showSnackbarSuccess(t('value copied to clipboard'));
+      } else {
+        throw new Error(t('execCommand copy failed'));
+      }
+    } catch (fallbackErr) {
+      showSnackbarError(t('failed to copy value') + ': ' + (err?.message || fallbackErr?.message || ''));
+    }
   }
 };
 </script>
