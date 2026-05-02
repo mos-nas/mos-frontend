@@ -567,7 +567,7 @@ const openCreateBackupDialog = async () => {
   overlay.value = true;
   const lxcSettings = await getLXCService();
   overlay.value = false;
-  if (lxcSettings !== undefined) {
+  if (lxcSettings !== undefined && lxcSettings !== null) {
     createBackupDialog.use_snapshot = lxcSettings.use_snapshot;
     createBackupDialog.compression = lxcSettings.compression;
     createBackupDialog.threads = lxcSettings.threads;
