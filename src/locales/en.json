@@ -1457,5 +1457,7 @@
   "enter authenticator code to confirm": "Enter authenticator code to confirm",
   "swap available": "Swap available",
   "swap used": "Swap used",
-  "swap total": "Swap total"  
+  "swap total": "Swap total",
+  "compose templates could not be fetched": "Compose templates could not be fetched",
+  "compose template could not be fetched": "Compose template could not be fetched"
 }

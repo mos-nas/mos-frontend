@@ -3,10 +3,10 @@
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
-          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px;">
-            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle;">mdi-arrow-left</v-icon>
+          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px">
+            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle">mdi-arrow-left</v-icon>
           </v-col>
-          <div class="d-flex align-center ga-3 mb-4" style="height: 40px;">
+          <div class="d-flex align-center ga-3 mb-4" style="height: 40px">
             <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
             <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ $t('docker compose') }}</h2>
           </div>
@@ -15,6 +15,8 @@
       <v-container fluid class="pa-0">
         <v-card class="px-0" style="margin-bottom: 80px">
           <v-card-text>
+            <v-select v-model="selectedTemplate" :items="composeTemplates" :label="$t('template')" @update:modelValue="getComposeTemplate" hide-details="auto"></v-select>
+            <v-divider class="my-4"></v-divider>
             <v-text-field v-model="composeStack.name" :label="$t('stack name')" required></v-text-field>
             <v-textarea v-model="composeStack.yaml" :label="$t('compose yaml')" rows="10" required></v-textarea>
             <v-textarea v-model="composeStack.env" :label="$t('environment variables')" rows="5"></v-textarea>
@@ -107,8 +109,11 @@ const composeStack = reactive({
   icon: '',
   web_ui_url: '',
 });
+const selectedTemplate = ref('');
+const composeTemplates = ref([]);
 
 onMounted(() => {
+  getComposeTemplateNames();
   if (props.template || props.yaml || props.env || props.web_ui_url) {
     const template = props.template ? decodeURIComponent(props.template) : props.template;
     const yaml = props.yaml ? decodeURIComponent(props.yaml) : props.yaml;
@@ -146,12 +151,63 @@ const getComposeHubTemplate = async (template, yaml, env, web_ui_url) => {
       throw new Error(`${t('compose template could not be fetched')}|$| ${error.error || t('unknown error')}`);
     }
 
-    const jsonData = await res.json();
-    composeStack.name = jsonData.name || '';
-    composeStack.yaml = jsonData.yaml || '';
-    composeStack.env = jsonData.env || '';
-    composeStack.icon = jsonData.icon || '';
-    composeStack.web_ui_url = jsonData.web_ui_url || '';
+    const result = await res.json();
+    composeStack.name = result.name || '';
+    composeStack.yaml = result.yaml || '';
+    composeStack.env = result.env || '';
+    composeStack.icon = result.icon || '';
+    composeStack.web_ui_url = result.web_ui_url || '';
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const getComposeTemplateNames = async () => {
+  try {
+    const res = await fetch('/api/v1/docker/mos/compose/templates', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('compose templates could not be fetched')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    const result = await res.json();
+    composeTemplates.value = [...(result.installed || []), ...(result.removed || [])];
+    
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+    composeTemplates.value = [];
+  }
+};
+
+const getComposeTemplate = async (templateName) => {
+  try {
+    overlay.value = true;
+    const res = await fetch(`/api/v1/docker/mos/compose/templates/${encodeURIComponent(templateName)}`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('compose template could not be fetched')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    const result = await res.json();
+    composeStack.name = result.name || '';
+    composeStack.yaml = result.yaml || '';
+    composeStack.env = result.env || '';
+    composeStack.icon = result.icon || '';
+    composeStack.web_ui_url = result.web_ui_url || '';
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);

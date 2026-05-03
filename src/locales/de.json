@@ -1457,5 +1457,7 @@
   "enter authenticator code to confirm": "Gib den Authenticator Code ein, um zu bestätigen",
   "swap available": "Swap verwendbar",
   "swap used": "Swap verwendet",
-  "swap total": "Swap Gesamt"
+  "swap total": "Swap Gesamt",
+  "compose templates could not be fetched": "Compose Vorlagen konnten nicht abgerufen werden",
+  "compose template could not be fetched": "Compose Vorlage konnte nicht abgerufen werden"
 }
