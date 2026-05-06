@@ -203,7 +203,7 @@
                             </template>
                             <v-list-item-title>{{ $t('web ui') }}</v-list-item-title>
                           </v-list-item>
-                          <v-list-item v-if="dockers.find((d) => d.Names && d.Names[0] === containerName).State === 'running'" @click="openTerminal(containerName,  )">
+                          <v-list-item v-if="dockers.find((d) => d.Names && d.Names[0] === containerName).State === 'running'" @click="openTerminal(containerName)">
                             <template #prepend>
                               <v-icon>mdi-console</v-icon>
                             </template>
