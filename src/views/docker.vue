@@ -154,7 +154,6 @@
                         </v-list>
                       </v-menu>
                     </td>
-
                     <td>
                       <div class="d-flex align-center">
                         <div class="mr-2">
@@ -166,30 +165,24 @@
                         <v-chip v-if="group.compose" size="small">{{ $t('compose') }}</v-chip>
                       </div>
                     </td>
-
                     <td>
                       <v-icon v-if="group.update_available" style="color: red" @click.stop="updateDockerGroupContainers(group)">mdi-autorenew</v-icon>
                       <v-icon v-else style="color: green">mdi-check</v-icon>
                     </td>
-
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
-
                     <td>
                       <v-switch v-if="group.compose" v-model="group.autostart" color="green" hide-details density="compact" @click.stop @change="switchComposeAutostart(group)" />
                     </td>
-
                     <td>&nbsp;</td>
-
                     <td>
                       <v-btn icon density="compact" @click.stop="group.expanded = !group.expanded">
                         <v-icon>{{ group.expanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
                       </v-btn>
                     </td>
                   </tr>
-
                   <tr v-for="containerName in group.expanded ? group.containers : []" :key="containerName">
                     <td>
                       <v-menu>
@@ -210,7 +203,7 @@
                             </template>
                             <v-list-item-title>{{ $t('web ui') }}</v-list-item-title>
                           </v-list-item>
-                          <v-list-item v-if="dockers.find((d) => d.Names && d.Names[0] === containerName).State === 'running'" @click="openTerminal(containerName)">
+                          <v-list-item v-if="dockers.find((d) => d.Names && d.Names[0] === containerName).State === 'running'" @click="openTerminal(containerName,  )">
                             <template #prepend>
                               <v-icon>mdi-console</v-icon>
                             </template>
@@ -1072,12 +1065,13 @@ const getDockers = async () => {
       });
     }
 
-    // Übernehme autostart aus mosResult in result
+    // Übernehme benötigte Attribute aus mosResult in result
     result.forEach((docker) => {
       const mos = mosResult.find((item) => item.name === docker.Names[0]);
       docker.autostart = mos ? mos.autostart : false;
       docker.wait = mos ? mos.wait : 0;
       docker.index = mos ? mos.index : Number.MAX_SAFE_INTEGER;
+      docker.default_shell = mos ? mos.default_shell : '/bin/sh';
     });
 
     dockers.value = result;
@@ -1427,7 +1421,9 @@ const checkWebui = (docker) => {
 };
 
 const openTerminal = async (dockerName) => {
-  const sessionId = await createDockerTerminalSession(dockerName);
+  const docker = dockers.value.find((d) => d.Names && d.Names[0] === dockerName);
+  const shell = docker ? docker.default_shell : null;
+  const sessionId = await createDockerTerminalSession(dockerName, shell);
   if (sessionId) {
     openTerminalPopup(sessionId);
   } else {
@@ -1444,7 +1440,7 @@ const openTerminalLogs = async (dockerName) => {
   }
 };
 
-const createDockerTerminalSession = async (dockerName) => {
+const createDockerTerminalSession = async (dockerName, shell) => {
   const existingSessionId = await checkExistingTerminal('docker', 'exec', dockerName);
   if (existingSessionId) {
     return existingSessionId;
@@ -1457,7 +1453,7 @@ const createDockerTerminalSession = async (dockerName) => {
         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ command: 'docker', args: ['exec', '-it', dockerName, '/bin/sh'], width: 900, height: 420 }),
+      body: JSON.stringify({ command: 'docker', args: ['exec', '-it', dockerName, shell], width: 900, height: 420 }),
     });
 
     if (!res.ok) {
