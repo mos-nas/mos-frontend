@@ -103,7 +103,7 @@
         ></v-text-field>
         <v-text-field v-model="newRemoteDialog.username" :label="$t('username')"></v-text-field>
         <v-text-field v-model="newRemoteDialog.password" :label="$t('password')" type="password"></v-text-field>
-        <v-text-field v-model="newRemoteDialog.domain" :label="$t('domain')"></v-text-field>
+        <v-text-field v-if="newRemoteDialog.type === 'smb'" v-model="newRemoteDialog.domain" :label="$t('domain')"></v-text-field>
         <v-select v-if="newRemoteDialog.type === 'smb'" v-model="newRemoteDialog.version" :items="['1.0', '2.0', '2.1', '3.0', '3.02', '3.1.1', '3.2']" :label="$t('version')" required></v-select>
         <!--<v-text-field v-model.number="newRemoteDialog.uid" :label="$t('uid')" type="number" required></v-text-field>
           <v-text-field v-model.number="newRemoteDialog.gid" :label="$t('gid')" type="number" required></v-text-field>-->
@@ -128,7 +128,7 @@
         <v-text-field v-model="changeDialog.share" :label="$t('share')" append-inner-icon="mdi-magnify" :loading="loadingShares" @click:append-inner="listShares(changeDialog)" required></v-text-field>
         <v-text-field v-model="changeDialog.username" :label="$t('username')"></v-text-field>
         <v-text-field v-model="changeDialog.password" :label="$t('password')" type="password"></v-text-field>
-        <v-text-field v-model="changeDialog.domain" :label="$t('domain')"></v-text-field>
+        <v-text-field v-if="changeDialog.type === 'smb'" v-model="changeDialog.domain" :label="$t('domain')"></v-text-field>
         <v-select v-if="changeDialog.type === 'smb'" v-model="changeDialog.version" :items="['1.0', '2.0', '2.1', '3.0', '3.02', '3.1.1', '3.2']" :label="$t('version')" required></v-select>
         <!--<v-text-field v-model.number="changeDialog.uid" :label="$t('uid')" type="number" required></v-text-field>
           <v-text-field v-model.number="changeDialog.gid" :label="$t('gid')" type="number" required></v-text-field>-->
