@@ -32,7 +32,7 @@
                 <td style="white-space: nowrap">
                   <v-menu>
                     <template #activator="{ props }">
-                      <v-icon v-bind="props" :color="remote.status === 'mounted' ? 'green' : 'red'" style="cursor: pointer">mdi-network</v-icon>
+                      <v-icon v-bind="props" :color="remote.status === 'mounted' ? 'green' : 'red'" style="cursor: pointer">{{ remote.status === 'mounted' ? 'mdi-network' : 'mdi-network-off' }}</v-icon>
                     </template>
                     <v-list>
                       <v-list-item v-if="remote.status !== 'mounted'" @click="openChangeDialog(remote)">
@@ -90,24 +90,24 @@
   <v-dialog v-model="newRemoteDialog.value" max-width="600px">
     <v-card :title="$t('create remote mount')" prepend-icon="mdi-plus">
       <v-card-text>
-          <v-text-field v-model="newRemoteDialog.name" :label="$t('name')" required></v-text-field>
-          <v-select v-model="newRemoteDialog.type" :items="['smb']" :label="$t('type')" required></v-select>
-          <v-text-field v-model="newRemoteDialog.server" :label="$t('ip')" required></v-text-field>
-          <v-text-field
-            v-model="newRemoteDialog.share"
-            :label="$t('share')"
-            append-inner-icon="mdi-magnify"
-            :loading="loadingShares"
-            @click:append-inner="listShares(newRemoteDialog)"
-            required
-          ></v-text-field>
-          <v-text-field v-model="newRemoteDialog.username" :label="$t('username')"></v-text-field>
-          <v-text-field v-model="newRemoteDialog.password" :label="$t('password')" type="password"></v-text-field>
-          <v-text-field v-model="newRemoteDialog.domain" :label="$t('domain')"></v-text-field>
-          <v-select v-model="newRemoteDialog.version" :items="['1.0', '2.0', '2.1', '3.0', '3.02', '3.1.1', '3.2']" :label="$t('version')" required></v-select>
-          <!--<v-text-field v-model.number="newRemoteDialog.uid" :label="$t('uid')" type="number" required></v-text-field>
+        <v-text-field v-model="newRemoteDialog.name" :label="$t('name')" required></v-text-field>
+        <v-select v-model="newRemoteDialog.type" :items="['smb', 'nfs']" :label="$t('type')" required></v-select>
+        <v-text-field v-model="newRemoteDialog.server" :label="$t('server ip')" required></v-text-field>
+        <v-text-field
+          v-model="newRemoteDialog.share"
+          :label="$t('share')"
+          append-inner-icon="mdi-magnify"
+          :loading="loadingShares"
+          @click:append-inner="listShares(newRemoteDialog)"
+          required
+        ></v-text-field>
+        <v-text-field v-model="newRemoteDialog.username" :label="$t('username')"></v-text-field>
+        <v-text-field v-model="newRemoteDialog.password" :label="$t('password')" type="password"></v-text-field>
+        <v-text-field v-model="newRemoteDialog.domain" :label="$t('domain')"></v-text-field>
+        <v-select v-if="newRemoteDialog.type === 'smb'" v-model="newRemoteDialog.version" :items="['1.0', '2.0', '2.1', '3.0', '3.02', '3.1.1', '3.2']" :label="$t('version')" required></v-select>
+        <!--<v-text-field v-model.number="newRemoteDialog.uid" :label="$t('uid')" type="number" required></v-text-field>
           <v-text-field v-model.number="newRemoteDialog.gid" :label="$t('gid')" type="number" required></v-text-field>-->
-          <v-switch v-model="newRemoteDialog.auto_mount" :label="$t('automount')" inset color="green"></v-switch>
+        <v-switch v-model="newRemoteDialog.auto_mount" :label="$t('automount')" inset color="green" hide-details="auto" density="compact"></v-switch>
       </v-card-text>
       <v-divider />
       <v-card-actions>
@@ -122,26 +122,17 @@
   <v-dialog v-model="changeDialog.value" max-width="600px">
     <v-card :title="$t('edit remote mount')" prepend-icon="mdi-pencil">
       <v-card-text>
-        <v-form>
-          <v-text-field v-model="changeDialog.name" :label="$t('name')" required></v-text-field>
-          <v-select v-model="changeDialog.type" :items="['smb']" :label="$t('type')" required></v-select>
-          <v-text-field v-model="changeDialog.server" :label="$t('ip')" required></v-text-field>
-          <v-text-field
-            v-model="changeDialog.share"
-            :label="$t('share')"
-            append-inner-icon="mdi-magnify"
-            :loading="loadingShares"
-            @click:append-inner="listShares(changeDialog)"
-            required
-          ></v-text-field>
-          <v-text-field v-model="changeDialog.username" :label="$t('username')"></v-text-field>
-          <v-text-field v-model="changeDialog.password" :label="$t('password')" type="password"></v-text-field>
-          <v-text-field v-model="changeDialog.domain" :label="$t('domain')"></v-text-field>
-          <v-select v-model="changeDialog.version" :items="['1.0', '2.0', '2.1', '3.0', '3.02', '3.1.1', '3.2']" :label="$t('version')" required></v-select>
-          <!--<v-text-field v-model.number="changeDialog.uid" :label="$t('uid')" type="number" required></v-text-field>
+        <v-text-field v-model="changeDialog.name" :label="$t('name')" required></v-text-field>
+        <v-select v-model="changeDialog.type" :items="['smb', 'nfs']" :label="$t('type')" required readonly></v-select>
+        <v-text-field v-model="changeDialog.server" :label="$t('server ip')" required></v-text-field>
+        <v-text-field v-model="changeDialog.share" :label="$t('share')" append-inner-icon="mdi-magnify" :loading="loadingShares" @click:append-inner="listShares(changeDialog)" required></v-text-field>
+        <v-text-field v-model="changeDialog.username" :label="$t('username')"></v-text-field>
+        <v-text-field v-model="changeDialog.password" :label="$t('password')" type="password"></v-text-field>
+        <v-text-field v-model="changeDialog.domain" :label="$t('domain')"></v-text-field>
+        <v-select v-if="changeDialog.type === 'smb'" v-model="changeDialog.version" :items="['1.0', '2.0', '2.1', '3.0', '3.02', '3.1.1', '3.2']" :label="$t('version')" required></v-select>
+        <!--<v-text-field v-model.number="changeDialog.uid" :label="$t('uid')" type="number" required></v-text-field>
           <v-text-field v-model.number="changeDialog.gid" :label="$t('gid')" type="number" required></v-text-field>-->
-          <v-switch v-model="changeDialog.auto_mount" :label="$t('automount')" inset color="green"></v-switch>
-        </v-form>
+        <v-switch v-model="changeDialog.auto_mount" :label="$t('automount')" inset color="green" hide-details="auto" density="compact"></v-switch>
       </v-card-text>
       <v-divider />
       <v-card-actions>
@@ -252,7 +243,7 @@ const changeDialog = reactive({
   auto_mount: true,
 });
 
-onMounted( async () => {
+onMounted(async () => {
   await getRemotes();
   loadingRemotes.value = false;
 });

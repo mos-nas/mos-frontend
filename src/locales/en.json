@@ -1460,5 +1460,6 @@
   "swap total": "Swap total",
   "compose templates could not be fetched": "Compose templates could not be fetched",
   "compose template could not be fetched": "Compose template could not be fetched",
-  "disabled": "Disabled"
+  "disabled": "Disabled",
+  "server ip": "Server IP"
 }

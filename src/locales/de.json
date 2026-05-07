@@ -1460,5 +1460,6 @@
   "swap total": "Swap Gesamt",
   "compose templates could not be fetched": "Compose Vorlagen konnten nicht abgerufen werden",
   "compose template could not be fetched": "Compose Vorlage konnte nicht abgerufen werden",
-  "disabled": "Deaktiviert"
+  "disabled": "Deaktiviert",
+  "server ip": "Server IP"
 }
