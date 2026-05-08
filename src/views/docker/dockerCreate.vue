@@ -96,6 +96,7 @@
             <v-text-field :label="$t('default shell')" v-model="form.default_shell"></v-text-field>
             <v-select :label="$t('gpu')" v-model="form.gpus" :items="gpuIds" item-title="value" item-value="key" multiple clearable chips hide-selected></v-select>
             <v-switch :label="$t('privileged')" v-model="form.privileged" inset color="green" density="compact"></v-switch>
+            <v-switch :label="$t('no autoupdate')" v-model="form.no_autoupdate" inset color="green" density="compact"></v-switch>
             <v-text-field :label="$t('extra parameters')" v-model="form.extra_parameters"></v-text-field>
             <v-text-field :label="$t('post parameters')" v-model="form.post_parameters"></v-text-field>
             <v-text-field :label="$t('web ui url')" v-model="form.web_ui_url"></v-text-field>
@@ -566,6 +567,7 @@ const form = ref({
   custom_ip: '',
   default_shell: '',
   privileged: false,
+  no_autoupdate: false,
   extra_parameters: '',
   post_parameters: '',
   web_ui_url: '',
@@ -780,6 +782,7 @@ const fillFormFromJson = (jsonData) => {
   form.value.custom_ip = jsonData.custom_ip || '';
   form.value.default_shell = jsonData.default_shell || '';
   form.value.privileged = jsonData.privileged || false;
+  form.value.no_autoupdate = jsonData.no_autoupdate || false;
   form.value.extra_parameters = jsonData.extra_parameters || '';
   form.value.post_parameters = jsonData.post_parameters || '';
   form.value.web_ui_url = jsonData.web_ui_url || '';
@@ -849,6 +852,7 @@ const createDocker = async () => {
       custom_ip: form.value.custom_ip,
       default_shell: form.value.default_shell,
       privileged: form.value.privileged,
+      no_autoupdate: form.value.no_autoupdate,
       extra_parameters: form.value.extra_parameters,
       post_parameters: form.value.post_parameters,
       web_ui_url: form.value.web_ui_url,

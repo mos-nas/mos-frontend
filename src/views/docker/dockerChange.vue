@@ -42,6 +42,7 @@
             <v-text-field :label="$t('default shell')" v-model="form.default_shell"></v-text-field>
             <v-select :label="$t('gpu')" v-model="form.gpus" :items="gpuIds" item-title="value" item-value="key" multiple clearable chips hide-selected></v-select>
             <v-switch :label="$t('privileged')" v-model="form.privileged" inset color="green" density="compact"></v-switch>
+            <v-switch :label="$t('no autoupdate')" v-model="form.no_autoupdate" inset color="green" density="compact"></v-switch>
             <v-text-field :label="$t('extra parameters')" v-model="form.extra_parameters"></v-text-field>
             <v-text-field :label="$t('post parameters')" v-model="form.post_parameters"></v-text-field>
             <v-text-field :label="$t('web ui url')" v-model="form.web_ui_url"></v-text-field>
@@ -501,6 +502,7 @@ const form = reactive({
   custom_ip: '',
   default_shell: '',
   privileged: false,
+  no_autoupdate: false,
   extra_parameters: '',
   post_parameters: '',
   web_ui_url: '',
@@ -580,6 +582,7 @@ const getDockerTemplate = async () => {
     form.custom_ip = getDocker.value.custom_ip;
     form.default_shell = getDocker.value.default_shell;
     form.privileged = getDocker.value.privileged;
+    form.no_autoupdate = getDocker.value.no_autoupdate || false;
     form.extra_parameters = getDocker.value.extra_parameters;
     form.post_parameters = getDocker.value.post_parameters;
     form.web_ui_url = getDocker.value.web_ui_url;
@@ -726,6 +729,7 @@ const updateDocker = async () => {
   changeDocker.custom_ip = form.custom_ip;
   changeDocker.default_shell = form.default_shell;
   changeDocker.privileged = form.privileged;
+  changeDocker.no_autoupdate = form.no_autoupdate;
   changeDocker.extra_parameters = form.extra_parameters;
   changeDocker.post_parameters = form.post_parameters;
   changeDocker.web_ui_url = form.web_ui_url;
