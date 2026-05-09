@@ -95,7 +95,7 @@
             <v-text-field :label="$t('custom ip')" v-model="form.custom_ip"></v-text-field>
             <v-text-field :label="$t('default shell')" v-model="form.default_shell"></v-text-field>
             <v-select :label="$t('gpu')" v-model="form.gpus" :items="gpuIds" item-title="value" item-value="key" multiple clearable chips hide-selected></v-select>
-            <v-switch :label="$t('privileged')" v-model="form.privileged" inset color="green" density="compact"></v-switch>
+            <v-switch :label="$t('privileged')" v-model="form.privileged" inset color="green" density="compact" hide-details="auto"></v-switch>
             <v-switch :label="$t('no autoupdate')" v-model="form.no_autoupdate" inset color="green" density="compact"></v-switch>
             <v-text-field :label="$t('extra parameters')" v-model="form.extra_parameters"></v-text-field>
             <v-text-field :label="$t('post parameters')" v-model="form.post_parameters"></v-text-field>

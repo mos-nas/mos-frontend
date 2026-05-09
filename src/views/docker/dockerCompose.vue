@@ -22,6 +22,7 @@
             <v-textarea v-model="composeStack.env" :label="$t('environment variables')" rows="5"></v-textarea>
             <v-text-field v-model="composeStack.icon" :label="$t('icon url')"></v-text-field>
             <v-text-field v-model="composeStack.web_ui_url" :label="$t('web ui url')"></v-text-field>
+            <v-switch :label="$t('no autoupdate')" v-model="composeStack.no_autoupdate" inset color="green" density="compact"></v-switch>            
           </v-card-text>
         </v-card>
       </v-container>
@@ -101,6 +102,7 @@ const props = defineProps({
   yaml: String,
   env: String,
   web_ui_url: String,
+  no_autoupdate: Boolean,
 });
 const composeStack = reactive({
   name: '',
@@ -108,6 +110,7 @@ const composeStack = reactive({
   env: '',
   icon: '',
   web_ui_url: '',
+  no_autoupdate: false,
 });
 const selectedTemplate = ref('');
 const composeTemplates = ref([]);
@@ -119,7 +122,8 @@ onMounted(() => {
     const yaml = props.yaml ? decodeURIComponent(props.yaml) : props.yaml;
     const env = props.env ? decodeURIComponent(props.env) : props.env;
     const web_ui_url = props.web_ui_url ? decodeURIComponent(props.web_ui_url) : props.web_ui_url;
-    getComposeHubTemplate(template, yaml, env, web_ui_url);
+    const no_autoupdate = props.no_autoupdate;
+    getComposeHubTemplate(template, yaml, env, web_ui_url, no_autoupdate);
   }
 });
 
@@ -133,8 +137,8 @@ const createComposeStack = async () => {
   sendDockerWSCommand('compose-create', composeStack);
 };
 
-const getComposeHubTemplate = async (template, yaml, env, web_ui_url) => {
-  const newFilesBody = { template: template, yaml: yaml, env: env, web_ui_url: web_ui_url };
+const getComposeHubTemplate = async (template, yaml, env, web_ui_url, no_autoupdate) => {
+  const newFilesBody = { template: template, yaml: yaml, env: env, web_ui_url: web_ui_url, no_autoupdate: no_autoupdate };
   try {
     overlay.value = true;
     const res = await fetch('/api/v1/mos/hub/compose/template', {
@@ -157,6 +161,7 @@ const getComposeHubTemplate = async (template, yaml, env, web_ui_url) => {
     composeStack.env = result.env || '';
     composeStack.icon = result.icon || '';
     composeStack.web_ui_url = result.web_ui_url || '';
+    composeStack.no_autoupdate = result.no_autoupdate || false;
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
@@ -208,6 +213,7 @@ const getComposeTemplate = async (templateName) => {
     composeStack.env = result.env || '';
     composeStack.icon = result.icon || '';
     composeStack.web_ui_url = result.web_ui_url || '';
+    composeStack.no_autoupdate = result.no_autoupdate || false;
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
