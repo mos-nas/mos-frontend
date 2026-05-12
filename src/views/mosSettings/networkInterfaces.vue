@@ -86,7 +86,14 @@
                     <v-text-field :label="$t('ipv4 gateway')" v-model="iface.ipv4[0].gateway" variant="outlined" hide-details="auto"></v-text-field>
                   </v-col>
                   <v-col cols="12">
-                    <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="getIfaceIpDnsString(iface, 'ipv4').value" variant="outlined" hide-details="auto"></v-text-field>
+                    <v-row>
+                      <v-col cols="12" md="4">
+                        <v-text-field :label="$t('mtu')" v-model="iface.ipv4[0].mtu" variant="outlined" hide-details="auto" type="number"></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="8">
+                        <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="getIfaceIpDnsString(iface, 'ipv4').value" variant="outlined" hide-details="auto"></v-text-field>
+                      </v-col>
+                    </v-row>
                   </v-col>
                 </template>
               </v-row>
@@ -193,7 +200,14 @@
                     <v-text-field :label="$t('ipv4 gateway')" v-model="iface.ipv4[0].gateway" variant="outlined" hide-details="auto"></v-text-field>
                   </v-col>
                   <v-col cols="12">
-                    <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="getIfaceIpDnsString(iface, 'ipv4').value" variant="outlined" hide-details="auto"></v-text-field>
+                    <v-row>
+                      <v-col cols="12" md="4">
+                        <v-text-field :label="$t('mtu')" v-model="iface.ipv4[0].mtu" variant="outlined" hide-details="auto" type="number"></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="8">
+                        <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="getIfaceIpDnsString(iface, 'ipv4').value" variant="outlined" hide-details="auto"></v-text-field>
+                      </v-col>
+                    </v-row>
                   </v-col>
                 </template>
               </v-row>
@@ -281,7 +295,14 @@
                     <v-text-field :label="$t('ipv4 gateway')" v-model="iface.ipv4[0].gateway" variant="outlined" hide-details="auto"></v-text-field>
                   </v-col>
                   <v-col cols="12">
-                    <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="getIfaceIpDnsString(iface, 'ipv4').value" variant="outlined" hide-details="auto"></v-text-field>
+                    <v-row>
+                      <v-col cols="12" md="4">
+                        <v-text-field :label="$t('mtu')" v-model="iface.ipv4[0].mtu" variant="outlined" hide-details="auto" type="number"></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="8">
+                        <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="getIfaceIpDnsString(iface, 'ipv4').value" variant="outlined" hide-details="auto"></v-text-field>
+                      </v-col>
+                    </v-row>
                   </v-col>
                 </template>
               </v-row>
@@ -436,7 +457,14 @@
             <v-col cols="12" md="6" class="pb-0">
               <v-text-field :label="$t('ipv4 gateway')" v-model="addVlanDialog.ipv4.gateway" variant="outlined"></v-text-field>
             </v-col>
-            <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="addVlanDialog.ipv4.dns" variant="outlined"></v-text-field>
+            <v-row>
+              <v-col cols="12" md="4" class="pb-0">
+                <v-text-field :label="$t('mtu')" v-model="addVlanDialog.ipv4.mtu" variant="outlined" type="number"></v-text-field>
+              </v-col>
+              <v-col cols="12" md="8" class="pb-0">
+                <v-text-field :label="$t('ipv4 dns (comma separated)')" v-model="addVlanDialog.ipv4.dns" variant="outlined"></v-text-field>
+              </v-col>
+            </v-row>
           </template>
           <div class="d-flex align-center mb-2 mt-4">
             <span class="text-title-medium font-weight-medium mr-4">{{ $t('ipv6') }}</span>
@@ -545,6 +573,7 @@ const addVlanDialog = reactive({
     dhcp: true,
     address: '',
     gateway: '',
+    mtu: '',
     dns: '',
     cidr: '',
   },
@@ -609,10 +638,13 @@ const getNetworkSettings = async () => {
         iface.ipv6 = [];
       } else {
         if (!iface.ipv4 || iface.ipv4.length === 0) {
-          iface.ipv4 = [{ dhcp: true, address: null, cidr: null, gateway: null, dns: [] }];
+          iface.ipv4 = [{ dhcp: true, address: null, cidr: null, gateway: null, mtu: null, dns: [] }];
         }
         if (iface.ipv4[0] && iface.ipv4[0].cidr === undefined) {
           iface.ipv4[0].cidr = null;
+        }
+        if (iface.ipv4[0] && iface.ipv4[0].mtu === undefined) {
+          iface.ipv4[0].mtu = null;
         }
         if (!iface.ipv6) {
           iface.ipv6 = [];
@@ -625,6 +657,7 @@ const getNetworkSettings = async () => {
 
       iface.vlans.forEach((vlan) => {
         if (vlan.ipv4 && vlan.ipv4.length > 0 && vlan.ipv4[0] && vlan.ipv4[0].cidr === undefined) vlan.ipv4[0].cidr = null;
+        if (vlan.ipv4 && vlan.ipv4.length > 0 && vlan.ipv4[0] && vlan.ipv4[0].mtu === undefined) vlan.ipv4[0].mtu = null;
       });
     });
     if (settingsNetwork.value.pending_changes) {
@@ -644,23 +677,56 @@ const validateBondInterfaces = () => {
   return false;
 };
 
+const normalizeMtuValue = (value) => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string' && value.trim() === '') return null;
+  return value;
+};
+
+const normalizeIpv4MtuArray = (ipv4Array) => {
+  if (!Array.isArray(ipv4Array)) return ipv4Array;
+  return ipv4Array.map((entry) => {
+    if (!entry || typeof entry !== 'object' || !Object.prototype.hasOwnProperty.call(entry, 'mtu')) return entry;
+    return {
+      ...entry,
+      mtu: normalizeMtuValue(entry.mtu),
+    };
+  });
+};
+
 const setNetworkSettings = async () => {
   try {
     if (!validateBondInterfaces()) return;
     overlay.value = true;
     const payload = settingsNetwork.value.interfaces.map((iface) => {
-      if (iface.type === 'bond') {
-        return {
-          ...iface,
-          mode: '802.3ad',
-        };
+      const baseIface =
+        iface.type === 'bond'
+          ? {
+              ...iface,
+              mode: '802.3ad',
+            }
+          : iface.type === 'bonded'
+            ? {
+                ...iface,
+                ipv4: [],
+                ipv6: [],
+              }
+            : {
+                ...iface,
+              };
+
+      baseIface.mtu = normalizeMtuValue(baseIface.mtu);
+      baseIface.ipv4 = normalizeIpv4MtuArray(baseIface.ipv4);
+
+      if (Array.isArray(baseIface.vlans)) {
+        baseIface.vlans = baseIface.vlans.map((vlan) => ({
+          ...vlan,
+          mtu: normalizeMtuValue(vlan.mtu),
+          ipv4: normalizeIpv4MtuArray(vlan.ipv4),
+        }));
       }
-      if (iface.type !== 'bonded') return iface;
-      return {
-        ...iface,
-        ipv4: [],
-        ipv6: [],
-      };
+
+      return baseIface;
     });
 
     const res = await fetch('/api/v1/mos/settings/network/interfaces', {
@@ -752,7 +818,7 @@ const changeInterfaceType = (iface) => {
     });
     // Ensure ipv4/ipv6 are initialized for ethernet
     if (!iface.ipv4 || iface.ipv4.length === 0) {
-      iface.ipv4 = [{ dhcp: true, address: null, cidr: null, gateway: null, dns: [] }];
+      iface.ipv4 = [{ dhcp: true, address: null, cidr: null, gateway: null, mtu: null, dns: [] }];
     }
     if (!iface.ipv6) {
       iface.ipv6 = [];
@@ -779,6 +845,7 @@ const changeInterfaceType = (iface) => {
             address: null,
             cidr: null,
             gateway: null,
+            mtu: null,
             dns: [],
           },
         ],
@@ -812,6 +879,7 @@ const changeInterfaceType = (iface) => {
             address: null,
             cidr: null,
             gateway: null,
+            mtu: null,
             dns: [],
           },
         ],
@@ -896,6 +964,7 @@ const openVlanDialog = (iface) => {
     address: '',
     cidr: '',
     gateway: '',
+    mtu: '',
     dns: '',
   };
   addVlanDialog.ipv6 = null;
@@ -924,6 +993,7 @@ const addVlanToInterfaces = () => {
         address: addVlanDialog.ipv4.address,
         cidr: addVlanDialog.ipv4.cidr,
         gateway: addVlanDialog.ipv4.gateway,
+        mtu: addVlanDialog.ipv4.mtu,
         dns: addVlanDialog.ipv4.dns
           ? addVlanDialog.ipv4.dns
               .split(',')
