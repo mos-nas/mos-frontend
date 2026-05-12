@@ -69,13 +69,16 @@
           <span v-if="activeItem">
             {{ activeItem.displayPath || activeItem.path }}
           </span>
+          <span v-else-if="props.selectType === 'directory'">
+            {{ currentPath || '/' }}
+          </span>
           <span v-else>-</span>
         </div>
         <v-spacer />
         <v-btn variant="text" color="onPrimary" @click="onCancel">
           {{ t('cancel') }}
         </v-btn>
-        <v-btn v-if="showSelectButton" color="onPrimary" :disabled="!activeItem || !isSelectable(activeItem) || loading" @click="confirmSelect()">
+        <v-btn v-if="showSelectButton" color="onPrimary" :disabled="(!activeItem && props.selectType !== 'directory') || (activeItem && !isSelectable(activeItem)) || loading" @click="confirmSelect()">
           {{ t('select') }}
         </v-btn>
       </v-card-actions>
@@ -240,16 +243,28 @@ const onCancel = () => {
 
 const confirmSelect = (explicitItem) => {
   const item = explicitItem || activeItem.value;
-  if (!item || !isSelectable(item)) return;
 
-  emit('selected', {
-    name: item.name,
-    path: item.path,
-    type: item.type,
-    displayPath: item.displayPath ?? item.path,
-  });
+  if (item && isSelectable(item)) {
+    emit('selected', {
+      name: item.name,
+      path: item.path,
+      type: item.type,
+      displayPath: item.displayPath ?? item.path,
+    });
+    internalVisible.value = false;
+    return;
+  }
 
-  internalVisible.value = false;
+  if (!item && props.selectType === 'directory' && currentPath.value) {
+    const pathName = currentPath.value.split('/').filter(Boolean).pop() || '/';
+    emit('selected', {
+      name: pathName,
+      path: currentPath.value,
+      type: 'directory',
+      displayPath: currentPath.value,
+    });
+    internalVisible.value = false;
+  }
 };
 
 watch(
