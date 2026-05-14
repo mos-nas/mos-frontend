@@ -540,7 +540,7 @@
               </v-btn>
             </v-col>
             <v-col cols="auto">
-              <v-btn variant="text" icon size="small" href="https://www.reddit.com/r/mos_official" target="_blank" rel="noopener" :aria-label="'Reddit'" title="Reddit">
+              <v-btn variant="text" icon size="small" href="https://www.reddit.com/r/MOS_official_net" target="_blank" rel="noopener" :aria-label="'Reddit'" title="Reddit">
                 <v-icon color="#FF4500">mdi-reddit</v-icon>
               </v-btn>
             </v-col>
