@@ -95,8 +95,24 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    rollupOptions: {
+    chunkSizeWarningLimit: 1000,
+    rolldownOptions: {
       input: ['./reboot.html', './index.html', './shutdown.html'],
+      output: {
+        codeSplitting: true,
+        manualChunks(id) {
+          if (id.includes('node_modules/vuetify')) return 'vendor-vuetify';
+          if (
+            id.includes('node_modules/codemirror') ||
+            id.includes('node_modules/@codemirror') ||
+            id.includes('node_modules/@uiw/codemirror')
+          ) return 'vendor-codemirror';
+          if (id.includes('node_modules/@xterm')) return 'vendor-xterm';
+          if (id.includes('node_modules/chart.js') || id.includes('node_modules/vue-chartjs')) return 'vendor-charts';
+          if (id.includes('node_modules/socket.io-client') || id.includes('node_modules/engine.io-client')) return 'vendor-socket';
+          if (id.includes('node_modules/vue') || id.includes('node_modules/vue-router') || id.includes('node_modules/vue-i18n')) return 'vendor-vue';
+        },
+      },
     },
   },
-});
+  });
