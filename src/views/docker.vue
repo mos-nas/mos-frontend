@@ -5,6 +5,8 @@
         <div class="d-flex align-center ga-3 mb-4">
           <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
           <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ t('docker containers') }}</h2>
+          <v-spacer />
+          <v-text-field v-model="searchTerm" :placeholder="t('search')" density="compact" hide-details clearable class="search-field" prepend-inner-icon="mdi-magnify" />
         </div>
       </v-container>
       <v-container fluid class="pa-0">
@@ -31,7 +33,7 @@
 
               <!-- Docker Groups -->
               <tbody v-if="dockerGroups.length > 0">
-                <template v-for="group in dockerGroups" :key="group.id">
+                <template v-for="group in filteredDockerGroups" :key="group.id">
                   <tr :id="group.id" @click.stop="group.expanded = !group.expanded">
                     <td>
                       <v-menu v-model="group.menu">
@@ -160,15 +162,15 @@
                         </v-list>
                       </v-menu>
                     </td>
-                    <td>
-                      <div class="d-flex align-center">
-                        <div class="mr-2">
-                          <div style="font-size: 0.9rem">
+                    <td style="overflow: hidden; max-width: 250px">
+                      <div class="d-flex align-center" style="min-width: 0; overflow: hidden">
+                        <div class="mr-2" style="min-width: 0; overflow: hidden; flex: 1">
+                          <div style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">
                             {{ group.name }}
                           </div>
                           <div class="text-caption" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ group.runningCount }}/{{ group.count }} {{ $t('started') }}</div>
                         </div>
-                        <v-chip v-if="group.compose" size="small">{{ $t('compose') }}</v-chip>
+                        <v-chip v-if="group.compose" size="small" style="flex-shrink: 0">{{ $t('compose') }}</v-chip>
                       </div>
                     </td>
                     <td>
@@ -189,7 +191,7 @@
                       </v-btn>
                     </td>
                   </tr>
-                  <tr v-for="containerName in group.expanded ? group.containers : []" :key="containerName">
+                  <tr v-for="containerName in group.expanded ? filteredGroupContainers(group) : []" :key="containerName">
                     <td>
                       <v-menu>
                         <template #activator="{ props }">
@@ -293,15 +295,23 @@
                       </v-menu>
                     </td>
 
-                    <td>
-                      <div class="d-flex align-center">
-                        <div class="mr-2">
-                          <div style="font-size: 0.9rem">{{ containerName }}</div>
-                          <div class="text-caption" :style="{ color: dockers.find((d) => d.Names && d.Names[0] === containerName)?.State === 'running' ? 'green' : 'red' }">
+                    <td style="overflow: hidden; max-width: 250px">
+                      <div class="d-flex align-center" style="min-width: 0; overflow: hidden">
+                        <div class="mr-2" style="min-width: 0; overflow: hidden; flex: 1">
+                          <div style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ containerName }}</div>
+                          <div
+                            class="text-caption"
+                            :style="{
+                              color: dockers.find((d) => d.Names && d.Names[0] === containerName)?.State === 'running' ? 'green' : 'red',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }"
+                          >
                             {{ dockers.find((d) => d.Names && d.Names[0] === containerName)?.State }}
                           </div>
                         </div>
-                        <v-chip v-if="dockers.find((d) => d.Names && d.Names[0] === containerName)?.privileged" size="small">{{ $t('privileged') }}</v-chip>
+                        <v-chip v-if="dockers.find((d) => d.Names && d.Names[0] === containerName)?.privileged" size="small" style="flex-shrink: 0">{{ $t('privileged') }}</v-chip>
                       </div>
                     </td>
 
@@ -438,7 +448,7 @@
               </tbody>
 
               <!-- Separator Row -->
-              <tr v-if="dockerGroups.length > 0 && dockers.some((d) => !dockerGroups.some((g) => g.containers && g.containers.includes(d.Names?.[0])))">
+              <tr v-if="filteredDockerGroups.length > 0 && filteredUngroupedDockers.length > 0">
                 <td colspan="10" class="pa-0">
                   <div
                     :style="{
@@ -452,16 +462,9 @@
               </tr>
 
               <!-- Ungrouped Docker Containers -->
-              <draggable
-                v-if="dockers.some((d) => !dockerGroups.some((g) => g.containers && g.containers.includes(d.Names?.[0])))"
-                tag="tbody"
-                v-model="dockers"
-                item-key="Id"
-                handle=".drag-handle"
-                @end="onDragEnd()"
-              >
+              <draggable v-if="filteredUngroupedDockers.length > 0" tag="tbody" v-model="dockers" item-key="Id" handle=".drag-handle" @end="onDragEnd()">
                 <template #item="{ element: docker }">
-                  <tr v-if="!dockerGroups.some((g) => g.containers && g.containers.includes(docker.Names?.[0]))" :id="docker.Id">
+                  <tr v-if="filteredUngroupedDockers.includes(docker)" :id="docker.Id">
                     <td>
                       <v-menu>
                         <template #activator="{ props }">
@@ -519,15 +522,17 @@
                         </v-list>
                       </v-menu>
                     </td>
-                    <td>
-                      <div class="d-flex align-center">
-                        <div class="mr-2">
-                          <div style="font-size: 0.9rem">
+                    <td style="overflow: hidden; max-width: 250px">
+                      <div class="d-flex align-center" style="min-width: 0; overflow: hidden">
+                        <div class="mr-2" style="min-width: 0; overflow: hidden; flex: 1">
+                          <div style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">
                             {{ docker.Names[0] }}
                           </div>
-                          <div class="text-caption" :style="{ color: docker.State === 'running' ? 'green' : 'red' }">{{ docker.State }}</div>
+                          <div class="text-caption" :style="{ color: docker.State === 'running' ? 'green' : 'red', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }">
+                            {{ docker.State }}
+                          </div>
                         </div>
-                        <v-chip v-if="docker.privileged" size="small">{{ $t('privileged') }}</v-chip>
+                        <v-chip v-if="docker.privileged" size="small" style="flex-shrink: 0">{{ $t('privileged') }}</v-chip>
                       </div>
                     </td>
                     <td>
@@ -765,7 +770,7 @@
           <v-textarea v-model="editComposeStackDialog.env" :label="$t('environment variables')" rows="5"></v-textarea>
           <v-text-field v-model="editComposeStackDialog.icon" :label="$t('icon url')"></v-text-field>
           <v-text-field v-model="editComposeStackDialog.webui" :label="$t('web ui url')"></v-text-field>
-            <v-switch :label="$t('no autoupdate')" v-model="editComposeStackDialog.no_autoupdate" inset color="green" density="compact"></v-switch>
+          <v-switch :label="$t('no autoupdate')" v-model="editComposeStackDialog.no_autoupdate" inset color="green" density="compact"></v-switch>
         </div>
       </v-card-text>
       <v-divider />
@@ -919,7 +924,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, onUnmounted } from 'vue';
+import { ref, onMounted, reactive, onUnmounted, computed, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
@@ -988,6 +993,23 @@ const removeComposeStackDialog = reactive({
   name: '',
 });
 const wsLoading = ref(false);
+const searchTerm = ref('');
+
+const filteredDockerGroups = computed(() => {
+  const term = (searchTerm.value || '').trim().toLowerCase();
+  if (!term) return dockerGroups.value;
+  return dockerGroups.value.filter((group) => {
+    if (group.name && group.name.toLowerCase().includes(term)) return true;
+    return (group.containers || []).some((containerName) => containerName.toLowerCase().includes(term));
+  });
+});
+
+const filteredUngroupedDockers = computed(() => {
+  const ungrouped = dockers.value.filter((d) => !dockerGroups.value.some((g) => g.containers && g.containers.includes(d.Names?.[0])));
+  const term = (searchTerm.value || '').trim().toLowerCase();
+  if (!term) return ungrouped;
+  return ungrouped.filter((docker) => docker.Names && docker.Names[0] && docker.Names[0].toLowerCase().includes(term));
+});
 
 onMounted(async () => {
   await getDockers();
@@ -995,6 +1017,18 @@ onMounted(async () => {
   await getDockerGroups();
   dockersLoading.value = false;
 });
+
+watch(searchTerm, (newTerm) => {
+  if (newTerm && newTerm.trim()) {
+    dockerGroups.value.forEach((g) => (g.expanded = true));
+  }
+});
+
+const filteredGroupContainers = (group) => {
+  const term = (searchTerm.value || '').trim().toLowerCase();
+  if (!term) return group.containers || [];
+  return (group.containers || []).filter((containerName) => containerName.toLowerCase().includes(term));
+};
 
 const getDockers = async () => {
   try {

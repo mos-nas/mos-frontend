@@ -5,6 +5,8 @@
         <div class="d-flex align-center ga-3 mb-4">
           <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
           <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ t('vm') }}</h2>
+          <v-spacer />
+          <v-text-field v-model="searchTerm" :placeholder="t('search')" density="compact" hide-details clearable class="search-field" prepend-inner-icon="mdi-magnify" />
         </div>
       </v-container>
       <v-container fluid class="pa-0">
@@ -26,7 +28,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="vm in vms" :key="vm.name">
+                <tr v-for="vm in filteredVms" :key="vm.name">
                   <td style="padding: 4px 8px; vertical-align: middle">
                     <v-menu>
                       <template #activator="{ props }">
@@ -1080,6 +1082,12 @@ const vmUsage = ref([]);
 const overlay = ref(false);
 const { t } = useI18n();
 const vmsloading = ref(true);
+const searchTerm = ref('');
+const filteredVms = computed(() => {
+  const term = (searchTerm.value || '').trim().toLowerCase();
+  if (!term) return vms.value;
+  return vms.value.filter((vm) => vm.name && vm.name.toLowerCase().includes(term));
+});
 const isConnected = ref(false);
 const error = ref(null);
 const router = useRouter();
