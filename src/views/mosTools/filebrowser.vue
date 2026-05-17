@@ -381,44 +381,44 @@
     :close-on-content-click="true"
   >
     <v-list>
-      <v-list-item v-if="contextMenu.item" density="compact" class="text-caption text-medium-emphasis" style="pointer-events: none">
+      <v-list-item v-if="contextMenu.item" density="compact" style="background: rgba(var(--v-theme-primary), 0.08); pointer-events: none">
         <template #prepend>
-          <v-icon size="16">{{ contextMenu.item?.type === 'directory' ? 'mdi-folder' : 'mdi-file' }}</v-icon>
+          <v-icon color="primary">{{ contextMenu.item?.type === 'directory' ? 'mdi-folder' : 'mdi-file' }}</v-icon>
         </template>
-        <v-list-item-title class="text-caption font-weight-medium">{{ contextMenu.item?.name }}</v-list-item-title>
+        <v-list-item-title style="color: rgb(var(--v-theme-primary))">{{ contextMenu.item?.name }}</v-list-item-title>
       </v-list-item>
       <v-divider />
-      <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="openEditFileDialog(contextMenu.item)">
+      <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="openEditFileDialog(contextMenu.item)" density="compact">
         <template #prepend><v-icon>mdi-pencil</v-icon></template>
         <v-list-item-title>{{ $t('edit') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="openRenameFileDialog(contextMenu.item)">
+      <v-list-item @click="openRenameFileDialog(contextMenu.item)" density="compact">
         <template #prepend><v-icon>mdi-rename</v-icon></template>
         <v-list-item-title>{{ $t('rename') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="openDeleteFileDialog(contextMenu.item)">
+      <v-list-item @click="openDeleteFileDialog(contextMenu.item)" density="compact">
         <template #prepend><v-icon>mdi-delete</v-icon></template>
         <v-list-item-title>{{ $t('delete') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="downloadFile(contextMenu.item.path)">
+      <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="downloadFile(contextMenu.item.path)" density="compact">
         <template #prepend><v-icon>mdi-download</v-icon></template>
         <v-list-item-title>{{ $t('download') }}</v-list-item-title>
       </v-list-item>
       <v-divider />
-      <v-list-item @click="openOperationDialog(contextMenu.item, 'copy')">
+      <v-list-item @click="openOperationDialog(contextMenu.item, 'copy')" density="compact">
         <template #prepend><v-icon>mdi-content-copy</v-icon></template>
         <v-list-item-title>{{ $t('copy') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="openOperationDialog(contextMenu.item, 'move')">
+      <v-list-item @click="openOperationDialog(contextMenu.item, 'move')" density="compact">
         <template #prepend><v-icon>mdi-arrow-right-bold</v-icon></template>
         <v-list-item-title>{{ $t('move') }}</v-list-item-title>
       </v-list-item>
       <v-divider />
-      <v-list-item @click="openChModDialog(contextMenu.item)">
+      <v-list-item @click="openChModDialog(contextMenu.item)" density="compact">
         <template #prepend><v-icon>mdi-shield-key-outline</v-icon></template>
         <v-list-item-title>{{ $t('adjust permissions') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="openChOwnDialog(contextMenu.item)">
+      <v-list-item @click="openChOwnDialog(contextMenu.item)" density="compact">
         <template #prepend><v-icon>mdi-account-key</v-icon></template>
         <v-list-item-title>{{ $t('adjust ownership') }}</v-list-item-title>
       </v-list-item>
