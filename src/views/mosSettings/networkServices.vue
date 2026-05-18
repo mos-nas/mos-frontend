@@ -308,7 +308,7 @@ const createTerminalSession = async (service) => {
   } else if (service === 'logoutNetbird') {
     payload = {
       command: 'sh',
-      args: ['-c', 'netbird logout && netbird status'],
+      args: ['-c', 'netbird deregister && netbird status'],
       width: 900,
       height: 420,
     };
