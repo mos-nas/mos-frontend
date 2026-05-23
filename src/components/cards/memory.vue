@@ -86,7 +86,7 @@
       </v-col>
       <v-divider class="my-2"></v-divider>      
       <v-col cols="12">
-        <details class="memory-details">
+        <details class="memory-details" :open="memDetailsExpanded" @toggle="onMemDetailsToggle">
           <summary style="cursor: pointer; color: var(--v-theme-primary); text-decoration: underline" class="text-body-2 mb-1">{{ $t('details') }}</summary>
           <div class="memory-breakdown-grid" v-if="mem.free_human">
             <div class="memory-breakdown-item">
@@ -167,7 +167,7 @@
 </template>
 
 <script setup>
-import { toRefs, computed } from 'vue';
+import { toRefs, computed, ref, onMounted } from 'vue';
 
 const props = defineProps({
   memory: { type: Object, default: () => ({}) },
@@ -176,6 +176,17 @@ const props = defineProps({
 const { memory, swap } = toRefs(props);
 const mem = computed(() => memory.value ?? {});
 const swp = computed(() => swap.value ?? {});
+
+const memDetailsExpanded = ref(false);
+
+onMounted(() => {
+  memDetailsExpanded.value = localStorage.getItem('memory-details-expanded') === 'true';
+});
+
+const onMemDetailsToggle = (e) => {
+  memDetailsExpanded.value = e.target.open;
+  localStorage.setItem('memory-details-expanded', e.target.open);
+};
 
 const getRealFreePercentage = () => {
   const actuallyUsed = mem.value.percentage?.actuallyUsed || 0;

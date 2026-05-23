@@ -31,7 +31,7 @@
             <v-row no-gutters class="pt-2 pb-2">
               <v-col cols="12" md="6">
                 <v-switch :label="$t('samba')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.samba.enabled"></v-switch>
-                <v-switch :label="$t('localmaster')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.samba.localmaster"></v-switch>
+                <v-switch :label="$t('localmaster')" :disabled="!settingsNetwork.samba.enabled" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.samba.localmaster"></v-switch>
               </v-col>
               <v-col cols="12" md="6">
                 <v-switch

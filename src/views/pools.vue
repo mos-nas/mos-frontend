@@ -926,7 +926,7 @@ const cronDialog = reactive({
   schedule: '* * * * *',
 });
 const poolTypes = ref([]);
-const raidLevels = ['raid0', 'raid1', 'raid5'];
+const raidLevels = ['raid0', 'raid1', 'raid10'];
 const formatDialog = reactive({
   value: false,
   disk: null,

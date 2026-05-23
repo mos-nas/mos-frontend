@@ -45,7 +45,7 @@
       </v-col>
       <v-col cols="12" sm="12" md="12" xl="12">
         <div v-if="cpu.cores && cpu.cores.length">
-          <details>
+          <details :open="coresExpanded" @toggle="onCoresToggle">
             <summary style="cursor: pointer; color: var(--v-theme-primary); text-decoration: underline" class="text-body-2 mb-1">{{ $t('cores') }}</summary>
             <v-row v-for="(core, i) in (cpu.cores || []).filter((c) => c.isPhysical)" :key="i" density="compact">
               <v-col>
@@ -106,7 +106,7 @@
 </template>
 
 <script setup>
-import { toRefs } from 'vue';
+import { toRefs, ref, onMounted } from 'vue';
 
 const props = defineProps({
   cpu: { type: Object, default: () => ({ load: 0 }) },
@@ -114,6 +114,17 @@ const props = defineProps({
   osInfo: { type: Object, default: () => ({}) },
 });
 const { cpu, temperature, osInfo } = toRefs(props);
+
+const coresExpanded = ref(false);
+
+onMounted(() => {
+  coresExpanded.value = localStorage.getItem('processor-cores-expanded') === 'true';
+});
+
+const onCoresToggle = (e) => {
+  coresExpanded.value = e.target.open;
+  localStorage.setItem('processor-cores-expanded', e.target.open);
+};
 </script>
 
 <style scoped>
