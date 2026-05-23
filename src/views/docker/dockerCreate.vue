@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="d-flex justify-center">
-    <v-navigation-drawer v-model="sidePanel.open" location="right" temporary width="400" :scrim="false">
+    <v-navigation-drawer v-model="sidePanel.open" location="right" temporary width="400" :scrim="false" scrollable>
       <template #prepend>
         <v-toolbar density="compact" class="bg-transparent">
           <v-btn icon size="small" @click="sidePanel.open = false" class="ml-auto">
