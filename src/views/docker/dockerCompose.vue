@@ -172,7 +172,7 @@ const composeTemplates = ref([]);
 
 onMounted(() => {
   getComposeTemplateNames();
-  getDockerContainers();
+  getDockerPorts();
   if (props.template || props.yaml || props.env || props.web_ui_url) {
     const template = props.template ? decodeURIComponent(props.template) : props.template;
     const yaml = props.yaml ? decodeURIComponent(props.yaml) : props.yaml;
@@ -298,75 +298,18 @@ const dockerStateColor = (status) => {
   return 'grey';
 };
 
-const getDockerContainers = async () => {
+const getDockerPorts = async () => {
   try {
-    const authHeaders = { Authorization: 'Bearer ' + localStorage.getItem('authToken') };
-
-    const res = await fetch('/api/v1/docker/containers/json?all=true', { headers: authHeaders });
-    if (!res.ok) return;
-
-    const containers = await res.json();
-
-    const portsFromSummary = containers.flatMap((container) => {
-      const ports = Array.isArray(container?.Ports) ? container.Ports : [];
-      return ports
-        .map((binding) => {
-          const hostPort = binding?.PublicPort;
-          if (hostPort == null || hostPort === '') return null;
-          const port = Number(hostPort);
-          if (!Number.isFinite(port)) return null;
-          return {
-            port,
-            proto: String(binding?.Type || ''),
-            name: (container?.Names?.[0] || '').replace(/^\//, ''),
-            status: container?.State || '',
-          };
-        })
-        .filter(Boolean);
+    const res = await fetch('/api/v1/docker/mos/ports', {
+      headers: { Authorization: 'Bearer ' + localStorage.getItem('authToken') },
     });
 
-    const notRunningContainers = containers.filter((c) => String(c?.State || '').toLowerCase() !== 'running');
+    if (!res.ok) {
+      usedDockerPorts.value = [];
+      return;
+    }
 
-    const inspectDetails = await Promise.all(
-      notRunningContainers.map(async (container) => {
-        try {
-          const r = await fetch(`/api/v1/docker/containers/${container.Id}/json`, { headers: authHeaders });
-          if (!r.ok) return null;
-          return r.json();
-        } catch {
-          return null;
-        }
-      }),
-    );
-
-    const portsFromInspect = inspectDetails.filter(Boolean).flatMap((container) => {
-      const bindings = container?.HostConfig?.PortBindings || {};
-      return Object.entries(bindings).flatMap(([binding, values]) => {
-        if (!Array.isArray(values)) return [];
-        const proto = String(binding).split('/')[1] || '';
-        return values
-          .map((value) => {
-            const hostPort = value?.HostPort;
-            if (hostPort == null || hostPort === '') return null;
-            const port = Number(hostPort);
-            if (!Number.isFinite(port)) return null;
-            return { port, proto, name: (container?.Name || '').replace(/^\//, ''), status: container?.State?.Status || '' };
-          })
-          .filter(Boolean);
-      });
-    });
-
-    const mergedPorts = [...portsFromSummary, ...portsFromInspect];
-    const dedupedPorts = new Map();
-    mergedPorts.forEach((entry) => {
-      const key = `${entry.name}|${entry.port}|${entry.proto}`;
-      if (!dedupedPorts.has(key)) dedupedPorts.set(key, entry);
-    });
-
-    usedDockerPorts.value = Array.from(dedupedPorts.values()).sort((a, b) => {
-      if (a.port !== b.port) return a.port - b.port;
-      return a.proto.localeCompare(b.proto);
-    });
+    usedDockerPorts.value = await res.json();
   } catch {
     usedDockerPorts.value = [];
   }

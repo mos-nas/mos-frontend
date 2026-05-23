@@ -567,6 +567,7 @@ onMounted(async () => {
   getDockerTemplate();
   getDockerNetworks();
   getGPUs();
+  getDockerPorts();
 });
 const { wsIsConnected, wsError, wsOperationDialog, wsScrollContainer, sendDockerWSCommand, closeWsDialog } = useDockerWebSocket({
   onErrorSnackbar: showSnackbarError,
@@ -756,93 +757,33 @@ const getDockerContainers = async () => {
     }));
 
     containerOptions.value.sort((a, b) => a.name.localeCompare(b.name));
-
-    const portsFromSummary = containers.flatMap((container) => {
-      const ports = Array.isArray(container?.Ports) ? container.Ports : [];
-
-      return ports
-        .map((binding) => {
-          const hostPort = binding?.PublicPort;
-          if (hostPort == null || hostPort === '') return null;
-
-          const port = Number(hostPort);
-          if (!Number.isFinite(port)) return null;
-
-          return {
-            port,
-            proto: String(binding?.Type || ''),
-            name: (container?.Names?.[0] || '').replace(/^\//, ''),
-            status: container?.State || '',
-          };
-        })
-        .filter(Boolean);
-    });
-
-    const notRunningContainers = containers.filter((container) => String(container?.State || '').toLowerCase() !== 'running');
-
-    const inspectDetails = await Promise.all(
-      notRunningContainers.map(async (container) => {
-        try {
-          const detailRes = await fetch(`/api/v1/docker/containers/${container.Id}/json`, {
-            headers: authHeaders,
-          });
-
-          if (!detailRes.ok) return null;
-          return detailRes.json();
-        } catch {
-          return null;
-        }
-      }),
-    );
-
-    const portsFromInspect = inspectDetails.filter(Boolean).flatMap((container) => {
-      const bindings = container?.HostConfig?.PortBindings || {};
-
-      return Object.entries(bindings).flatMap(([binding, values]) => {
-        if (!Array.isArray(values)) return [];
-
-        const proto = String(binding).split('/')[1] || '';
-
-        return values
-          .map((value) => {
-            const hostPort = value?.HostPort;
-            if (hostPort == null || hostPort === '') return null;
-
-            const port = Number(hostPort);
-            if (!Number.isFinite(port)) return null;
-
-            return {
-              port,
-              proto,
-              name: (container?.Name || '').replace(/^\//, ''),
-              status: container?.State?.Status || '',
-            };
-          })
-          .filter(Boolean);
-      });
-    });
-
-    const mergedPorts = [...portsFromSummary, ...portsFromInspect];
-    const dedupedPorts = new Map();
-
-    mergedPorts.forEach((entry) => {
-      const key = `${entry.name}|${entry.port}|${entry.proto}`;
-      if (!dedupedPorts.has(key)) {
-        dedupedPorts.set(key, entry);
-      }
-    });
-
-    usedDockerPorts.value = Array.from(dedupedPorts.values()).sort((a, b) => {
-      if (a.port !== b.port) return a.port - b.port;
-      return a.proto.localeCompare(b.proto);
-    });
   } catch (e) {
     containerOptions.value = [];
-    usedDockerPorts.value = [];
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     loadingContainers.value = false;
+  }
+};
+
+const getDockerPorts = async () => {
+  try {
+    const res = await fetch('/api/v1/docker/mos/ports', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('docker ports could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    usedDockerPorts.value = await res.json();
+  } catch (e) {
+    usedDockerPorts.value = [];
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
   }
 };
 
