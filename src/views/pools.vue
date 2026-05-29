@@ -1019,7 +1019,6 @@ const addMergerfsDevicesDialog = reactive({
   devices: [],
   format: false,
   passphrase: '',
-  skip_size_check: false,
 });
 const removeMergerfsDevicesDialog = reactive({
   value: false,
