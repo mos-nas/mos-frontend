@@ -487,6 +487,9 @@
           <v-slide-y-transition>
             <div v-if="createPoolDialog.showAdvanced">
               <v-text-field v-if="createPoolDialog.type === 'mergerfs'" v-model="createPoolDialog.mergerfsOptions" :label="$t('mergerfs options')" />
+              <div @click="createPoolDialog.skip_size_check_clicks < 5 ? createPoolDialog.skip_size_check_clicks++ : null">
+                <v-switch v-if="createPoolDialog.type === 'mergerfs'" v-model="createPoolDialog.skip_size_check" :label="$t('skip size check')" hide-details density="compact" color="red" inset :disabled="createPoolDialog.skip_size_check_clicks < 5"/>
+              </div>
             </div>
           </v-slide-y-transition>
         </div>
@@ -614,7 +617,6 @@
     <v-card class="pa-0" :title="t('add parity devices')" prepend-icon="mdi-harddisk-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select devices to add as parity') }}</p>
-        <v-form>
           <v-select
             v-model="addParityDevicesDialog.devices"
             :items="Array.isArray(unassignedDisks) ? unassignedDisks.map((disk) => `${disk.device} (${disk.size_human}) (${disk.serial ? disk.serial : '—'})`) : []"
@@ -623,12 +625,14 @@
             density="comfortable"
           />
           <v-switch v-model="addParityDevicesDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
-        </v-form>
+          <div @click="addParityDevicesDialog.skip_size_check_clicks < 5 ? addParityDevicesDialog.skip_size_check_clicks++ : null">
+            <v-switch v-model="addParityDevicesDialog.skip_size_check" :label="$t('skip size check')" hide-details density="compact" color="red" inset :disabled="addParityDevicesDialog.skip_size_check_clicks < 5" />
+          </div>
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="addParityDevicesDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn @click="addMergerfsParityDevice(addParityDevicesDialog.pool.id, addParityDevicesDialog.devices, addParityDevicesDialog.format)" color="onPrimary">
+        <v-btn @click="addMergerfsParityDevice(addParityDevicesDialog.pool.id, addParityDevicesDialog.devices, addParityDevicesDialog.format, addParityDevicesDialog.skip_size_check)" color="onPrimary">
           {{ $t('add') }}
         </v-btn>
       </v-card-actions>
@@ -679,13 +683,16 @@
             density="comfortable"
           />
           <v-switch v-model="replaceParityDeviceDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
+          <div @click="replaceParityDeviceDialog.skip_size_check_clicks < 5 ? replaceParityDeviceDialog.skip_size_check_clicks++ : null">
+            <v-switch v-model="replaceParityDeviceDialog.skip_size_check" :label="$t('skip size check')" hide-details density="compact" color="red" inset :disabled="replaceParityDeviceDialog.skip_size_check_clicks < 5" />
+          </div>
         </v-form>
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="replaceParityDeviceDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
         <v-btn
-          @click="replaceMergerfsParityDevice(replaceParityDeviceDialog.pool.id, replaceParityDeviceDialog.oldDevice, replaceParityDeviceDialog.newDevice, replaceParityDeviceDialog.format)"
+          @click="replaceMergerfsParityDevice(replaceParityDeviceDialog.pool.id, replaceParityDeviceDialog.oldDevice, replaceParityDeviceDialog.newDevice, replaceParityDeviceDialog.format, replaceParityDeviceDialog.skip_size_check)"
           color="red"
         >
           {{ $t('replace') }}
@@ -960,6 +967,8 @@ const createPoolDialog = reactive({
     create: 'pfrd',
     search: 'ff',
   },
+  skip_size_check: false,
+  skip_size_check_clicks: 0,
 });
 const deletePoolDialog = reactive({
   value: false,
@@ -977,6 +986,8 @@ const addParityDevicesDialog = reactive({
   pool: null,
   devices: [],
   format: false,
+  skip_size_check: false,
+  skip_size_check_clicks: 0,
 });
 const removeParityDevicesDialog = reactive({
   value: false,
@@ -999,6 +1010,8 @@ const replaceParityDeviceDialog = reactive({
   oldDevice: null,
   newDevice: null,
   format: false,
+  skip_size_check: false,
+  skip_size_check_clicks: 0,
 });
 const addMergerfsDevicesDialog = reactive({
   value: false,
@@ -1006,6 +1019,7 @@ const addMergerfsDevicesDialog = reactive({
   devices: [],
   format: false,
   passphrase: '',
+  skip_size_check: false,
 });
 const removeMergerfsDevicesDialog = reactive({
   value: false,
@@ -1105,6 +1119,15 @@ watch(
   },
 );
 
+watch(
+  () => cronDialog.value,
+  (isOpen) => {
+    if (!isOpen) {
+      resetCronDialog();
+    }
+  },
+);
+
 const resetCronDialog = () => {
   cronDialogApplyCallback.value = null;
 };
@@ -1122,21 +1145,13 @@ const applyCronSchedule = (schedule) => {
   resetCronDialog();
 };
 
-watch(
-  () => cronDialog.value,
-  (isOpen) => {
-    if (!isOpen) {
-      resetCronDialog();
-    }
-  },
-);
-
 const openAddMergerfsDevicesDialog = (pool) => {
   addMergerfsDevicesDialog.value = true;
   addMergerfsDevicesDialog.pool = pool;
   addMergerfsDevicesDialog.devices = [];
   addMergerfsDevicesDialog.format = false;
   addMergerfsDevicesDialog.passphrase = '';
+  addMergerfsDevicesDialog.skip_size_check = false;
 };
 const openRemoveMergerfsDevicesDialog = (pool) => {
   removeMergerfsDevicesDialog.value = true;
@@ -1157,6 +1172,8 @@ const openReplaceParityDeviceDialog = (pool) => {
   replaceParityDeviceDialog.oldDevice = null;
   replaceParityDeviceDialog.newDevice = null;
   replaceParityDeviceDialog.format = false;
+  replaceParityDeviceDialog.skip_size_check = false;
+  replaceParityDeviceDialog.skip_size_check_clicks = 0;
 };
 const openSnapraidOperationDialog = (pool) => {
   snapraidOperationDialog.value = true;
@@ -1216,6 +1233,8 @@ const openCreatePoolDialog = async (disk) => {
   createPoolDialog.showAdvanced = false;
   createPoolDialog.parity = [];
   createPoolDialog.parity_valid = false;
+  createPoolDialog.skip_size_check = false;
+  createPoolDialog.skip_size_check_clicks = 0;
   createPoolDialog.filesystems = await getFilesystems(createPoolDialog.type);
 };
 const openDeletePoolDialog = (pool) => {
@@ -1227,6 +1246,8 @@ const openAddParityDevicesDialog = (pool) => {
   addParityDevicesDialog.pool = pool;
   addParityDevicesDialog.devices = [];
   addParityDevicesDialog.format = false;
+  addParityDevicesDialog.skip_size_check = false;
+  addParityDevicesDialog.skip_size_check_clicks = 0;
 };
 const openRemoveParityDevicesDialog = (pool) => {
   removeParityDevicesDialog.value = true;
@@ -1420,6 +1441,7 @@ const createPoolMergerfs = async () => {
       create_keyfile: createPoolDialog.encrypted ? createPoolDialog.create_keyfile : false,
     },
     passphrase: createPoolDialog.encrypted ? createPoolDialog.passphrase : null,
+    skip_size_check: createPoolDialog.skip_size_check,
   };
   overlay.value = true;
 
@@ -1728,11 +1750,12 @@ const mountPoolWithPassphrase = async (pool, passphrase) => {
   }
 };
 
-const addMergerfsParityDevice = async (poolId, devices, format) => {
+const addMergerfsParityDevice = async (poolId, devices, format, skipSizeCheck) => {
   overlay.value = true;
   const addParityData = {
     devices: devices,
     format: format,
+    skipSizeCheck: skipSizeCheck,
   };
 
   try {
@@ -1794,12 +1817,13 @@ const removeMergerfsParityDevice = async (poolId, devices, unmount) => {
   }
 };
 
-const replaceMergerfsParityDevice = async (poolId, oldDevice, newDevice, format) => {
+const replaceMergerfsParityDevice = async (poolId, oldDevice, newDevice, format, skipSizeCheck) => {
   overlay.value = true;
-  const replaceParityData = {
+  const payload = {
     oldDevice: oldDevice,
     newDevice: newDevice,
     format: format,
+    skipSizeCheck: skipSizeCheck,
   };
 
   try {
@@ -1809,7 +1833,7 @@ const replaceMergerfsParityDevice = async (poolId, oldDevice, newDevice, format)
         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(replaceParityData),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -1960,12 +1984,13 @@ const saveNonRaidCheckSchedule = async (id, check) => {
   }
 };
 
-const addMergerfsDevices = async (poolId, devices, format, passphrase) => {
+const addMergerfsDevices = async (poolId, devices, format, passphrase, skipSizeCheck) => {
   overlay.value = true;
-  const addDeviceData = {
+  const payload = {
     devices: devices,
     format: format,
     passphrase: passphrase,
+    skip_size_check: skipSizeCheck,
   };
 
   try {
@@ -1975,7 +2000,7 @@ const addMergerfsDevices = async (poolId, devices, format, passphrase) => {
         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(addDeviceData),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {

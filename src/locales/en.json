@@ -1556,5 +1556,6 @@
   "iscsi config could not be loaded": "iSCSI configuration could not be loaded",
   "targets": "Targets",
   "delete target": "Delete Target",
-  "allow execute always": "Allow execute always"
+  "allow execute always": "Allow execute always",
+  "skip size check": "Skip size check"
 }

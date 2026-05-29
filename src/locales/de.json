@@ -1556,5 +1556,6 @@
   "iscsi config could not be loaded": "iSCSI-Konfiguration konnte nicht geladen werden",
   "targets": "Ziele",
   "delete target": "Ziel löschen",
-  "allow execute always": "Ausführen immer erlauben"
+  "allow execute always": "Ausführen immer erlauben",
+  "skip size check": "Größenprüfung überspringen"
 }
