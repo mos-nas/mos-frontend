@@ -1534,6 +1534,9 @@
   "block device": "Block Device",
   "read-only": "Read-only",
   "add target": "Add Target",
+  "add initiator target": "Add Initiator Target",
+  "edit target": "Edit Target",
+  "are you sure you want to delete this target?": "Are you sure you want to delete this target?",
   "new target": "New Target",
   "portal": "Portal",
   "backing store": "Backing Store",
@@ -1562,5 +1565,8 @@
   "set huge pages": "Set Huge Pages",
   "system huge page size": "System Huge Page Size",
   "free huge pages": "Free Huge Pages",
-  "used huge pages": "Used Huge Pages"
+  "used huge pages": "Used Huge Pages",
+  "iscsi initiators": "iSCSI Initiators",
+  "iscsi targets": "iSCSI Targets",
+  "iscsi config could not be deleted": "iSCSI config could not be deleted"
 }

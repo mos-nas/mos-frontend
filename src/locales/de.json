@@ -1534,6 +1534,9 @@
   "block device": "Blockgerät",
   "read-only": "Schreibgeschützt",
   "add target": "Ziel hinzufügen",
+  "add initiator target": "Initiator-Ziel hinzufügen",
+  "edit target": "Ziel bearbeiten",
+  "are you sure you want to delete this target": "Bist du sicher, dass du dieses Ziel löschen möchtest",
   "new target": "Neues Ziel",
   "portal": "Portal",
   "backing store": "Backing Store",
@@ -1562,5 +1565,8 @@
   "set huge pages": "Gesetzte Huge Pages",
   "system huge page size": "System Huge Page Größe",
   "free huge pages": "Freie Huge Pages",
-  "used huge pages": "Verwendete Huge Pages"
+  "used huge pages": "Verwendete Huge Pages",
+  "iscsi initiators": "iSCSI Initiatoren",
+  "iscsi targets": "iSCSI Ziele",
+  "iscsi config could not be deleted": "iSCSI-Konfiguration konnte nicht gelöscht werden"
 }

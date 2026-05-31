@@ -291,11 +291,20 @@
                       <v-icon size="small" color="medium-emphasis">mdi-chevron-right</v-icon>
                     </template>
                   </v-list-item>
-                  <v-list-item rounded="lg" to="/mosSettings/iscsci" color="primary">
+                  <v-list-item rounded="lg" to="/mosSettings/iscsiTargets" color="primary">
                     <template v-slot:prepend>
                       <v-icon icon="mdi-server-network" class="mr-3"></v-icon>
                     </template>
-                    <v-list-item-title class="font-weight-medium">{{ $t('iscsi') }}</v-list-item-title>
+                    <v-list-item-title class="font-weight-medium">{{ $t('iscsi targets') }}</v-list-item-title>
+                    <template v-slot:append>
+                      <v-icon size="small" color="medium-emphasis">mdi-chevron-right</v-icon>
+                    </template>
+                  </v-list-item>
+                  <v-list-item rounded="lg" to="/mosSettings/iscsiInitiators" color="primary">
+                    <template v-slot:prepend>
+                      <v-icon icon="mdi-server-network" class="mr-3"></v-icon>
+                    </template>
+                    <v-list-item-title class="font-weight-medium">{{ $t('iscsi initiators') }}</v-list-item-title>
                     <template v-slot:append>
                       <v-icon size="small" color="medium-emphasis">mdi-chevron-right</v-icon>
                     </template>
