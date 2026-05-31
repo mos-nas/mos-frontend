@@ -1535,6 +1535,7 @@
   "read-only": "Read-only",
   "add target": "Add Target",
   "add initiator target": "Add Initiator Target",
+  "edit initiator target": "Edit Initiator Target",
   "edit target": "Edit Target",
   "are you sure you want to delete this target?": "Are you sure you want to delete this target?",
   "new target": "New Target",
@@ -1568,5 +1569,13 @@
   "used huge pages": "Used Huge Pages",
   "iscsi initiators": "iSCSI Initiators",
   "iscsi targets": "iSCSI Targets",
-  "iscsi config could not be deleted": "iSCSI config could not be deleted"
+  "iscsi target could not be deleted": "iSCSI target could not be deleted",
+  "iscsi target deleted successfully": "iSCSI target deleted successfully",
+  "iscsi initiator could not be deleted": "iSCSI initiator could not be deleted",
+  "iscsi initiator deleted successfully": "iSCSI initiator deleted successfully",
+  "iscsi initiator saved successfully": "iSCSI initiator saved successfully",
+  "iscsi initiator could not be saved": "iSCSI initiator could not be saved",
+  "iscsi initiators could not be loaded": "iSCSI initiators could not be loaded",
+  "are you sure you want to delete this initiator": "Are you sure you want to delete this initiator",
+  "iscsi target could not be loaded": "iSCSI targets could not be loaded"
 }

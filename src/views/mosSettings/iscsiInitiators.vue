@@ -10,6 +10,23 @@
       </v-container>
 
       <v-container fluid class="pa-0">
+        <!-- Initiator IQN -->
+        <v-card class="mb-4 pa-4">
+          <div class="text-subtitle-1 font-weight-medium mb-3">{{ $t('initiator iqn') }}</div>
+          <div class="d-flex align-center ga-3">
+            <v-text-field
+              v-model="initiatorName"
+              :label="$t('initiator iqn')"
+              placeholder="iqn.2025-01.com.example:initiator"
+              density="compact"
+              hide-details="auto"
+              style="max-width: 600px"
+            ></v-text-field>
+            <v-btn color="primary" variant="tonal" :disabled="!initiatorName" @click="saveInitiator()">{{ $t('save') }}</v-btn>
+          </div>
+        </v-card>
+
+        <!-- Targets -->
         <v-card v-if="initiatorTargets.length === 0" fluid class="mb-4 ml-0 mr-0 pa-0">
           <v-card-text class="pa-4">
             {{ $t('no targets configured') }}
@@ -40,18 +57,6 @@
                         </template>
                         <v-list-item-title>{{ $t('edit') }}</v-list-item-title>
                       </v-list-item>
-                      <v-list-item v-if="!target.enabled" @click="toggleEnabled(i)">
-                        <template #prepend>
-                          <v-icon>mdi-play-circle</v-icon>
-                        </template>
-                        <v-list-item-title>{{ $t('enable') }}</v-list-item-title>
-                      </v-list-item>
-                      <v-list-item v-else @click="toggleEnabled(i)">
-                        <template #prepend>
-                          <v-icon>mdi-stop-circle</v-icon>
-                        </template>
-                        <v-list-item-title>{{ $t('disable') }}</v-list-item-title>
-                      </v-list-item>
                       <v-list-item @click="openDeleteDialog(i)">
                         <template #prepend>
                           <v-icon>mdi-delete</v-icon>
@@ -78,63 +83,63 @@
   </v-container>
 
   <!-- Add Dialog -->
-  <v-dialog v-model="createDialog.open" max-width="600px">
+  <v-dialog v-model="createDialog.value" max-width="600px">
     <v-card :title="$t('add initiator target')" prepend-icon="mdi-plus">
       <v-card-text>
-        <v-switch v-model="createDialog.enabled" :label="$t('enabled')" color="green" inset hide-details="auto" density="compact" class="mb-2"></v-switch>
-        <v-text-field v-model="createDialog.name" :label="$t('target iqn')" placeholder="iqn.2024-01.com.example:storage" class="mb-2"></v-text-field>
+        <v-text-field v-model="createDialog.name" :label="$t('target iqn')" placeholder="iqn.2024-01.com.example:storage" density="compact" hide-details="auto" class="mb-3"></v-text-field>
         <v-row>
           <v-col cols="12" sm="8">
-            <v-text-field v-model="createDialog.address" :label="$t('address')" placeholder="10.0.0.1"></v-text-field>
+            <v-text-field v-model="createDialog.portal.address" :label="$t('address')" placeholder="10.0.0.1" density="compact" hide-details="auto"></v-text-field>
           </v-col>
           <v-col cols="12" sm="4">
-            <v-text-field v-model="createDialog.port" :label="$t('portal port')" placeholder="3260"></v-text-field>
+            <v-text-field v-model="createDialog.portal.port" :label="$t('portal port')" placeholder="3260" density="compact" hide-details="auto"></v-text-field>
           </v-col>
         </v-row>
-        <v-switch v-model="createDialog.automount" :label="$t('automount')" color="green" inset hide-details="auto" density="compact"></v-switch>
+        <v-switch v-model="createDialog.connection.automount" :label="$t('automount')" color="green" inset hide-details="auto" density="compact" class="mt-3"></v-switch>
       </v-card-text>
       <v-divider />
       <v-card-actions>
+        <v-btn variant="text" color="blue" prepend-icon="mdi-lan-connect" :disabled="!createDialog.portal.address" :loading="testingConnection" @click="testConnection(createDialog.portal.address, createDialog.portal.port)">{{ $t('test connection') }}</v-btn>
         <v-spacer></v-spacer>
-        <v-btn @click="createDialog.open = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="primary" :disabled="!createDialog.name || !createDialog.address" @click="createInitiatorTarget()">{{ $t('add') }}</v-btn>
+        <v-btn color="onPrimary" @click="createDialog.value = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="onPrimary" :disabled="!createDialog.name || !createDialog.portal.address" @click="createInitiatorTarget()">{{ $t('add') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <!-- Edit Dialog -->
-  <v-dialog v-model="editDialog.open" max-width="600px">
+  <v-dialog v-model="editDialog.value" max-width="600px">
     <v-card :title="$t('edit initiator target')" prepend-icon="mdi-text-box-edit">
       <v-card-text>
-        <v-switch v-model="editDialog.enabled" :label="$t('enabled')" color="green" inset hide-details="auto" density="compact" class="mb-2"></v-switch>
-        <v-text-field v-model="editDialog.name" :label="$t('target iqn')" placeholder="iqn.2024-01.com.example:storage" class="mb-2"></v-text-field>
+        <v-text-field v-model="editDialog.name" :label="$t('target iqn')" placeholder="iqn.2024-01.com.example:storage" density="compact" hide-details="auto" class="mb-3"></v-text-field>
         <v-row>
           <v-col cols="12" sm="8">
-            <v-text-field v-model="editDialog.address" :label="$t('address')" placeholder="10.0.0.1"></v-text-field>
+            <v-text-field v-model="editDialog.portal.address" :label="$t('address')" placeholder="10.0.0.1" density="compact" hide-details="auto"></v-text-field>
           </v-col>
           <v-col cols="12" sm="4">
-            <v-text-field v-model="editDialog.port" :label="$t('portal port')" placeholder="3260"></v-text-field>
+            <v-text-field v-model="editDialog.portal.port" :label="$t('portal port')" placeholder="3260" density="compact" hide-details="auto"></v-text-field>
           </v-col>
         </v-row>
-        <v-switch v-model="editDialog.automount" :label="$t('automount')" color="green" inset hide-details="auto" density="compact"></v-switch>
+        <v-switch v-model="editDialog.connection.automount" :label="$t('automount')" color="green" inset hide-details="auto" density="compact" class="mt-3"></v-switch>
       </v-card-text>
       <v-divider />
       <v-card-actions>
+        <v-btn variant="text" color="blue" prepend-icon="mdi-lan-connect" :disabled="!editDialog.portal.address" :loading="testingConnection" @click="testConnection(editDialog.portal.address, editDialog.portal.port)">{{ $t('test connection') }}</v-btn>
         <v-spacer></v-spacer>
-        <v-btn @click="editDialog.open = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="primary" :disabled="!editDialog.name || !editDialog.address" @click="updateInitiatorTarget()">{{ $t('save') }}</v-btn>
+        <v-btn color="onPrimary" @click="editDialog.value = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="onPrimary" :disabled="!editDialog.name || !editDialog.portal.address" @click="updateInitiatorTarget()">{{ $t('save') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <!-- Delete Dialog -->
-  <v-dialog v-model="deleteDialog.open" max-width="400">
+  <v-dialog v-model="deleteDialog.value" max-width="400">
     <v-card :title="$t('confirm delete')" prepend-icon="mdi-delete">
-      <v-card-text>{{ $t('are you sure you want to delete this target') }}?</v-card-text>
+      <v-card-text>{{ $t('are you sure you want to delete this initiator') }}?</v-card-text>
       <v-divider />
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn @click="deleteDialog.open = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="onPrimary" @click="deleteDialog.value = false">{{ $t('cancel') }}</v-btn>
         <v-btn color="red" @click="confirmDelete()">{{ $t('delete') }}</v-btn>
       </v-card-actions>
     </v-card>
@@ -156,69 +161,109 @@ import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 
 const { t } = useI18n();
 const overlay = ref(false);
-
+const testingConnection = ref(false);
+const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const initiatorTargets = ref([]);
-const createDialog = reactive({ open: false, name: '', address: '', port: '3260', automount: false, enabled: true });
-const editDialog = reactive({ open: false, index: null, id: null, name: '', address: '', port: '3260', automount: false, enabled: true });
-const deleteDialog = reactive({ open: false, index: null });
+const initiatorName = ref('');
+const createDialog = reactive({ value: false, name: '', portal: { address: '', port: '3260' }, connection: { automount: false } });
+const editDialog = reactive({ value: false, index: null, id: null, name: '', portal: { address: '', port: '3260' }, connection: { automount: false } });
+const deleteDialog = reactive({ value: false, index: null });
 
-const authHeaders = () => ({
-  Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-  'Content-Type': 'application/json',
+onMounted(() => {
+  getInitiators();
 });
 
-const openAddDialog = () => {
-  createDialog.open = true;
-  createDialog.name = '';
-  createDialog.address = '';
-  createDialog.port = '3260';
-  createDialog.automount = false;
-  createDialog.enabled = true;
-}
-
-const openDeleteDialog = (index) => {
-  deleteDialog.open = true;
-  deleteDialog.index = index;
-}
-
-const toggleEnabled = async (index) => {
-  const target = initiatorTargets.value[index];
-  const newEnabled = !target.enabled;
+const testConnection = async (targetIp, targetPort) => {
+  testingConnection.value = true;
   try {
-    const res = await fetch(`/api/v1/iscsi/initiator/targets/${target.id}`, {
-      method: 'PATCH',
-      headers: authHeaders(),
-      body: JSON.stringify({ enabled: newEnabled }),
+    const res = await fetch('/api/v1/iscsi/initiator/test-connection', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ targetIp, targetPort }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || data.error || t('unknown error'));
+    }
+    showSnackbarSuccess(data.message || t('connection successful'));
+  } catch (e) {
+    showSnackbarError(t('connection failed'), e.message);
+  } finally {
+    testingConnection.value = false;
+  }
+};
+
+const saveInitiator = async () => {
+  overlay.value = true;
+  try {
+    const res = await fetch('/api/v1/iscsi/initiator/name', {
+      method: 'PUT',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: initiatorName.value }),
     });
     if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || t('unknown error'));
     }
-    target.enabled = newEnabled;
+    showSnackbarSuccess(t('iscsi initiator saved successfully'));
   } catch (e) {
-    showSnackbarError(t('iscsi config could not be saved'), e.message);
+    showSnackbarError(t('iscsi initiator could not be saved'), e.message);
+  } finally {
+    overlay.value = false;
   }
-}
+};
 
-const createInitiator = async () => {
+const openAddDialog = () => {
+  createDialog.value = true;
+  createDialog.name = '';
+  createDialog.portal.address = '';
+  createDialog.portal.port = '3260';
+  createDialog.connection.automount = false;
+};
+
+const openEditDialog = (index) => {
+  const tgt = initiatorTargets.value[index];
+  editDialog.value = true;
+  editDialog.index = index;
+  editDialog.id = tgt.id;
+  editDialog.name = tgt.name;
+  editDialog.portal.address = tgt.portal.address;
+  editDialog.portal.port = tgt.portal.port;
+  editDialog.connection.automount = tgt.connection.automount;
+};
+
+const openDeleteDialog = (index) => {
+  deleteDialog.value = true;
+  deleteDialog.index = index;
+};
+
+const createInitiatorTarget = async () => {
   overlay.value = true;
 
   const payload = {
     name: createDialog.name,
     portal: {
-      address: createDialog.address,
-      port: createDialog.port,
+      address: createDialog.portal.address,
+      port: createDialog.portal.port,
     },
     connection: {
-      automount: createDialog.automount,
+      automount: createDialog.connection.automount,
     },
-    enabled: createDialog.enabled,
   };
 
   try {
     const res = await fetch('/api/v1/iscsi/initiator/targets', {
       method: 'POST',
-      headers: authHeaders(),
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
@@ -226,47 +271,80 @@ const createInitiator = async () => {
       throw new Error(error.error || t('unknown error'));
     }
     const data = await res.json();
-    initiatorTargets.value.push({
-      id: data.id ?? null,
-      name: createDialog.value.name,
-      portal: { address: createDialog.value.address, port: createDialog.value.port },
-      connection: { automount: createDialog.value.automount },
-      enabled: createDialog.value.enabled,
-    });
-    createDialog.value.open = false;
-    showSnackbarSuccess(t('iscsi config saved successfully'));
+    getInitiators();
+    createDialog.value = false;
+    showSnackbarSuccess(t('iscsi initiator saved successfully'));
   } catch (e) {
-    showSnackbarError(t('iscsi config could not be saved'), e.message);
+    showSnackbarError(t('iscsi initiator could not be saved'), e.message);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const updateInitiatorTarget = async () => {
+  overlay.value = true;
+  const payload = {
+    name: editDialog.name,
+    portal: {
+      address: editDialog.portal.address,
+      port: editDialog.portal.port,
+    },
+    connection: {
+      automount: editDialog.connection.automount,
+    },
+  };
+  try {
+    const res = await fetch(`/api/v1/iscsi/initiator/targets/${editDialog.id}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || t('unknown error'));
+    }
+    getInitiators();
+    editDialog.value = false;
+    showSnackbarSuccess(t('iscsi initiator saved successfully'));
+  } catch (e) {
+    showSnackbarError(t('iscsi initiator could not be saved'), e.message);
   } finally {
     overlay.value = false;
   }
 };
 
 const confirmDelete = async () => {
-  const index = deleteDialog.value.index;
+  const index = deleteDialog.index;
   const target = initiatorTargets.value[index];
   if (target.id !== null) {
     overlay.value = true;
     try {
       const res = await fetch(`/api/v1/iscsi/initiator/targets/${target.id}`, {
         method: 'DELETE',
-        headers: authHeaders(),
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+          'Content-Type': 'application/json',
+        },
       });
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.error || t('unknown error'));
       }
+      getInitiators();
+      showSnackbarSuccess(t('iscsi initiator deleted successfully'));
+  deleteDialog.value = false;
     } catch (e) {
-      showSnackbarError(t('iscsi config could not be saved'), e.message);
+      showSnackbarError(t('iscsi initiator could not be deleted'), e.message);
       overlay.value = false;
-      deleteDialog.value.open = false;
+      deleteDialog.value = false;
       return;
     } finally {
       overlay.value = false;
     }
   }
-  initiatorTargets.value.splice(index, 1);
-  deleteDialog.value.open = false;
 };
 
 const getInitiators = async () => {
@@ -274,7 +352,10 @@ const getInitiators = async () => {
   try {
     const res = await fetch('/api/v1/iscsi/initiator', {
       method: 'GET',
-      headers: authHeaders(),
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
     });
 
     if (!res.ok) {
@@ -283,25 +364,13 @@ const getInitiators = async () => {
     }
 
     const initiatorData = await res.json();
-
-    initiatorTargets.value = (initiatorData.targets ?? []).map((t) => ({
-      id: t.id ?? null,
-      name: t.name ?? '',
-      portal: {
-        address: t.portal?.address ?? '',
-        port: t.portal?.port ?? '3260',
-      },
-      connection: {
-        automount: t.connection?.automount ?? false,
-      },
-      enabled: t.enabled ?? true,
-    }));
+    initiatorName.value = initiatorData.initiator?.name ?? '';
+    initiatorTargets.value = initiatorData.targets ?? [];
   } catch (e) {
-    showSnackbarError(t('iscsi config could not be loaded'), e.message);
+    showSnackbarError(t('iscsi initiators could not be loaded'), e.message);
   } finally {
     overlay.value = false;
   }
 };
 
-onMounted(getInitiators);
 </script>

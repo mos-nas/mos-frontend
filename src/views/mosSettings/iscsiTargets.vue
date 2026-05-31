@@ -41,18 +41,6 @@
                         </template>
                         <v-list-item-title>{{ $t('edit') }}</v-list-item-title>
                       </v-list-item>
-                      <v-list-item v-if="!target.isActive" @click="toggleEnabled(i)">
-                        <template #prepend>
-                          <v-icon>mdi-play-circle</v-icon>
-                        </template>
-                        <v-list-item-title>{{ $t('enable') }}</v-list-item-title>
-                      </v-list-item>
-                      <v-list-item v-else @click="toggleEnabled(i)">
-                        <template #prepend>
-                          <v-icon>mdi-stop-circle</v-icon>
-                        </template>
-                        <v-list-item-title>{{ $t('disable') }}</v-list-item-title>
-                      </v-list-item>
                       <v-list-item @click="openDeleteDialog(i)">
                         <template #prepend>
                           <v-icon>mdi-delete</v-icon>
@@ -82,23 +70,12 @@
   </v-container>
 
   <!-- Create Dialog -->
-  <v-dialog v-model="createDialog.open" max-width="700px" scrollable>
+  <v-dialog v-model="createDialog.value" max-width="700px" scrollable>
     <v-card :title="$t('add target')" prepend-icon="mdi-plus">
-      <v-divider />
       <v-card-text style="max-height: 70vh">
-        <v-switch v-model="createDialog.enabled" :label="$t('enabled')" color="green" inset density="compact" hide-details="auto" class="mb-3"></v-switch>
-        <v-row class="mt-1">
-          <v-col cols="12" sm="4">
-            <v-text-field v-model="createDialog.name" :label="$t('name')" density="compact" hide-details="auto"></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="4">
-            <v-text-field v-model="createDialog.portal" :label="$t('portal')" placeholder="0.0.0.0:3260" density="compact" hide-details="auto"></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="4">
-            <v-text-field v-model="createDialog.iqn" :label="$t('target iqn')" placeholder="iqn.2024-01.com.example:storage" density="compact" hide-details="auto"></v-text-field>
-          </v-col>
-        </v-row>
-
+        <v-text-field v-model="createDialog.name" :label="$t('name')" density="compact" class="mt-2"></v-text-field>
+        <v-text-field v-model="createDialog.portal" :label="$t('portal')" placeholder="0.0.0.0:3260" density="compact"></v-text-field>
+        <v-text-field v-model="createDialog.iqn" :label="$t('target iqn')" placeholder="iqn.2024-01.com.example:storage" density="compact"></v-text-field>
         <v-divider class="my-4"></v-divider>
         <div class="d-flex align-center mb-3">
           <span class="font-weight-medium">{{ $t('chap authentication') }}</span>
@@ -122,9 +99,9 @@
         <v-divider class="my-4"></v-divider>
         <div class="d-flex align-center justify-space-between mb-2">
           <span class="font-weight-medium">{{ $t('luns') }}</span>
-          <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-plus" @click="addLun(createDialog)">{{ $t('add lun') }}</v-btn>
+          <v-btn size="small" variant="text" color="green" prepend-icon="mdi-plus" @click="addLun(createDialog)">{{ $t('add') }}</v-btn>
         </div>
-        <v-table v-if="createDialog.luns.length > 0" density="compact" class="rounded border">
+        <v-table v-if="createDialog.luns.length > 0" density="compact" class="rounded border dialog-table">
           <thead>
             <tr>
               <th>{{ $t('lun id') }}</th>
@@ -154,9 +131,9 @@
         <v-divider class="my-4"></v-divider>
         <div class="d-flex align-center justify-space-between mb-2">
           <span class="font-weight-medium">{{ $t('allowed initiators') }}</span>
-          <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-plus" @click="createDialog.initiators.push({ iqn: '', authentication: { method: 'none' } })">{{ $t('add') }}</v-btn>
+          <v-btn size="small" variant="text" color="green" prepend-icon="mdi-plus" @click="createDialog.initiators.push({ iqn: '', authentication: { method: 'none' } })">{{ $t('add') }}</v-btn>
         </div>
-        <v-table v-if="createDialog.initiators.length > 0" density="compact" class="rounded border">
+        <v-table v-if="createDialog.initiators.length > 0" density="compact" class="rounded border dialog-table">
           <thead>
             <tr>
               <th>{{ $t('initiator iqn') }}</th>
@@ -191,30 +168,19 @@
       <v-divider />
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn @click="createDialog.open = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="primary" :disabled="!createDialog.name" @click="createTarget()">{{ $t('add') }}</v-btn>
+        <v-btn color="onPrimary" @click="createDialog.value = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="onPrimary" :disabled="!createDialog.name" @click="createTarget()">{{ $t('add') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <!-- Edit Dialog -->
-  <v-dialog v-model="editDialog.open" max-width="700px" scrollable>
+  <v-dialog v-model="editDialog.value" max-width="700px" scrollable>
     <v-card :title="$t('edit target')" prepend-icon="mdi-text-box-edit">
-      <v-divider />
       <v-card-text style="max-height: 70vh">
-        <v-switch v-model="editDialog.enabled" :label="$t('enabled')" color="green" inset density="compact" hide-details="auto" class="mb-3"></v-switch>
-        <v-row class="mt-1">
-          <v-col cols="12" sm="4">
-            <v-text-field v-model="editDialog.name" :label="$t('name')" density="compact" hide-details="auto"></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="4">
-            <v-text-field v-model="editDialog.portal" :label="$t('portal')" placeholder="0.0.0.0:3260" density="compact" hide-details="auto"></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="4">
-            <v-text-field v-model="editDialog.iqn" :label="$t('target iqn')" placeholder="iqn.2024-01.com.example:storage" density="compact" hide-details="auto"></v-text-field>
-          </v-col>
-        </v-row>
-
+        <v-text-field v-model="editDialog.name" :label="$t('name')" density="compact"></v-text-field>
+        <v-text-field v-model="editDialog.portal" :label="$t('portal')" placeholder="0.0.0.0:3260" density="compact"></v-text-field>
+        <v-text-field v-model="editDialog.iqn" :label="$t('target iqn')" placeholder="iqn.2024-01.com.example:storage" density="compact" hide-details="auto"></v-text-field>
         <v-divider class="my-4"></v-divider>
         <div class="d-flex align-center mb-3">
           <span class="font-weight-medium">{{ $t('chap authentication') }}</span>
@@ -234,13 +200,12 @@
             <v-text-field v-model="editDialog.authentication.password" :label="$t('chap password')" type="password" class="mt-3" density="compact" hide-details="auto"></v-text-field>
           </div>
         </v-expand-transition>
-
         <v-divider class="my-4"></v-divider>
         <div class="d-flex align-center justify-space-between mb-2">
           <span class="font-weight-medium">{{ $t('luns') }}</span>
-          <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-plus" @click="addLun(editDialog)">{{ $t('add lun') }}</v-btn>
+          <v-btn size="small" variant="text" color="green" prepend-icon="mdi-plus" @click="addLun(editDialog)">{{ $t('add') }}</v-btn>
         </div>
-        <v-table v-if="editDialog.luns.length > 0" density="compact" class="rounded border">
+        <v-table v-if="editDialog.luns.length > 0" density="compact" class="rounded border dialog-table">
           <thead>
             <tr>
               <th>{{ $t('lun id') }}</th>
@@ -266,14 +231,12 @@
             </tr>
           </tbody>
         </v-table>
-        <v-alert v-else type="info" variant="tonal" density="comfortable" class="mt-2">{{ $t('no luns configured') }}</v-alert>
-
         <v-divider class="my-4"></v-divider>
         <div class="d-flex align-center justify-space-between mb-2">
           <span class="font-weight-medium">{{ $t('allowed initiators') }}</span>
-          <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-plus" @click="editDialog.initiators.push({ iqn: '', authentication: { method: 'none' } })">{{ $t('add') }}</v-btn>
+          <v-btn size="small" variant="text" color="green" prepend-icon="mdi-plus" @click="editDialog.initiators.push({ iqn: '', authentication: { method: 'none' } })">{{ $t('add') }}</v-btn>
         </div>
-        <v-table v-if="editDialog.initiators.length > 0" density="compact" class="rounded border">
+        <v-table v-if="editDialog.initiators.length > 0" density="compact" class="rounded border dialog-table">
           <thead>
             <tr>
               <th>{{ $t('initiator iqn') }}</th>
@@ -304,25 +267,24 @@
             </tr>
           </tbody>
         </v-table>
-        <v-alert v-else type="info" variant="tonal" density="comfortable" class="mt-2">{{ $t('no initiators configured') }}</v-alert>
       </v-card-text>
       <v-divider />
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn @click="editDialog.open = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="primary" :disabled="!editDialog.name" @click="updateTarget()">{{ $t('save') }}</v-btn>
+        <v-btn color="onPrimary" @click="editDialog.value = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="onPrimary" :disabled="!editDialog.name" @click="updateTarget()">{{ $t('save') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <!-- Delete Dialog -->
-  <v-dialog v-model="deleteDialog.open" max-width="400">
+  <v-dialog v-model="deleteDialog.value" max-width="400">
     <v-card :title="$t('confirm delete')" prepend-icon="mdi-delete">
       <v-card-text>{{ $t('are you sure you want to delete this target') }}?</v-card-text>
       <v-divider />
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn @click="deleteDialog.open = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="onPrimary" @click="deleteDialog.value = false">{{ $t('cancel') }}</v-btn>
         <v-btn color="red" @click="confirmDelete()">{{ $t('delete') }}</v-btn>
       </v-card-actions>
     </v-card>
@@ -338,20 +300,18 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 
+const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
 const overlay = ref(false);
-
 const targets = ref([]);
-
 const authMethods = [
   { label: 'None', value: 'none' },
   { label: 'CHAP', value: 'chap' },
 ];
-
 const backingStores = ['rdwr', 'rdonly'];
 
 const emptyCreateState = () => {
@@ -363,7 +323,6 @@ const emptyCreateState = () => {
     authentication: { method: 'none', username: '', password: '' },
     luns: [],
     initiators: [],
-    enabled: true,
   };
 };
 
@@ -378,28 +337,26 @@ const emptyEditState = () => {
     authentication: { method: 'none', username: '', password: '' },
     luns: [],
     initiators: [],
-    enabled: true,
   };
 };
 
-const createDialog = ref(emptyCreateState());
-const editDialog = ref(emptyEditState());
-const deleteDialog = ref({ open: false, index: null });
+const createDialog = reactive(emptyCreateState());
+const editDialog = reactive(emptyEditState());
+const deleteDialog = reactive({ value: false, index: null });
 
-const authHeaders = () => ({
-  Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-  'Content-Type': 'application/json',
+onMounted(() => {
+  getTargets();
 });
 
 const openAddDialog = () => {
-  createDialog.value = emptyCreateState();
-  createDialog.value.open = true;
+  Object.assign(createDialog, emptyCreateState());
+  createDialog.value = true;
 };
 
 const openEditDialog = (index) => {
   const tgt = targets.value[index];
-  editDialog.value = {
-    open: true,
+  Object.assign(editDialog, {
+    value: true,
     index,
     id: tgt.id,
     name: tgt.name,
@@ -408,31 +365,12 @@ const openEditDialog = (index) => {
     authentication: { method: tgt.authentication.method, username: tgt.authentication.username ?? '', password: tgt.authentication.password ?? '' },
     luns: tgt.luns.map((l) => ({ ...l })),
     initiators: tgt.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } })),
-    enabled: tgt.enabled ?? true,
-  };
+  });
 };
 
 const openDeleteDialog = (index) => {
-  deleteDialog.value = { open: true, index };
-};
-
-const toggleEnabled = async (index) => {
-  const target = targets.value[index];
-  const newEnabled = !target.enabled;
-  try {
-    const res = await fetch(`/api/v1/iscsi/targets/${target.id}`, {
-      method: 'PATCH',
-      headers: authHeaders(),
-      body: JSON.stringify({ enabled: newEnabled }),
-    });
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || t('unknown error'));
-    }
-    target.enabled = newEnabled;
-  } catch (e) {
-    showSnackbarError(t('iscsi config could not be saved'), e.message);
-  }
+  deleteDialog.value = true;
+  deleteDialog.index = index;
 };
 
 const addLun = (dialog) => {
@@ -448,22 +386,23 @@ const addLun = (dialog) => {
 const createTarget = async () => {
   overlay.value = true;
   const payload = {
-    name: createDialog.value.name,
-    iqn: createDialog.value.iqn,
-    portal: createDialog.value.portal,
+    id: targets.value.length > 0 ? Math.max(...targets.value.map((t) => t.id ?? 0)) + 1 : 1,
+    name: createDialog.name,
+    iqn: createDialog.iqn,
+    portal: createDialog.portal,
     authentication:
-      createDialog.value.authentication.method === 'chap'
-        ? { method: 'chap', username: createDialog.value.authentication.username, password: createDialog.value.authentication.password }
-        : { method: 'none' },
-    luns: createDialog.value.luns.map((l) => ({ id: l.id, path: l.path, backing_store: l.backing_store, mode: l.mode, size: l.size })),
-    initiators: createDialog.value.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } })),
-    enabled: createDialog.value.enabled,
+      createDialog.authentication.method === 'chap' ? { method: 'chap', username: createDialog.authentication.username, password: createDialog.authentication.password } : { method: 'none' },
+    luns: createDialog.luns.map((l) => ({ id: l.id, path: l.path, backing_store: l.backing_store, mode: l.mode, size: l.size })),
+    initiators: createDialog.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } })),
   };
 
   try {
     const res = await fetch('/api/v1/iscsi/targets', {
       method: 'POST',
-      headers: authHeaders(),
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(payload),
     });
 
@@ -472,21 +411,11 @@ const createTarget = async () => {
       throw new Error(error.error || t('unknown error'));
     }
     const data = await res.json();
-    targets.value.push({
-      id: data.id ?? null,
-      name: createDialog.value.name,
-      iqn: createDialog.value.iqn,
-      portal: createDialog.value.portal,
-      authentication: { ...createDialog.value.authentication },
-      luns: createDialog.value.luns.map((l) => ({ ...l })),
-      initiators: createDialog.value.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } })),
-      isActive: false,
-      enabled: createDialog.value.enabled,
-    });
-    createDialog.value.open = false;
-    showSnackbarSuccess(t('iscsi config saved successfully'));
+    getTargets();
+    createDialog.value = false;
+    showSnackbarSuccess(t('iscsi target saved successfully'));
   } catch (e) {
-    showSnackbarError(t('iscsi config could not be saved'), e.message);
+    showSnackbarError(t('iscsi target could not be saved'), e.message);
   } finally {
     overlay.value = false;
   }
@@ -495,22 +424,21 @@ const createTarget = async () => {
 const updateTarget = async () => {
   overlay.value = true;
   const payload = {
-    name: editDialog.value.name,
-    iqn: editDialog.value.iqn,
-    portal: editDialog.value.portal,
-    authentication:
-      editDialog.value.authentication.method === 'chap'
-        ? { method: 'chap', username: editDialog.value.authentication.username, password: editDialog.value.authentication.password }
-        : { method: 'none' },
-    luns: editDialog.value.luns.map((l) => ({ id: l.id, path: l.path, backing_store: l.backing_store, mode: l.mode, size: l.size })),
-    initiators: editDialog.value.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } })),
-    enabled: editDialog.value.enabled,
+    name: editDialog.name,
+    iqn: editDialog.iqn,
+    portal: editDialog.portal,
+    authentication: editDialog.authentication.method === 'chap' ? { method: 'chap', username: editDialog.authentication.username, password: editDialog.authentication.password } : { method: 'none' },
+    luns: editDialog.luns.map((l) => ({ id: l.id, path: l.path, backing_store: l.backing_store, mode: l.mode, size: l.size })),
+    initiators: editDialog.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } }))
   };
 
   try {
-    const res = await fetch(`/api/v1/iscsi/targets/${editDialog.value.id}`, {
+    const res = await fetch(`/api/v1/iscsi/targets/${editDialog.id}`, {
       method: 'PUT',
-      headers: authHeaders(),
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
@@ -518,21 +446,12 @@ const updateTarget = async () => {
       throw new Error(error.error || t('unknown error'));
     }
     const data = await res.json();
-    targets.value[editDialog.value.index] = {
-      id: data.id ?? editDialog.value.id,
-      name: editDialog.value.name,
-      iqn: editDialog.value.iqn,
-      portal: editDialog.value.portal,
-      authentication: { ...editDialog.value.authentication },
-      luns: editDialog.value.luns.map((l) => ({ ...l })),
-      initiators: editDialog.value.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } })),
-      isActive: targets.value[editDialog.value.index].isActive,
-      enabled: editDialog.value.enabled,
-    };
-    editDialog.value.open = false;
-    showSnackbarSuccess(t('iscsi config saved successfully'));
+    getTargets();
+
+    editDialog.value = false;
+    showSnackbarSuccess(t('iscsi target saved successfully'));
   } catch (e) {
-    showSnackbarError(t('iscsi config could not be saved'), e.message);
+    showSnackbarError(t('iscsi target could not be saved'), e.message);
   } finally {
     overlay.value = false;
   }
@@ -541,28 +460,29 @@ const updateTarget = async () => {
 const confirmDelete = async () => {
   const index = deleteDialog.index;
   const target = targets.value[index];
-  if (target.id !== null) {
-    overlay.value = true;
-    try {
-      const res = await fetch(`/api/v1/iscsi/targets/${target.id}`, {
-        method: 'DELETE',
-        headers: authHeaders(),
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || t('unknown error'));
-      }
-    } catch (e) {
-      showSnackbarError(t('iscsi config could not be deleted'), e.message);
-      overlay.value = false;
-      deleteDialog.open = false;
-      return;
-    } finally {
-      overlay.value = false;
+  overlay.value = true;
+  try {
+    const res = await fetch(`/api/v1/iscsi/targets/${target.id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || t('unknown error'));
     }
+    getTargets();
+    deleteDialog.value = false;
+  } catch (e) {
+    showSnackbarError(t('iscsi target could not be deleted'), e.message);
+    overlay.value = false;
+    deleteDialog.value = false;
+    return;
+  } finally {
+    overlay.value = false;
   }
-  targets.value.splice(index, 1);
-  deleteDialog.open = false;
 };
 
 const getTargets = async () => {
@@ -570,7 +490,10 @@ const getTargets = async () => {
   try {
     const res = await fetch('/api/v1/iscsi/targets', {
       method: 'GET',
-      headers: authHeaders(),
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
     });
 
     if (!res.ok) {
@@ -579,37 +502,17 @@ const getTargets = async () => {
     }
 
     const targetsData = await res.json();
-
-    targets.value = (targetsData ?? []).map((t) => ({
-      id: t.id ?? null,
-      name: t.name ?? '',
-      iqn: t.iqn ?? '',
-      portal: t.portal ?? '0.0.0.0:3260',
-      authentication: {
-        method: t.authentication?.method ?? 'none',
-        username: t.authentication?.username ?? '',
-        password: t.authentication?.password ?? '',
-      },
-      luns: (t.luns ?? []).map((l) => ({
-        id: l.id,
-        path: l.path ?? '',
-        backing_store: l.backing_store ?? 'rdwr',
-        mode: l.mode ?? 'logicalunit',
-        size: l.size ?? '',
-      })),
-      initiators: (t.initiators ?? []).map((i) => ({
-        iqn: i.iqn ?? '',
-        authentication: { method: i.authentication?.method ?? 'none' },
-      })),
-      isActive: t.isActive ?? false,
-      enabled: t.enabled ?? true,
-    }));
+    targets.value = targetsData;
   } catch (e) {
-    showSnackbarError(t('iscsi config could not be loaded'), e.message);
+    showSnackbarError(t('iscsi targets could not be loaded'), e.message);
   } finally {
     overlay.value = false;
   }
 };
-
-onMounted(getTargets);
 </script>
+
+<style scoped>
+.dialog-table :deep(.v-table__wrapper) {
+  overflow: visible;
+}
+</style>
