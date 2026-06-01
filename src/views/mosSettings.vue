@@ -295,7 +295,7 @@
                     <template v-slot:prepend>
                       <v-icon icon="mdi-server-network" class="mr-3"></v-icon>
                     </template>
-                    <v-list-item-title class="font-weight-medium">{{ $t('iscsi targets') }}</v-list-item-title>
+                    <v-list-item-title class="font-weight-medium">{{ $t('iscsi target') }}</v-list-item-title>
                     <template v-slot:append>
                       <v-icon size="small" color="medium-emphasis">mdi-chevron-right</v-icon>
                     </template>
@@ -304,7 +304,7 @@
                     <template v-slot:prepend>
                       <v-icon icon="mdi-server-network" class="mr-3"></v-icon>
                     </template>
-                    <v-list-item-title class="font-weight-medium">{{ $t('iscsi initiators') }}</v-list-item-title>
+                    <v-list-item-title class="font-weight-medium">{{ $t('iscsi initiator') }}</v-list-item-title>
                     <template v-slot:append>
                       <v-icon size="small" color="medium-emphasis">mdi-chevron-right</v-icon>
                     </template>
