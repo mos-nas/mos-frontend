@@ -26,6 +26,7 @@
                 <th style="white-space: nowrap">{{ $t('partitions') }}</th>
                 <th style="white-space: nowrap">{{ $t('type') }}</th>
                 <th style="white-space: nowrap">{{ $t('filesystem') }}</th>
+                <th style="white-space: nowrap">{{ $t('temperature') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -135,6 +136,11 @@
                     </v-chip>
                   </template>
                   <span v-else>—</span>
+                </td>
+                <td colspan="10" class="text-center text-caption text-medium-emphasis" style="line-height: 1; overflow: hidden">
+                  <v-icon v-if="disk.temperatureStatus === 'warning'" size="small" color="warning" style="flex: 0 0 auto">mdi-alert</v-icon>
+                  <v-icon v-else-if="disk.temperatureStatus === 'error'" size="small" color="error" style="flex: 0 0 auto">mdi-alert-circle</v-icon>
+                  <v-icon v-else size="small" color="success" style="flex: 0 0 auto">mdi-check-circle</v-icon>
                 </td>
               </tr>
             </tbody>
