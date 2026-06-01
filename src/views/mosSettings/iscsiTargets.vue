@@ -433,7 +433,7 @@ const updateTarget = async () => {
     portal: editDialog.portal,
     authentication: editDialog.authentication.method === 'chap' ? { method: 'chap', username: editDialog.authentication.username, password: editDialog.authentication.password } : { method: 'none' },
     luns: editDialog.luns.map((l) => ({ id: l.id, path: l.path, backing_store: l.backing_store, mode: l.mode, size: l.size })),
-    initiators: editDialog.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } }))
+    initiators: editDialog.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } })),
   };
 
   try {
