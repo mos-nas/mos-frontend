@@ -45,9 +45,9 @@
       </v-col>
       <v-col cols="12" sm="12" md="12" xl="12">
         <div v-if="cpu.cores && cpu.cores.length">
-          <details>
+          <details :open="coresExpanded" @toggle="onCoresToggle">
             <summary style="cursor: pointer; color: var(--v-theme-primary); text-decoration: underline" class="text-body-2 mb-1">{{ $t('cores') }}</summary>
-            <v-row v-for="(core, i) in (cpu.cores || []).filter((c) => c.isPhysical)" :key="i" density="compact">
+            <v-row v-for="core in (cpu.cores || []).filter((c) => c.isPhysical)" :key="core.number" density="compact">
               <v-col>
                 <div class="core-row" style="min-width: 0; display: flex; align-items: center; gap: 6px">
                   <div class="core-label text-body-2">
@@ -71,7 +71,7 @@
                   </div>
                 </div>
               </v-col>
-              <v-col v-for="(thread, ti) in (cpu.cores || []).filter((c) => c.isHyperThreaded && c.physicalCoreNumber === core.number)" :key="ti" density="compact">
+              <v-col v-for="thread in (cpu.cores || []).filter((c) => c.isHyperThreaded && c.physicalCoreNumber === core.number)" :key="thread.number" density="compact">
                 <div class="core-row" style="min-width: 0">
                   <div class="core-label text-body-2">
                     <small>
@@ -106,7 +106,7 @@
 </template>
 
 <script setup>
-import { toRefs } from 'vue';
+import { toRefs, ref, onMounted } from 'vue';
 
 const props = defineProps({
   cpu: { type: Object, default: () => ({ load: 0 }) },
@@ -114,6 +114,17 @@ const props = defineProps({
   osInfo: { type: Object, default: () => ({}) },
 });
 const { cpu, temperature, osInfo } = toRefs(props);
+
+const coresExpanded = ref(false);
+
+onMounted(() => {
+  coresExpanded.value = localStorage.getItem('processor-cores-expanded') === 'true';
+});
+
+const onCoresToggle = (e) => {
+  coresExpanded.value = e.target.open;
+  localStorage.setItem('processor-cores-expanded', e.target.open);
+};
 </script>
 
 <style scoped>
@@ -144,5 +155,10 @@ const { cpu, temperature, osInfo } = toRefs(props);
   display: flex;
   align-items: center;
   height: 12px;
+}
+
+:deep(.v-progress-linear__determinate),
+:deep(.v-progress-linear__stream) {
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 </style>

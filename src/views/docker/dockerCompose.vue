@@ -1,5 +1,47 @@
 <template>
   <v-container fluid class="d-flex justify-center">
+    <v-navigation-drawer v-model="sidePanel.open" location="right" temporary width="400" :scrim="false" scrollable>
+      <template #prepend>
+        <v-toolbar density="compact" class="bg-transparent">
+          <v-btn icon size="small" @click="sidePanel.open = false" class="ml-auto">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <div class="pa-4">
+          <div class="d-flex align-center justify-space-between mb-2">
+            <div class="text-subtitle-2 font-weight-medium">{{ $t('used docker ports') }}</div>
+            {{ usedDockerPorts.length }}
+          </div>
+
+          <v-alert v-if="!usedDockerPorts.length" type="info" variant="tonal" density="compact" class="mt-2">
+            {{ $t('no occupied ports found') }}
+          </v-alert>
+
+          <div v-else style="overflow: auto; max-height: calc(100vh - 150px); margin-bottom: 16px">
+            <v-table density="compact" class="bg-transparent">
+              <thead>
+                <tr style="background-color: rgba(0, 0, 0, 0.04)">
+                  <th style="width: 78px; padding: 4px 8px">{{ $t('port') }}</th>
+                  <th style="padding: 4px 8px">{{ $t('container') }}</th>
+                  <th style="width: 108px; padding: 4px 8px">{{ $t('status') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in usedDockerPorts" :key="`${item.name}-${item.port}-${item.proto}-${index}`">
+                  <td style="padding: 6px 8px">{{ item.port }}</td>
+                  <td style="padding: 6px 8px" class="font-weight-medium">{{ item.name || $t('unknown') }}</td>
+                  <td style="padding: 6px 8px">
+                    <v-chip size="x-small" :color="dockerStateColor(item.status)" variant="tonal">
+                      {{ item.status }}
+                    </v-chip>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </div>
+        </div>
+      </template>
+    </v-navigation-drawer>
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
@@ -18,11 +60,17 @@
             <v-select v-model="selectedTemplate" :items="composeTemplates" :label="$t('template')" @update:modelValue="getComposeTemplate" hide-details="auto"></v-select>
             <v-divider class="my-4"></v-divider>
             <v-text-field v-model="composeStack.name" :label="$t('stack name')" required></v-text-field>
-            <v-textarea v-model="composeStack.yaml" :label="$t('compose yaml')" rows="10" required></v-textarea>
+            <v-textarea v-model="composeStack.yaml" :label="$t('compose yaml')" rows="10" required hide-details="auto"></v-textarea>
+            <div class="d-flex mb-2 mt-2">
+              <v-btn variant="text" size="small" class="pa-0" style="min-width: 0;" @click="sidePanel.open = true">
+                <v-icon size="18" class="mr-1">mdi-eye</v-icon>
+                {{ $t('show used ports') }}
+              </v-btn>
+            </div>
             <v-textarea v-model="composeStack.env" :label="$t('environment variables')" rows="5"></v-textarea>
             <v-text-field v-model="composeStack.icon" :label="$t('icon url')"></v-text-field>
             <v-text-field v-model="composeStack.web_ui_url" :label="$t('web ui url')"></v-text-field>
-            <v-switch :label="$t('no autoupdate')" v-model="composeStack.no_autoupdate" inset color="green" density="compact"></v-switch>            
+            <v-switch :label="$t('no autoupdate')" v-model="composeStack.no_autoupdate" inset color="green" density="compact" hide-details="auto"></v-switch>
           </v-card-text>
         </v-card>
       </v-container>
@@ -101,6 +149,9 @@ const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
 const router = useRouter();
 const overlay = ref(false);
+const sidePanel = ref({ open: false });
+const usedDockerPorts = ref([]);
+
 const props = defineProps({
   template: String,
   yaml: String,
@@ -121,6 +172,7 @@ const composeTemplates = ref([]);
 
 onMounted(() => {
   getComposeTemplateNames();
+  getDockerPorts();
   if (props.template || props.yaml || props.env || props.web_ui_url) {
     const template = props.template ? decodeURIComponent(props.template) : props.template;
     const yaml = props.yaml ? decodeURIComponent(props.yaml) : props.yaml;
@@ -235,4 +287,32 @@ const goBackSafely = () => {
     router.push('/docker');
   }
 };
+
+const dockerStateColor = (status) => {
+  const state = String(status || '').toLowerCase();
+  if (state === 'running') return 'success';
+  if (state === 'paused') return 'warning';
+  if (state === 'restarting') return 'warning';
+  if (state === 'exited') return 'error';
+  if (state === 'dead') return 'error';
+  return 'grey';
+};
+
+const getDockerPorts = async () => {
+  try {
+    const res = await fetch('/api/v1/docker/mos/ports', {
+      headers: { Authorization: 'Bearer ' + localStorage.getItem('authToken') },
+    });
+
+    if (!res.ok) {
+      usedDockerPorts.value = [];
+      return;
+    }
+
+    usedDockerPorts.value = await res.json();
+  } catch {
+    usedDockerPorts.value = [];
+  }
+};
+
 </script>

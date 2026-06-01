@@ -8,37 +8,39 @@
           </v-btn>
         </v-toolbar>
         <div class="pa-4">
-          Hier sind dann Ichis Fancy Ports aufgelistet:
-          <br />
-          - Port 80: HTTP
-          <br />
-          - Port 443: HTTPS
-          <br />
-          - Port 22: SSH
-          <br />
-          - Port 3306: MySQL
-          <br />
-          - Port 6379: Redis
-          <br />
-          - Port 27017: MongoDB
-          <br />
-          - Port 8080: Alternative HTTP
-          <br />
-          - Port 8443: Alternative HTTPS
-          <br />
-          - Port 21: FTP
-          <br />
-          - Port 25: SMTP
-          <br />
-          - Port 53: DNS
-          <br />
-          - Port 110: POP3
-          <br />
-          - Port 143: IMAP
-          <br />
-          - Port 5900: VNC
-          <br />
-          - Port 6379: Redis
+          <div class="d-flex align-center justify-space-between mb-2">
+            <div class="text-subtitle-2 font-weight-medium">{{ $t('used docker ports') }}</div>
+            {{ usedDockerPorts.length }}
+          </div>
+
+          <v-alert v-if="!usedDockerPorts.length" type="info" variant="tonal" density="compact" class="mt-2">
+            {{ $t('no occupied ports found') }}
+          </v-alert>
+
+          <div v-else style="overflow: auto; max-height: calc(100vh - 150px); margin-bottom: 16px">
+            <v-table density="compact" class="bg-transparent">
+              <thead>
+                <tr style="background-color: rgba(0, 0, 0, 0.04)">
+                  <th style="width: 78px; padding: 4px 8px">{{ $t('port') }}</th>
+                  <th style="padding: 4px 8px">{{ $t('container') }}</th>
+                  <th style="width: 108px; padding: 4px 8px">{{ $t('status') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in usedDockerPorts" :key="`${item.name}-${item.port}-${item.proto}-${index}`">
+                  <td style="padding: 6px 8px">
+                    {{ item.port }}
+                  </td>
+                  <td style="padding: 6px 8px" class="font-weight-medium">{{ item.name || $t('unknown') }}</td>
+                  <td style="padding: 6px 8px">
+                    <v-chip size="x-small" :color="dockerStateColor(item.status)" variant="tonal">
+                      {{ item.status }}
+                    </v-chip>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </div>
         </div>
       </template>
     </v-navigation-drawer>
@@ -184,10 +186,10 @@
               <v-col cols="12" class="d-flex align-center justify-space-between">
                 <span class="text-title-medium font-weight-medium">{{ $t('ports') }}</span>
                 <v-spacer />
-                <!--<v-btn variant="text" size="small" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="sidePanel.open = true" title="inspect" aria-label="inspect">
+                <v-btn variant="text" size="small" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="sidePanel.open = true" title="inspect" aria-label="inspect">
                   <v-icon size="18" class="mr-1">mdi-eye</v-icon>
                   {{ $t('inspect') }}
-                </v-btn>-->
+                </v-btn>
                 <v-btn
                   variant="text"
                   size="small"
@@ -235,22 +237,10 @@
                   </v-row>
                   <v-row class="mt-n2">
                     <v-col cols="6">
-                      <v-text-field
-                        :label="$t('host')"
-                        type="text"
-                        v-model="port.host"
-                        density="compact"
-                        :error="!!port.host && !/^[0-9.\-:]+$/.test(port.host)"
-                      ></v-text-field>
+                      <v-text-field :label="$t('host')" type="text" v-model="port.host" density="compact" :error="!!port.host && !/^[0-9.\-:]+$/.test(port.host)"></v-text-field>
                     </v-col>
                     <v-col cols="6">
-                      <v-text-field
-                        :label="$t('container')"
-                        type="text"
-                        v-model="port.container"
-                        density="compact"
-                        :error="!!port.container && !/^[0-9.\-:]+$/.test(port.container)"
-                      ></v-text-field>
+                      <v-text-field :label="$t('container')" type="text" v-model="port.container" density="compact" :error="!!port.container && !/^[0-9.\-:]+$/.test(port.container)"></v-text-field>
                     </v-col>
                   </v-row>
                   <v-row class="mt-n2">
@@ -302,17 +292,17 @@
                   </div>
                 </v-col>
                 <v-col cols="11">
-                  <v-row>
-                    <v-col cols="6">
+                  <v-row class="mt-n2">
+                    <v-col cols="12">
                       <v-text-field :label="$t('name')" v-model="device.name" density="compact"></v-text-field>
-                    </v-col>
-                    <v-col cols="6">
-                      <v-text-field :label="$t('host')" v-model="device.host" density="compact"></v-text-field>
                     </v-col>
                   </v-row>
                   <v-row class="mt-n2">
-                    <v-col cols="12">
+                    <v-col cols="6">
                       <v-text-field :label="$t('container')" v-model="device.container" density="compact"></v-text-field>
+                    </v-col>
+                    <v-col cols="6">
+                      <v-text-field :label="$t('host')" v-model="device.host" density="compact"></v-text-field>
                     </v-col>
                   </v-row>
                   <v-row class="mt-n2">
@@ -588,6 +578,7 @@ const sidePanel = ref({
   component: null,
   props: {},
 });
+const usedDockerPorts = ref([]);
 
 onMounted(() => {
   window.scrollTo(0, 0);
@@ -595,6 +586,7 @@ onMounted(() => {
   getDockerNetworks();
   getDockerContainers();
   getGPUs();
+  getDockerPorts();
   if (props.template) {
     getDockerHubTemplate(props.template);
   }
@@ -670,11 +662,12 @@ const getDockerNetworks = async () => {
 const getDockerContainers = async () => {
   try {
     loadingContainers.value = true;
+    const authHeaders = {
+      Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+    };
 
     const res = await fetch('/api/v1/docker/containers/json?all=true', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      headers: authHeaders,
     });
 
     if (!res.ok) {
@@ -695,6 +688,27 @@ const getDockerContainers = async () => {
     showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     loadingContainers.value = false;
+  }
+};
+
+const getDockerPorts = async () => {
+  try {
+    const res = await fetch('/api/v1/docker/mos/ports', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('docker ports could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    usedDockerPorts.value = await res.json();
+  } catch (e) {
+    usedDockerPorts.value = [];
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
   }
 };
 
@@ -1083,5 +1097,15 @@ const getGPUs = async () => {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
   }
+};
+
+const dockerStateColor = (status) => {
+  const state = String(status || '').toLowerCase();
+  if (state === 'running') return 'success';
+  if (state === 'paused') return 'warning';
+  if (state === 'restarting') return 'warning';
+  if (state === 'exited') return 'error';
+  if (state === 'dead') return 'error';
+  return 'grey';
 };
 </script>

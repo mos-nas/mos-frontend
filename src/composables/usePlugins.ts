@@ -1,41 +1,58 @@
-import { ref, shallowRef } from 'vue';
+import { ref, shallowRef, type Ref, type ShallowRef } from 'vue';
 import * as Vue from 'vue';
 
-const plugins = ref([]);
-const pluginsLoaded = ref(false);
-const loadedComponents = shallowRef({});
-const loadedWidgets = shallowRef({});
-const loadedLocales = new Set();
-const loadedContainers = {};
+interface Plugin {
+  name: string;
+  icon?: string;
+}
 
-const initSharedScope = async () => {
-  if (globalThis.__federation_shared__?.default?.vue) {
+interface FederationContainer {
+  get(module: string): Promise<() => { default?: unknown } & Record<string, unknown>>;
+}
+
+interface FederationSharedEntry {
+  get: () => () => typeof Vue;
+  loaded: boolean;
+}
+
+type I18nInstance = {
+  global?: {
+    mergeLocaleMessage?: (locale: string, messages: Record<string, unknown>) => void;
+  };
+  mergeLocaleMessage?: (locale: string, messages: Record<string, unknown>) => void;
+};
+
+const plugins: Ref<Plugin[]> = ref([]);
+const pluginsLoaded = ref(false);
+const loadedComponents: ShallowRef<Record<string, unknown>> = shallowRef({});
+const loadedWidgets: ShallowRef<Record<string, unknown>> = shallowRef({});
+const loadedLocales = new Set<string>();
+const loadedContainers: Record<string, FederationContainer> = {};
+
+const initSharedScope = async (): Promise<void> => {
+  if ((globalThis as any).__federation_shared__?.default?.vue) {
     return;
   }
 
-  if (!globalThis.__federation_shared__) {
-    globalThis.__federation_shared__ = { default: {} };
+  if (!(globalThis as any).__federation_shared__) {
+    (globalThis as any).__federation_shared__ = { default: {} };
   }
-  if (!globalThis.__federation_shared__.default) {
-    globalThis.__federation_shared__.default = {};
+  if (!(globalThis as any).__federation_shared__.default) {
+    (globalThis as any).__federation_shared__.default = {};
   }
 
   const vueVersion = Vue.version || '3.0.0';
   const majorVersion = vueVersion.split('.')[0];
 
-  globalThis.__federation_shared__.default.vue = {
-    [majorVersion]: {
-      get: () => () => Vue,
-      loaded: true,
-    },
-    [vueVersion]: {
-      get: () => () => Vue,
-      loaded: true,
-    },
+  const entry: FederationSharedEntry = { get: () => () => Vue, loaded: true };
+
+  (globalThis as any).__federation_shared__.default.vue = {
+    [majorVersion]: entry,
+    [vueVersion]: entry,
   };
 };
 
-export const getPlugins = async () => {
+export const getPlugins = async (): Promise<Plugin[]> => {
   try {
     const res = await fetch('/api/v1/mos/plugins', {
       method: 'GET',
@@ -59,7 +76,7 @@ export const getPlugins = async () => {
   }
 };
 
-export const loadPluginComponent = async (plugin) => {
+export const loadPluginComponent = async (plugin: Plugin): Promise<unknown> => {
   const cacheKey = plugin.name;
 
   if (loadedComponents.value[cacheKey]) {
@@ -91,9 +108,7 @@ export const loadPluginComponent = async (plugin) => {
   }
 };
 
-export const loadPluginWidget = async (plugin) => {
-  const cacheKey = `widget:${plugin.name}`;
-
+export const loadPluginWidget = async (plugin: Plugin): Promise<unknown> => {
   if (loadedWidgets.value[plugin.name]) {
     return loadedWidgets.value[plugin.name];
   }
@@ -123,7 +138,7 @@ export const loadPluginWidget = async (plugin) => {
   }
 };
 
-export const loadPluginLocales = async (plugin, i18n) => {
+export const loadPluginLocales = async (plugin: Plugin, i18n: I18nInstance): Promise<void> => {
   if (loadedLocales.has(plugin.name)) return;
 
   try {
@@ -139,12 +154,12 @@ export const loadPluginLocales = async (plugin, i18n) => {
     const container = loadedContainers[plugin.name];
     const factory = await container.get('./Locales');
     const locales = factory();
-    const messages = locales.default || locales;
+    const messages = (locales.default || locales) as Record<string, unknown>;
 
     for (const [locale, translations] of Object.entries(messages)) {
       if (translations && typeof translations === 'object') {
         const merge = i18n.global?.mergeLocaleMessage || i18n.mergeLocaleMessage;
-        if (merge) merge.call(i18n.global || i18n, locale, translations);
+        if (merge) merge.call(i18n.global || i18n, locale, translations as Record<string, unknown>);
       }
     }
 
@@ -154,7 +169,7 @@ export const loadPluginLocales = async (plugin, i18n) => {
   }
 };
 
-export const getPluginIconUrl = (plugin) => {
+export const getPluginIconUrl = (plugin: Plugin): string | null => {
   if (plugin.icon) {
     if (plugin.icon.startsWith('mdi-')) {
       return null;
@@ -167,11 +182,11 @@ export const getPluginIconUrl = (plugin) => {
   return `/_plugins/${plugin.name}/icon.png`;
 };
 
-export const hasMdiIcon = (plugin) => {
-  return plugin.icon && plugin.icon.startsWith('mdi-');
+export const hasMdiIcon = (plugin: Plugin): boolean => {
+  return !!plugin.icon && plugin.icon.startsWith('mdi-');
 };
 
-export const getPluginRoute = (plugin) => {
+export const getPluginRoute = (plugin: Plugin): string => {
   return `/plugins/${plugin.name}`;
 };
 

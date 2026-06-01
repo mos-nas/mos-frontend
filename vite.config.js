@@ -95,6 +95,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       input: ['./reboot.html', './index.html', './shutdown.html'],
     },

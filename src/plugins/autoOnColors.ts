@@ -1,7 +1,11 @@
-// plugins/autoOnColors.js
-import { watch } from 'vue'
+import { watch, type Plugin } from 'vue';
+import type { ThemeInstance } from 'vuetify';
 
-function getContrastColor(hex) {
+interface VuetifyInstance {
+  theme: ThemeInstance;
+}
+
+function getContrastColor(hex: string): string {
   const h = hex.replace('#', '')
   const r = parseInt(h.slice(0, 2), 16)
   const g = parseInt(h.slice(2, 4), 16)
@@ -10,7 +14,7 @@ function getContrastColor(hex) {
   return luminance > 0.5 ? '#000000' : '#ffffff'
 }
 
-function applyOnColors(vuetify) {
+function applyOnColors(vuetify: VuetifyInstance): void {
   const themes = vuetify.theme.themes.value
   for (const themeName in themes) {
     const colors = themes[themeName].colors
@@ -22,7 +26,7 @@ function applyOnColors(vuetify) {
   }
 }
 
-export function createAutoOnColorsPlugin(vuetify) {
+export function createAutoOnColorsPlugin(vuetify: VuetifyInstance): Plugin {
   return {
     install() {
       applyOnColors(vuetify)

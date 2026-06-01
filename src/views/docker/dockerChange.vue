@@ -1,12 +1,56 @@
 <template>
   <v-container fluid class="d-flex justify-center">
+    <v-navigation-drawer v-model="sidePanel.open" location="right" temporary width="400" :scrim="false" scrollable>
+      <template #prepend>
+        <v-toolbar density="compact" class="bg-transparent">
+          <v-btn icon size="small" @click="sidePanel.open = false" class="ml-auto">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <div class="pa-4">
+          <div class="d-flex align-center justify-space-between mb-2">
+            <div class="text-subtitle-2 font-weight-medium">{{ $t('used docker ports') }}</div>
+            {{ usedDockerPorts.length }}
+          </div>
+
+          <v-alert v-if="!usedDockerPorts.length" type="info" variant="tonal" density="compact" class="mt-2">
+            {{ $t('no occupied ports found') }}
+          </v-alert>
+
+          <div v-else style="overflow: auto; max-height: calc(100vh - 150px); margin-bottom: 16px">
+            <v-table density="compact" class="bg-transparent">
+              <thead>
+                <tr style="background-color: rgba(0, 0, 0, 0.04)">
+                  <th style="width: 78px; padding: 4px 8px">{{ $t('port') }}</th>
+                  <th style="padding: 4px 8px">{{ $t('container') }}</th>
+                  <th style="width: 108px; padding: 4px 8px">{{ $t('status') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, index) in usedDockerPorts" :key="`${item.name}-${item.port}-${item.proto}-${index}`">
+                  <td style="padding: 6px 8px">
+                    {{ item.port }}
+                  </td>
+                  <td style="padding: 6px 8px" class="font-weight-medium">{{ item.name || $t('unknown') }}</td>
+                  <td style="padding: 6px 8px">
+                    <v-chip size="x-small" :color="dockerStateColor(item.status)" variant="tonal">
+                      {{ item.status }}
+                    </v-chip>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </div>
+        </div>
+      </template>
+    </v-navigation-drawer>
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
-          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px;">
-            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle;">mdi-arrow-left</v-icon>
+          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px">
+            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle">mdi-arrow-left</v-icon>
           </v-col>
-          <div class="d-flex align-center ga-3 mb-4" style="height: 40px;">
+          <div class="d-flex align-center ga-3 mb-4" style="height: 40px">
             <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
             <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ $t('change docker containers') }}</h2>
           </div>
@@ -38,6 +82,7 @@
               clearable
               @update:model-value="onContainerChange"
             ></v-select>
+
             <v-text-field :label="$t('custom ip')" v-model="form.custom_ip"></v-text-field>
             <v-text-field :label="$t('default shell')" v-model="form.default_shell"></v-text-field>
             <v-select :label="$t('gpu')" v-model="form.gpus" :items="gpuIds" item-title="value" item-value="key" multiple clearable chips hide-selected></v-select>
@@ -57,7 +102,7 @@
                   variant="text"
                   size="small"
                   class="ma-1 pa-0 float-right"
-                  style="min-width: 0; color: green;"
+                  style="min-width: 0; color: green"
                   @click="form.paths.push({ _uid: uid(), name: '', mode: '', host: '', container: '' })"
                   title="Add path"
                   aria-label="add path"
@@ -128,11 +173,16 @@
             <v-row>
               <v-col cols="12" class="d-flex align-center justify-space-between">
                 <span class="text-title-medium font-weight-medium">{{ $t('ports') }}</span>
+                <v-spacer />
+                <v-btn variant="text" size="small" class="ma-1 pa-0 float-right" style="min-width: 0; color: green" @click="sidePanel.open = true" title="inspect" aria-label="inspect">
+                  <v-icon size="18" class="mr-1">mdi-eye</v-icon>
+                  {{ $t('inspect') }}
+                </v-btn>
                 <v-btn
                   variant="text"
                   size="small"
                   class="ma-1 pa-0 float-right"
-                  style="min-width: 0; color: green;"
+                  style="min-width: 0; color: green"
                   @click="form.ports.push({ _uid: uid(), name: '', protocol: '', host: '', container: '' })"
                   title="Add port"
                   aria-label="add port"
@@ -175,22 +225,10 @@
                   </v-row>
                   <v-row class="mt-n2">
                     <v-col cols="6">
-                      <v-text-field
-                        :label="$t('host')"
-                        type="text"
-                        v-model="port.host"
-                        density="compact"
-                        :error="!!port.host && !/^[0-9.\-:]+$/.test(port.host)"
-                      ></v-text-field>
+                      <v-text-field :label="$t('host')" type="text" v-model="port.host" density="compact" :error="!!port.host && !/^[0-9.\-:]+$/.test(port.host)"></v-text-field>
                     </v-col>
                     <v-col cols="6">
-                      <v-text-field
-                        :label="$t('container')"
-                        type="text"
-                        v-model="port.container"
-                        density="compact"
-                        :error="!!port.container && !/^[0-9.\-:]+$/.test(port.container)"
-                      ></v-text-field>
+                      <v-text-field :label="$t('container')" type="text" v-model="port.container" density="compact" :error="!!port.container && !/^[0-9.\-:]+$/.test(port.container)"></v-text-field>
                     </v-col>
                   </v-row>
                   <v-row class="mt-n2">
@@ -209,7 +247,7 @@
                   variant="text"
                   size="small"
                   class="ma-1 pa-0 float-right"
-                  style="min-width: 0; color: green;"
+                  style="min-width: 0; color: green"
                   @click="form.devices.push({ _uid: uid(), name: '', host: '', container: '' })"
                   title="Add device"
                   aria-label="add device"
@@ -242,17 +280,17 @@
                   </div>
                 </v-col>
                 <v-col cols="11">
-                  <v-row>
-                    <v-col cols="6">
+                  <v-row class="mt-n2">
+                    <v-col cols="12">
                       <v-text-field :label="$t('name')" v-model="device.name" density="compact"></v-text-field>
-                    </v-col>
-                    <v-col cols="6">
-                      <v-text-field :label="$t('host')" v-model="device.host" density="compact"></v-text-field>
                     </v-col>
                   </v-row>
                   <v-row class="mt-n2">
-                    <v-col cols="12">
+                    <v-col cols="6">
                       <v-text-field :label="$t('container')" v-model="device.container" density="compact"></v-text-field>
+                    </v-col>
+                    <v-col cols="6">
+                      <v-text-field :label="$t('host')" v-model="device.host" density="compact"></v-text-field>
                     </v-col>
                   </v-row>
                   <v-row class="mt-n2">
@@ -271,7 +309,7 @@
                   variant="text"
                   size="small"
                   class="ma-1 pa-0 float-right"
-                  style="min-width: 0; color: green;"
+                  style="min-width: 0; color: green"
                   @click="form.variables.push({ _uid: uid(), name: '', key: '', value: '', mask: false })"
                   title="Add variable"
                   aria-label="add variable"
@@ -345,7 +383,7 @@
                   variant="text"
                   size="small"
                   class="ma-1 pa-0 float-right"
-                  style="min-width: 0; color: green;"
+                  style="min-width: 0; color: green"
                   @click="form.labels.push({ _uid: uid(), name: '', key: '', value: '', mask: false })"
                   title="Add label"
                   aria-label="add label"
@@ -516,6 +554,8 @@ const form = reactive({
 });
 let _uidCounter = 0;
 const uid = () => ++_uidCounter;
+const sidePanel = ref({ open: false });
+const usedDockerPorts = ref([]);
 
 const props = defineProps({
   docker: String,
@@ -527,6 +567,7 @@ onMounted(async () => {
   getDockerTemplate();
   getDockerNetworks();
   getGPUs();
+  getDockerPorts();
 });
 const { wsIsConnected, wsError, wsOperationDialog, wsScrollContainer, sendDockerWSCommand, closeWsDialog } = useDockerWebSocket({
   onErrorSnackbar: showSnackbarError,
@@ -696,28 +737,53 @@ const getDockerNetworks = async () => {
 const getDockerContainers = async () => {
   try {
     loadingContainers.value = true;
+    const authHeaders = {
+      Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+    };
 
     const res = await fetch('/api/v1/docker/containers/json?all=true', {
+      headers: authHeaders,
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('docker containers could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    const containers = await res.json();
+    containerOptions.value = containers.map((container) => ({
+      name: container.Names[0].startsWith('/') ? container.Names[0].slice(1) : container.Names[0],
+      id: container.Id,
+    }));
+
+    containerOptions.value.sort((a, b) => a.name.localeCompare(b.name));
+  } catch (e) {
+    containerOptions.value = [];
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    loadingContainers.value = false;
+  }
+};
+
+const getDockerPorts = async () => {
+  try {
+    const res = await fetch('/api/v1/docker/mos/ports', {
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
       },
     });
 
-    if (res.ok) {
-      const containers = await res.json();
-      containerOptions.value = containers.map((container) => ({
-        name: container.Names[0].startsWith('/') ? container.Names[0].slice(1) : container.Names[0],
-        id: container.Id,
-      }));
-
-      containerOptions.value.sort((a, b) => a.name.localeCompare(b.name));
-    } else {
-      containerOptions.value = [];
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('docker ports could not be loaded')}|$| ${error.error || t('unknown error')}`);
     }
+
+    usedDockerPorts.value = await res.json();
   } catch (e) {
-    containerOptions.value = [];
-  } finally {
-    loadingContainers.value = false;
+    usedDockerPorts.value = [];
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
   }
 };
 
@@ -858,5 +924,15 @@ const validateContainerExists = (containerName) => {
     selectedContainer.value = '';
     form.network = 'container-network';
   }
+};
+
+const dockerStateColor = (status) => {
+  const state = String(status || '').toLowerCase();
+  if (state === 'running') return 'success';
+  if (state === 'paused') return 'warning';
+  if (state === 'restarting') return 'warning';
+  if (state === 'exited') return 'error';
+  if (state === 'dead') return 'error';
+  return 'grey';
 };
 </script>

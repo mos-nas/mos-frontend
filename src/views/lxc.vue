@@ -5,6 +5,8 @@
         <div class="d-flex align-center ga-3 mb-4">
           <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
           <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ t('lxc containers') }}</h2>
+          <v-spacer />
+          <v-text-field v-model="searchTerm" :placeholder="t('search')" density="compact" hide-details clearable class="search-field" prepend-inner-icon="mdi-magnify" />
         </div>
       </v-container>
       <v-container fluid class="pa-0">
@@ -28,7 +30,7 @@
 
               <draggable v-model="lxcs" tag="tbody" item-key="Id" @end="onDragEnd" handle=".drag-handle">
                 <template #item="{ element: lxc }">
-                  <tr :id="lxc.Id">
+                  <tr v-if="filteredLxcs.includes(lxc)" :id="lxc.Id">
                     <td style="padding: 4px 8px; vertical-align: middle">
                       <v-menu>
                         <template #activator="{ props }">
@@ -207,7 +209,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, onUnmounted } from 'vue';
+import { ref, onMounted, reactive, onUnmounted, computed } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import draggable from 'vuedraggable';
 import { useI18n } from 'vue-i18n';
@@ -238,6 +240,12 @@ const deleteDialog = reactive({
   lxc: null,
 });
 const lxcsLoading = ref(true);
+const searchTerm = ref('');
+const filteredLxcs = computed(() => {
+  const term = (searchTerm.value || '').trim().toLowerCase();
+  if (!term) return lxcs.value;
+  return lxcs.value.filter((lxc) => lxc.name && lxc.name.toLowerCase().includes(term));
+});
 let socket = null;
 
 onMounted(() => {

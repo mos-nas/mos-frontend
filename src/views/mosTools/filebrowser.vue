@@ -44,13 +44,16 @@
                     {{ t('no entries') }}
                   </td>
                 </tr>
+
                 <tr
                   v-for="item in items"
                   :key="item.path"
                   :class="['cursor-pointer', activeItem && activeItem.path === item.path ? 'bg-primary bg-opacity-10' : '']"
                   @click="setActiveItem(item)"
                   @dblclick.stop.prevent="handleRowDblClick(item)"
+                  @contextmenu.prevent="openContextMenu($event, item)"
                 >
+                  <!-- ...Tabelleninhalt wie gehabt... -->
                   <td>
                     <div class="d-flex align-center ga-2">
                       <v-icon size="18">
@@ -371,6 +374,57 @@
     </v-card>
   </v-dialog>
 
+  <!-- Kontextmenü für Datei/Ordner -->
+  <v-menu
+    v-model="contextMenu.visible"
+    :target="[contextMenu.x, contextMenu.y]"
+    :close-on-content-click="true"
+  >
+    <v-list>
+      <v-list-item v-if="contextMenu.item" density="compact" style="background: rgba(var(--v-theme-primary), 0.08); pointer-events: none">
+        <template #prepend>
+          <v-icon color="primary">{{ contextMenu.item?.type === 'directory' ? 'mdi-folder' : 'mdi-file' }}</v-icon>
+        </template>
+        <v-list-item-title style="color: rgb(var(--v-theme-primary))">{{ contextMenu.item?.name }}</v-list-item-title>
+      </v-list-item>
+      <v-divider />
+      <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="openEditFileDialog(contextMenu.item)" density="compact">
+        <template #prepend><v-icon>mdi-pencil</v-icon></template>
+        <v-list-item-title>{{ $t('edit') }}</v-list-item-title>
+      </v-list-item>
+      <v-list-item @click="openRenameFileDialog(contextMenu.item)" density="compact">
+        <template #prepend><v-icon>mdi-rename</v-icon></template>
+        <v-list-item-title>{{ $t('rename') }}</v-list-item-title>
+      </v-list-item>
+      <v-list-item @click="openDeleteFileDialog(contextMenu.item)" density="compact">
+        <template #prepend><v-icon>mdi-delete</v-icon></template>
+        <v-list-item-title>{{ $t('delete') }}</v-list-item-title>
+      </v-list-item>
+      <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="downloadFile(contextMenu.item.path)" density="compact">
+        <template #prepend><v-icon>mdi-download</v-icon></template>
+        <v-list-item-title>{{ $t('download') }}</v-list-item-title>
+      </v-list-item>
+      <v-divider />
+      <v-list-item @click="openOperationDialog(contextMenu.item, 'copy')" density="compact">
+        <template #prepend><v-icon>mdi-content-copy</v-icon></template>
+        <v-list-item-title>{{ $t('copy') }}</v-list-item-title>
+      </v-list-item>
+      <v-list-item @click="openOperationDialog(contextMenu.item, 'move')" density="compact">
+        <template #prepend><v-icon>mdi-arrow-right-bold</v-icon></template>
+        <v-list-item-title>{{ $t('move') }}</v-list-item-title>
+      </v-list-item>
+      <v-divider />
+      <v-list-item @click="openChModDialog(contextMenu.item)" density="compact">
+        <template #prepend><v-icon>mdi-shield-key-outline</v-icon></template>
+        <v-list-item-title>{{ $t('adjust permissions') }}</v-list-item-title>
+      </v-list-item>
+      <v-list-item @click="openChOwnDialog(contextMenu.item)" density="compact">
+        <template #prepend><v-icon>mdi-account-key</v-icon></template>
+        <v-list-item-title>{{ $t('adjust ownership') }}</v-list-item-title>
+      </v-list-item>
+    </v-list>
+  </v-menu>
+
   <!-- All Operations Dialog -->
   <fsOperationsDialog v-model="allOperationsDialogVisible" persistent />
 
@@ -467,6 +521,12 @@ const renameFileDialog = reactive({
   value: false,
   destination: '',
   new_name: '',
+});
+const contextMenu = reactive({
+  visible: false,
+  x: 0,
+  y: 0,
+  item: null,
 });
 let pollInterval = null;
 
@@ -1015,6 +1075,15 @@ const openRenameFileDialog = (item) => {
 const openAllOperationsDialog = () => {
   allOperationsDialogVisible.value = true;
 };
+
+const openContextMenu = (e, item) => {
+  e.preventDefault();
+  contextMenu.x = e.clientX;
+  contextMenu.y = e.clientY;
+  contextMenu.item = item;
+  contextMenu.visible = true;
+}
+
 </script>
 
 <style scoped>

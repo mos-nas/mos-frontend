@@ -3,10 +3,10 @@
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
-          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px;">
-            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle;">mdi-arrow-left</v-icon>
+          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px">
+            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle">mdi-arrow-left</v-icon>
           </v-col>
-          <div class="d-flex align-center ga-3 mb-4" style="height: 40px;">
+          <div class="d-flex align-center ga-3 mb-4" style="height: 40px">
             <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
             <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ $t('vm service') }}</h2>
           </div>
@@ -38,16 +38,10 @@
                 "
                 hide-details="auto"
               ></v-text-field>
-              <v-checkbox
-                :label="$t('iommu active')"
-                color="green"
-                v-model="vmSettings.iommu_active"
-                readonly
-                hide-details="auto"
-              />
+              <v-checkbox :label="$t('iommu active')" color="green" v-model="vmSettings.iommu_active" readonly hide-details="auto" />
               <v-divider class="my-4"></v-divider>
               <span class="text-title-medium font-weight-medium">{{ $t('virtio isos') }}</span>
-              <v-row>
+              <v-row class="no-gutters mt-2">
                 <v-col cols="12" lg="12" md="12" sm="12">
                   <v-select
                     :items="virtioIsos"
@@ -70,6 +64,62 @@
               </template>
               <br />
               <v-btn class="mt-4" @click="cleanupVirtioIsos()">{{ $t('cleanup virtio isos') }}</v-btn>
+              <v-divider class="my-4"></v-divider>
+              <span class="text-title-medium font-weight-medium">{{ $t('huge pages') }}</span>
+              <v-switch :label="$t('enabled')" color="green" inset density="compact" v-model="vmSettings.hugepages.enabled" class="mt-2 mb-2" hide-details="auto"></v-switch>
+              <v-row class="no-gutters mt-4">
+                <v-col cols="12" lg="3" md="3" sm="12">
+                  <v-text-field
+                    :label="$t('set huge pages')"
+                    type="number"
+                    density="comfortable"
+                    outlined
+                    hide-details="auto"
+                    v-model="vmSettings.hugepages.total"
+                    :disabled="!vmSettings.hugepages.enabled"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" lg="3" md="3" sm="12">
+                  <v-text-field
+                    :label="$t('system huge page size')"
+                    type="number"
+                    density="comfortable"
+                    outlined
+                    hide-details="auto"
+                    v-model="vmSettings.hugepages.size_mb"
+                    :disabled="!vmSettings.hugepages.enabled"
+                    readonly
+                    suffix="MB"
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" lg="3" md="3" sm="12">
+                  <v-text-field
+                    :label="$t('huge pages')"
+                    type="number"
+                    density="comfortable"
+                    outlined
+                    hide-details="auto"
+                    v-model="usedHugePages"
+                    :disabled="!vmSettings.hugepages.enabled"
+                    readonly
+                    prepend-inner-icon="mdi-calculator"
+                    suffix="MB"
+                  >
+                  </v-text-field>
+                </v-col>
+                <v-col cols="12" lg="3" md="3" sm="12">
+                  <v-text-field
+                    :label="$t('free huge pages')"
+                    type="number"
+                    density="comfortable"
+                    outlined
+                    hide-details="auto"
+                    v-model="vmSettings.hugepages.free"
+                    readonly
+                    :disabled="!vmSettings.hugepages.enabled"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
             </v-card-text>
           </v-card>
         </v-skeleton-loader>
@@ -91,7 +141,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
@@ -104,7 +154,14 @@ const vmSettings = ref({
   directory: '',
   vdisk_directory: '',
   iommu_active: false,
+  hugepages: {
+    enabled: false,
+    total: 0,
+    size_mb: 0,
+    free: 0,
+  },
 });
+const usedHugePages = ref(0);
 const virtioIsos = ref([]);
 const { t } = useI18n();
 const overlay = ref(false);
@@ -118,6 +175,14 @@ onMounted(() => {
   getVirtioIsoVersions();
   getVirtioIsoInstalled();
 });
+
+watch(
+  () => vmSettings.value.hugepages.total,
+  (newVal) => {
+    const total = parseInt(newVal) || 0;
+    usedHugePages.value = vmSettings.value.hugepages.size_mb * total;
+  },
+);
 
 const openFsDialog = (cb) => {
   fsDialogCallback.value = cb;
@@ -162,7 +227,13 @@ const setVMService = async () => {
         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(vmSettings.value),
+      body: JSON.stringify({
+        ...vmSettings.value,
+        hugepages: {
+          ...vmSettings.value.hugepages,
+          total: parseInt(vmSettings.value.hugepages.total) || 0,
+        },
+      }),
     });
 
     if (!res.ok) {

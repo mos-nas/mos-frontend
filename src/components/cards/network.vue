@@ -191,15 +191,15 @@ function initChart() {
       data: {
         labels,
         datasets: [
-          { label: 'RX', data: seriesRx, borderColor: '#4caf50', fill: false, tension: 0.25, pointRadius: 0, borderWidth: 2 },
-          { label: 'TX', data: seriesTx, borderColor: '#2196f3', fill: false, tension: 0.25, pointRadius: 0, borderWidth: 2 },
-          { label: 'Total', data: seriesTotal, borderColor: '#ff9800', fill: false, tension: 0.25, pointRadius: 0, borderWidth: 2 },
+          { label: 'RX', data: seriesRx, borderColor: '#4caf50', fill: false, tension: 0.4, pointRadius: 0, borderWidth: 2 },
+          { label: 'TX', data: seriesTx, borderColor: '#2196f3', fill: false, tension: 0.4, pointRadius: 0, borderWidth: 2 },
+          { label: 'Total', data: seriesTotal, borderColor: '#ff9800', fill: false, tension: 0.4, pointRadius: 0, borderWidth: 2 },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: false,
+        animation: { duration: 800, easing: 'easeOutQuart' },
         normalized: true,
         interaction: { mode: 'index', intersect: false },
         plugins: {
@@ -226,7 +226,7 @@ function syncAndUpdateChart() {
   chart.data.datasets[0].data = seriesRx;
   chart.data.datasets[1].data = seriesTx;
   chart.data.datasets[2].data = seriesTotal;
-  chart.update('none');
+  chart.update();
 }
 
 watch(

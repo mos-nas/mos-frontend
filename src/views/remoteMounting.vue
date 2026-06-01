@@ -147,7 +147,7 @@
   <v-dialog v-model="deleteDialog.value" max-width="400">
     <v-card :title="$t('confirm delete')" prepend-icon="mdi-delete">
       <v-card-text>
-        {{ $t('are you sure you want to delete this remote mount?') }}
+        {{ $t('are you sure you want to delete this remote mount') }}?
       </v-card-text>
       <v-divider />
       <v-card-actions>

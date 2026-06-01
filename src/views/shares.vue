@@ -171,6 +171,7 @@
         <v-switch v-model="createSmbDialog.browseable" :label="$t('browseable')" inset hide-details density="compact" class="ml-4" color="green" />
         <v-switch v-model="createSmbDialog.read_only" :label="$t('read only')" inset hide-details density="compact" class="ml-4" color="green" />
         <v-switch v-model="createSmbDialog.guest_ok" :label="$t('guest ok')" inset hide-details density="compact" class="ml-4" color="green" />
+        <v-switch v-model="createSmbDialog.allow_execute_always" :label="$t('allow execute always')" inset hide-details density="compact" class="ml-4" color="green" />
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
@@ -274,6 +275,7 @@
         <v-switch v-model="editSmbDialog.hide_dot_files" :label="$t('hide dot files')" inset hide-details density="compact" class="ml-4" color="green" />
         <v-switch v-model="editSmbDialog.preserve_case" :label="$t('preserve case')" inset hide-details density="compact" class="ml-4" color="green" />
         <v-switch v-model="editSmbDialog.case_sensitive" :label="$t('case sensitive')" inset hide-details density="compact" class="ml-4" color="green" />
+        <v-switch v-model="editSmbDialog.allow_execute_always" :label="$t('allow execute always')" inset hide-details density="compact" class="ml-4" color="green" />
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
@@ -419,6 +421,7 @@ const createSmbDialog = reactive({
   policies: [],
   createDirectory: true,
   showAdvanced: false,
+  allow_execute_always: false,
 });
 const createNfsDialog = reactive({
   value: false,
@@ -449,6 +452,7 @@ const editSmbDialog = reactive({
   case_sensitive: true,
   write_list: [],
   valid_users: [],
+  allow_execute_always: false,
 });
 const editNfsDialog = reactive({
   value: false,
@@ -594,6 +598,7 @@ const createShareSmb = async () => {
     case_sensitive: createSmbDialog.case_sensitive,
     policies: createSmbDialog.policies,
     createDirectory: createSmbDialog.createDirectory,
+    allow_execute_always: createSmbDialog.allow_execute_always,
   };
 
   try {
@@ -682,6 +687,7 @@ const updateShareSmb = async (shareDialog) => {
     case_sensitive: shareDialog.case_sensitive,
     write_list: shareDialog.write_list,
     valid_users: shareDialog.valid_users,
+    allow_execute_always: shareDialog.allow_execute_always,
   };
   try {
     overlay.value = true;
@@ -932,6 +938,7 @@ const openEditSmbDialog = (share) => {
   editSmbDialog.preserve_case = share.preserve_case || true;
   editSmbDialog.case_sensitive = share.case_sensitive || true;
   editSmbDialog.comment = share.comment || '';
+  editSmbDialog.allow_execute_always = share.allow_execute_always || false;
 };
 const openEditNfsDialog = (share) => {
   editNfsDialog.value = true;
@@ -976,6 +983,7 @@ const clearCreateSmbDialog = () => {
   createSmbDialog.case_sensitive = true;
   createSmbDialog.policies = [];
   createSmbDialog.createDirectory = true;
+  createSmbDialog.allow_execute_always = false;
 };
 const clearEditSmbDialog = () => {
   editSmbDialog.value = false;
@@ -987,6 +995,7 @@ const clearEditSmbDialog = () => {
   editSmbDialog.read_only = false;
   editSmbDialog.write_list = [];
   editSmbDialog.valid_users = [];
+  editSmbDialog.allow_execute_always = false;
 };
 const clearEditNfsDialog = () => {
   editNfsDialog.value = false;
