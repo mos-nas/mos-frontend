@@ -408,7 +408,7 @@
   <v-dialog v-model="updateOsDialog.value" max-width="600">
     <v-card max-width="600" prepend-icon="mdi-update" :title="t('update system')" class="pa-0">
       <v-card-text class="pa-0">
-        <div style="max-height: 60vh; overflow-y: auto; padding: 16px; padding-bottom: 32px">
+        <div style="max-height: 60vh; overflow-y: auto; padding: 16px;" class="pb-0 mb-0">
           <div v-if="osInfo?.mos" class="ma-0 mb-4">
             <p class="ma-0 text-body-2">
               <b>{{ $t('mos version') }}:</b>
@@ -424,7 +424,10 @@
             </p>
           </div>
           <p class="ma-0 mb-4">{{ t('please select your target firmware!') }}</p>
-          <v-select v-model="updateOsDialog.channel" :items="getMosChannels()" :label="t('channel')"></v-select>
+          <v-select v-model="updateOsDialog.channel" :items="getMosChannels()" :label="t('channel')" @update:modelValue="onChannelChange":hide-details="updateOsDialog.channel && updateOsDialog.channel !== osInfo?.mos?.channel ? 'auto' : false"></v-select>
+            <v-alert v-if="updateOsDialog.channel && updateOsDialog.channel !== osInfo?.mos?.channel" type="warning" icon="mdi-alert" variant="text" density="compact" class="text-caption">
+              {{ t('channel is being switched from') }} {{ osInfo.mos.channel }} {{ t('to') }} {{ updateOsDialog.channel }}
+            </v-alert>          
           <v-select v-model="updateOsDialog.release" :items="getMosReleasesOfChannel()" :label="t('release')"></v-select>
           <v-switch v-model="updateOsDialog.update_kernel" :label="t('update kernel')" inset density="compact" color="green" hide-details="auto" />
           <v-switch v-model="updateOsDialog.update_plugins" :label="t('update plugins')" inset density="compact" color="green" hide-details="auto" />
@@ -830,7 +833,6 @@ const rollbackKernel = async () => {
 };
 
 const rebootOS = async () => {
-
   try {
     overlay.value = true;
 
@@ -858,7 +860,6 @@ const rebootOS = async () => {
 };
 
 const shutdownOS = async () => {
-
   try {
     overlay.value = true;
     const res = await fetch('/api/v1/system/power/shutdown', {

@@ -1577,5 +1577,6 @@
   "iscsi initiator could not be saved": "iSCSI Initiator konnte nicht gespeichert werden",
   "iscsi initiators could not be loaded": "iSCSI Initiatoren konnten nicht geladen werden",
   "are you sure you want to delete this initiator": "Bist du sicher, dass du diesen Initiator löschen möchtest",
-  "iscsi target could not be saved": "iSCSI Ziel konnte nicht gespeichert werden"
+  "iscsi target could not be saved": "iSCSI Ziel konnte nicht gespeichert werden",
+  "channel is being switched from": "Kanal wird gewechselt von"
 }

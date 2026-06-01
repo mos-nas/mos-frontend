@@ -1577,5 +1577,6 @@
   "iscsi initiator could not be saved": "iSCSI initiator could not be saved",
   "iscsi initiators could not be loaded": "iSCSI initiators could not be loaded",
   "are you sure you want to delete this initiator": "Are you sure you want to delete this initiator",
-  "iscsi target could not be loaded": "iSCSI targets could not be loaded"
+  "iscsi target could not be loaded": "iSCSI targets could not be loaded",
+  "channel is being switched from": "Channel is being switched from"
 }
