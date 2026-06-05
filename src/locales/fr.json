@@ -137,5 +137,8 @@
   "disable mfa": "Désactiver MFA",
   "mfa": "MFA",
   "server ip": "IP du serveur",
-  "disabled": "Désactivé"
+  "disabled": "Désactivé",
+  "de": "Allemand",
+  "en": "Anglais",
+  "fr": "Français"
 }

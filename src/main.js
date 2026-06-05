@@ -8,6 +8,7 @@ window.__VUE__ = Vue
 import { createI18n } from 'vue-i18n'
 import de from './locales/de.json'
 import en from './locales/en.json'
+import fr from './locales/fr.json'
 import router from './router'
 import 'vue-sonner/style.css'
 import CronVuetifyPlugin from '@vue-js-cron/vuetify'
@@ -73,7 +74,8 @@ const i18n = createI18n({
   fallbackLocale: 'en',
   messages: {
     de,
-    en
+    en,
+    fr
   }
 })
 
