@@ -180,17 +180,29 @@
             </v-menu>
           </template>
         </v-text-field>
-        <v-slider
-          style="margin-top: 12px"
-          v-model="newVm.memorySize"
-          :label="$t('Memory Size (GB)')"
-          step="1"
-          min="1"
-          :max="availableSystemMemory - 4"
-          thumb-label="always"
-          variant="outlined"
-          class="mb-0 thumb-bottom"
-        />
+        <v-row class="ga-4">
+          <v-col cols="auto" class="flex-grow-1">
+            <v-slider
+              style="margin-top: 12px"
+              v-model="newVm.memorySize"
+              :label="$t('Memory Size (GB)')"
+              step="1"
+              min="1"
+              :max="availableSystemMemory - 4"
+              thumb-label="always"
+              variant="outlined"
+              class="mb-0 thumb-bottom"
+            />
+          </v-col>
+          <v-col v-if="vmSettings.hugepages?.enabled" cols="auto" class="d-flex flex-column justify-center align-center">
+            <v-checkbox
+              v-model="newVm.hugepages"
+              hide-details
+              density="compact"
+            />
+            <small class="text-center mt-0">{{ $t('Hugepages') }}</small>
+          </v-col>
+        </v-row>
         <details>
           <summary style="cursor: pointer; color: var(--v-theme-primary); text-decoration: underline" class="text-body-2 mb-0">{{ $t('core pinning') }}</summary>
           <v-row v-for="(core, i) in (cpu.cores || []).filter((c) => c.isPhysical)" :key="i" density="comfortable" class="align-center flex-wrap ga-2" no-gutters>
@@ -527,17 +539,29 @@
             </v-menu>
           </template>
         </v-text-field>
-        <v-slider
-          style="margin-top: 12px"
-          v-model="editedVm.memorySize"
-          :label="$t('Memory Size (GB)')"
-          step="1"
-          min="1"
-          :max="availableSystemMemory - 4"
-          thumb-label="always"
-          variant="outlined"
-          class="mb-0 thumb-bottom"
-        />
+        <v-row class="align-center" no-gutters>
+          <v-col>
+            <v-slider
+              style="margin-top: 12px"
+              v-model="editedVm.memorySize"
+              :label="$t('Memory Size (GB)')"
+              step="1"
+              min="1"
+              :max="availableSystemMemory - 4"
+              thumb-label="always"
+              variant="outlined"
+              class="mb-0 thumb-bottom"
+            />
+          </v-col>
+          <v-col v-if="vmSettings.hugepages?.enabled" cols="auto" class="d-flex flex-column justify-center align-center ml-3">
+            <v-checkbox
+              v-model="editedVm.hugepages"
+              hide-details
+              density="compact"
+            />
+            <small class="text-center mt-0">{{ $t('Hugepages') }}</small>
+          </v-col>
+        </v-row>
         <details>
           <summary style="cursor: pointer; color: var(--v-theme-primary); text-decoration: underline" class="text-body-2 mb-0">{{ $t('core pinning') }}</summary>
           <v-row v-for="(core, i) in (cpu.cores || []).filter((c) => c.isPhysical)" :key="i" density="comfortable" class="align-center flex-wrap ga-2" no-gutters>
@@ -1134,6 +1158,7 @@ const newVm = ref({
   name: '',
   icon: '',
   memorySize: 1,
+  hughepages: false,
   machineTypeArchitecture: 'q35',
   machineType: 'q35',
   biosType: 'ovmf',
@@ -1154,6 +1179,7 @@ const editedVm = ref({
   name: '',
   icon: '',
   memorySize: 1,
+  hugepages: false,
   machineTypeArchitecture: 'q35',
   machineType: 'q35',
   biosType: 'ovmf',
@@ -1183,6 +1209,7 @@ const pcieDevices = ref({});
 const usbDevices = ref({});
 const availableSystemMemory = ref(0);
 const cpu = ref({});
+const vmSettings = ref({});
 
 let socket = null;
 
@@ -1194,6 +1221,7 @@ onMounted(() => {
   getVmCapabilities();
   getPCIeDevices();
   getUSBDevices();
+  getVMService();
 });
 
 onUnmounted(() => {
@@ -1898,6 +1926,7 @@ const openEditVmDialog = async (name) => {
       hostdevices: (data.pciDevices || []).map((p) => ({ address: p.address })),
       usbdevices: (data.usbDevices || []).map((u) => ({ device: `${u.vendor}:${u.product}` })),
       virtioIso: null,
+      hugepages: data.hugepages || false,
     };
 
     editVmDialog.value = true;
@@ -2218,6 +2247,7 @@ const editVM = async () => {
     networks: editedVm.value.networks,
     graphics: editedVm.value.graphics,
     hostdevices: editedVm.value.hostdevices,
+    hugepages: editedVm.value.hugepages,
     usbdevices: editedVm.value.usbdevices.map((usb) => {
       const [vendor, product] = usb.device.split(':');
       return {
@@ -2251,6 +2281,26 @@ const editVM = async () => {
     showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     overlay.value = false;
+  }
+};
+
+const getVMService = async () => {
+  try {
+    const res = await fetch('/api/v1/mos/settings/vm', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('vm service could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    vmSettings.value = await res.json();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
   }
 };
 

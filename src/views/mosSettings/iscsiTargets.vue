@@ -5,7 +5,7 @@
         <div class="d-flex align-center ga-3 mb-4">
           <v-icon @click="$router.back()" style="cursor: pointer; vertical-align: middle">mdi-arrow-left</v-icon>
           <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
-          <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ $t('iscsi targets') }}</h2>
+          <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ $t('iscsi target') }}</h2>
         </div>
       </v-container>
 
@@ -101,32 +101,34 @@
           <span class="font-weight-medium">{{ $t('luns') }}</span>
           <v-btn size="small" variant="text" color="green" prepend-icon="mdi-plus" @click="addLun(createDialog)">{{ $t('add') }}</v-btn>
         </div>
-        <v-table v-if="createDialog.luns.length > 0" density="compact" class="rounded border dialog-table">
-          <thead>
-            <tr>
-              <th>{{ $t('lun id') }}</th>
-              <th>{{ $t('path') }}</th>
-              <th>{{ $t('backing store') }}</th>
-              <th>{{ $t('mode') }}</th>
-              <th>{{ $t('size') }}</th>
-              <th style="width: 48px"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(lun, li) in createDialog.luns" :key="li">
-              <td><v-text-field v-model.number="lun.id" density="compact" variant="plain" type="number" hide-details style="min-width: 60px; max-width: 80px"></v-text-field></td>
-              <td><v-text-field v-model="lun.path" density="compact" variant="plain" placeholder="/dev/sda" hide-details></v-text-field></td>
-              <td><v-select v-model="lun.backing_store" density="compact" variant="plain" :items="backingStores" hide-details style="min-width: 90px"></v-select></td>
-              <td><v-text-field v-model="lun.mode" density="compact" variant="plain" hide-details style="min-width: 90px"></v-text-field></td>
-              <td><v-text-field v-model="lun.size" density="compact" variant="plain" placeholder="1G" hide-details style="min-width: 60px"></v-text-field></td>
-              <td>
-                <v-btn icon size="x-small" variant="text" color="red" @click="createDialog.luns.splice(li, 1)">
-                  <v-icon>mdi-delete</v-icon>
-                </v-btn>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
+        <div style="overflow-x: auto">
+          <v-table v-if="createDialog.luns.length > 0" density="compact" class="rounded border dialog-table" style="min-width: 600px">
+            <thead>
+              <tr>
+                <th style="white-space: nowrap; width: 60px">{{ $t('lun id') }}</th>
+                <th style="white-space: nowrap">{{ $t('path') }}</th>
+                <th style="white-space: nowrap; width: 110px">{{ $t('backing store') }}</th>
+                <th style="white-space: nowrap; width: 110px">{{ $t('mode') }}</th>
+                <th style="white-space: nowrap; width: 70px">{{ $t('size') }}</th>
+                <th style="width: 48px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(lun, li) in createDialog.luns" :key="li">
+                <td><v-text-field v-model.number="lun.id" density="compact" variant="plain" type="number" hide-details></v-text-field></td>
+                <td><v-text-field v-model="lun.path" density="compact" variant="plain" placeholder="/dev/sda" hide-details></v-text-field></td>
+                <td><v-select v-model="lun.backing_store" density="compact" variant="plain" :items="backingStores" hide-details></v-select></td>
+                <td><v-text-field v-model="lun.mode" density="compact" variant="plain" hide-details></v-text-field></td>
+                <td><v-text-field v-model="lun.size" density="compact" variant="plain" placeholder="1G" hide-details></v-text-field></td>
+                <td style="width: 48px; text-align: center">
+                  <v-btn icon size="x-small" variant="text" color="red" @click="createDialog.luns.splice(li, 1)">
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+        </div>
 
         <v-divider class="my-4"></v-divider>
         <div class="d-flex align-center justify-space-between mb-2">
@@ -178,7 +180,7 @@
   <v-dialog v-model="editDialog.value" max-width="700px" scrollable>
     <v-card :title="$t('edit target')" prepend-icon="mdi-text-box-edit">
       <v-card-text style="max-height: 70vh">
-        <v-text-field v-model="editDialog.name" :label="$t('name')" density="compact"></v-text-field>
+        <v-text-field v-model="editDialog.name" :label="$t('name')" density="compact" class="mt-2"></v-text-field>
         <v-text-field v-model="editDialog.portal" :label="$t('portal')" placeholder="0.0.0.0:3260" density="compact"></v-text-field>
         <v-text-field v-model="editDialog.iqn" :label="$t('target iqn')" placeholder="iqn.2024-01.com.example:storage" density="compact" hide-details="auto"></v-text-field>
         <v-divider class="my-4"></v-divider>
@@ -205,32 +207,34 @@
           <span class="font-weight-medium">{{ $t('luns') }}</span>
           <v-btn size="small" variant="text" color="green" prepend-icon="mdi-plus" @click="addLun(editDialog)">{{ $t('add') }}</v-btn>
         </div>
-        <v-table v-if="editDialog.luns.length > 0" density="compact" class="rounded border dialog-table">
-          <thead>
-            <tr>
-              <th>{{ $t('lun id') }}</th>
-              <th>{{ $t('path') }}</th>
-              <th>{{ $t('backing store') }}</th>
-              <th>{{ $t('mode') }}</th>
-              <th>{{ $t('size') }}</th>
-              <th style="width: 48px"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(lun, li) in editDialog.luns" :key="li">
-              <td><v-text-field v-model.number="lun.id" density="compact" variant="plain" type="number" hide-details style="min-width: 60px; max-width: 80px"></v-text-field></td>
-              <td><v-text-field v-model="lun.path" density="compact" variant="plain" placeholder="/dev/sda" hide-details></v-text-field></td>
-              <td><v-select v-model="lun.backing_store" density="compact" variant="plain" :items="backingStores" hide-details style="min-width: 90px"></v-select></td>
-              <td><v-text-field v-model="lun.mode" density="compact" variant="plain" hide-details style="min-width: 90px"></v-text-field></td>
-              <td><v-text-field v-model="lun.size" density="compact" variant="plain" placeholder="1G" hide-details style="min-width: 60px"></v-text-field></td>
-              <td>
-                <v-btn icon size="x-small" variant="text" color="red" @click="editDialog.luns.splice(li, 1)">
-                  <v-icon>mdi-delete</v-icon>
-                </v-btn>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
+        <div style="overflow-x: auto">
+          <v-table v-if="editDialog.luns.length > 0" density="compact" class="rounded border dialog-table" style="min-width: 600px">
+            <thead>
+              <tr>
+                <th style="white-space: nowrap; width: 60px">{{ $t('lun id') }}</th>
+                <th style="white-space: nowrap">{{ $t('path') }}</th>
+                <th style="white-space: nowrap; width: 110px">{{ $t('backing store') }}</th>
+                <th style="white-space: nowrap; width: 110px">{{ $t('mode') }}</th>
+                <th style="white-space: nowrap; width: 70px">{{ $t('size') }}</th>
+                <th style="width: 48px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(lun, li) in editDialog.luns" :key="li">
+                <td><v-text-field v-model.number="lun.id" density="compact" variant="plain" type="number" hide-details></v-text-field></td>
+                <td><v-text-field v-model="lun.path" density="compact" variant="plain" placeholder="/dev/sda" hide-details></v-text-field></td>
+                <td><v-select v-model="lun.backing_store" density="compact" variant="plain" :items="backingStores" hide-details></v-select></td>
+                <td><v-text-field v-model="lun.mode" density="compact" variant="plain" hide-details></v-text-field></td>
+                <td><v-text-field v-model="lun.size" density="compact" variant="plain" placeholder="1G" hide-details></v-text-field></td>
+                <td style="width: 48px; text-align: center">
+                  <v-btn icon size="x-small" variant="text" color="red" @click="editDialog.luns.splice(li, 1)">
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+        </div>
         <v-divider class="my-4"></v-divider>
         <div class="d-flex align-center justify-space-between mb-2">
           <span class="font-weight-medium">{{ $t('allowed initiators') }}</span>
@@ -429,7 +433,7 @@ const updateTarget = async () => {
     portal: editDialog.portal,
     authentication: editDialog.authentication.method === 'chap' ? { method: 'chap', username: editDialog.authentication.username, password: editDialog.authentication.password } : { method: 'none' },
     luns: editDialog.luns.map((l) => ({ id: l.id, path: l.path, backing_store: l.backing_store, mode: l.mode, size: l.size })),
-    initiators: editDialog.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } }))
+    initiators: editDialog.initiators.map((i) => ({ iqn: i.iqn, authentication: { method: i.authentication.method } })),
   };
 
   try {

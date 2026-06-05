@@ -63,12 +63,12 @@ export default defineConfig({
         changeOrigin: true,
       },
       '/api/v1/socket.io': {
-        target: 'http://mos-test.home:998',
+        target: 'http://mos-test.home',
         changeOrigin: true,
         ws: true,
       },
       '/ws': {
-        target: 'ws://mos-test.home:998',
+        target: 'ws://mos-test.home',
         ws: true,
       },
       '/api/v1/notify': {
@@ -77,7 +77,7 @@ export default defineConfig({
         ws: true,
       },
       '/api/v1/vm/vnc/ws': {
-        target: 'ws://mos-test.home:998',
+        target: 'ws://mos-test.home',
         changeOrigin: true,
         ws: true,
       },

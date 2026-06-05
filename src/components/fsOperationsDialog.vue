@@ -17,9 +17,20 @@
                   <v-list-item-subtitle class="text-caption">{{ $t('from') }}: {{ operation.source }}</v-list-item-subtitle>
                   <v-list-item-subtitle class="text-caption">{{ $t('to') }}: {{ operation.destination }}</v-list-item-subtitle>
                 </div>
-                <v-chip :color="operation.status === 'completed' ? 'success' : operation.status === 'error' ? 'error' : 'warning'" size="small" variant="tonal">
-                  {{ $t(operation.status) }}
-                </v-chip>
+                <div class="d-flex align-center ga-2">
+                  <v-chip :color="operation.status === 'completed' ? 'success' : operation.status === 'error' ? 'error' : 'warning'" size="small" variant="tonal">
+                    {{ $t(operation.status) }}
+                  </v-chip>
+                  <v-btn
+                    v-if="operation.status === 'running'"
+                    icon="mdi-stop"
+                    size="x-small"
+                    color="error"
+                    variant="tonal"
+                    :title="$t('cancel operation')"
+                    @click="cancelOperation(operation.id)"
+                  />
+                </div>
               </div>
               <div class="d-flex align-center ga-2 mb-2">
                 <v-progress-linear :model-value="operation.progress" :color="operation.status === 'error' ? 'error' : 'primary'" height="6" />
@@ -45,7 +56,9 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { io } from 'socket.io-client';
+import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 
 const props = defineProps({
   modelValue: {
@@ -55,6 +68,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue']);
+const { t } = useI18n();
 const runningOperations = ref(0);
 const runningOperationsLoaded = ref(false);
 const operations = ref([]);
@@ -144,6 +158,25 @@ const getRunningOperations = async () => {
     showSnackbarError(userMessage, apiErrorMessage);
     runningOperationsLoaded.value = true;
     return [];
+  }
+};
+
+const cancelOperation = async (id) => {
+  try {
+    const res = await fetch(`/api/v1/mos/fileoperations/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('operation could not be cancelled')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('operation cancelled successfully'));
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
   }
 };
 

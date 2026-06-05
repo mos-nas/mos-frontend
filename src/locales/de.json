@@ -1375,6 +1375,9 @@
   "failed": "Fehlgeschlagen",
   "pending": "Ausstehend",
   "no running operations": "Keine laufenden Vorgänge",
+  "cancel operation": "Vorgang abbrechen",
+  "operation cancelled successfully": "Vorgang erfolgreich abgebrochen",
+  "operation could not be cancelled": "Vorgang konnte nicht abgebrochen werden",
   "file operation completed successfully": "Dateioperation erfolgreich abgeschlossen",
   "drives": "Laufwerke",
   "hidden files": "Versteckte Dateien",
@@ -1567,8 +1570,8 @@
   "system huge page size": "System Huge Page Größe",
   "free huge pages": "Freie Huge Pages",
   "used huge pages": "Verwendete Huge Pages",
-  "iscsi initiators": "iSCSI Initiatoren",
-  "iscsi targets": "iSCSI Ziele",
+  "iscsi initiator": "iSCSI Initiator",
+  "iscsi target": "iSCSI Ziel",
   "iscsi target could not be deleted": "iSCSI Ziel konnte nicht gelöscht werden",
   "iscsi target deleted successfully": "iSCSI Ziel erfolgreich gelöscht",
   "iscsi initiator could not be deleted": "iSCSI Initiator konnte nicht gelöscht werden",
@@ -1577,5 +1580,6 @@
   "iscsi initiator could not be saved": "iSCSI Initiator konnte nicht gespeichert werden",
   "iscsi initiators could not be loaded": "iSCSI Initiatoren konnten nicht geladen werden",
   "are you sure you want to delete this initiator": "Bist du sicher, dass du diesen Initiator löschen möchtest",
-  "iscsi target could not be saved": "iSCSI Ziel konnte nicht gespeichert werden"
+  "iscsi target could not be saved": "iSCSI Ziel konnte nicht gespeichert werden",
+  "channel is being switched from": "Kanal wird gewechselt von"
 }
