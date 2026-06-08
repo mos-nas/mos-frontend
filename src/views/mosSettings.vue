@@ -642,7 +642,8 @@
       </v-card-text>
       <v-divider />
       <v-card-actions>
-        <v-btn prepend-icon="mdi-gift" variant="text" color="primary" href="https://paypal.me/chips777" target="_blank" rel="noopener">{{ t('donate') }}</v-btn>
+        <v-btn prepend-icon="mdi-gift" variant="text" color="primary" href="https://paypal.me/chips777" target="_blank" rel="noopener">{{ t('paypal') }}</v-btn>
+        <v-btn prepend-icon="mdi-gift" variant="text" color="primary" href="https://github.com/sponsors/ich777?frequency=one-time&sponsor=ich777" target="_blank" rel="noopener">{{ t('github sponsors') }}</v-btn>        
         <v-spacer />
         <v-btn color="onPrimary" :text="t('close')" @click="supportDialog = false"></v-btn>
       </v-card-actions>
