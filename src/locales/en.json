@@ -1596,5 +1596,7 @@
   "support banner successfully activated": "Support Banner successfully activated",
   "invalid support code": "Invalid support code",
   "paypal": "PayPal",
-  "github sponsors": "GitHub Sponsors"
+  "github sponsors": "GitHub Sponsors",
+  "thank you for being a supporter": "Thank you for being a supporter",
+  "support banner already unlocked": "Support banner already unlocked"
 }

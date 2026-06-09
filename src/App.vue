@@ -154,7 +154,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, provide } from 'vue';
 import Login from './views/login.vue';
 import FirstSetup from './views/firstSetup.vue';
 import { showSnackbarError, showSnackbarSuccess, showSnackbarInfo, showSnackbarWarning } from './composables/snackbar';
@@ -194,6 +194,8 @@ const RECONNECT_BASE_DELAY = 1000;
 let ws = null;
 let reconnectTimer = null;
 let reconnectAttempts = 0;
+
+provide('mosServices', mosServices);
 
 watch(drawer, (val) => {
   localStorage.setItem('drawer', String(val));

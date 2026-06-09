@@ -623,7 +623,7 @@
         <br />
         <span>{{ t('if you would like to support the project, please consider to send a donation') }}.</span>
         <br />
-        <span class="d-block mt-2">
+        <span v-if="!mosServices?.mos?.supporter" class="d-block mt-2">
           {{ t('as a thank you, every supporter who donates at least $5 will receive a code to unlock a support banner') }}.
           <br />
           <v-divider class="mt-2 mb-2"></v-divider>
@@ -638,6 +638,10 @@
               </div>
             </div>
           </v-slide-y-transition>
+        </span>
+        <span v-else class="d-block mt-2 text-primary">
+          <v-divider class="mt-2 mb-2"></v-divider>
+          {{ t('support banner already unlocked') }}. {{ t('thank you for being a supporter') }}!
         </span>
       </v-card-text>
       <v-divider />
@@ -678,12 +682,13 @@
 </template>
 
 <script setup>
-import { onMounted, ref, reactive } from 'vue';
+import { onMounted, ref, reactive, inject } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const mosReleases = ref({});
+const mosServices = inject('mosServices');
 const mosKernel = ref([]);
 const thanksDialog = ref(false);
 const aboutDialog = ref(false);
