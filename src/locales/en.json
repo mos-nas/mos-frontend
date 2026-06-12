@@ -1599,9 +1599,9 @@
   "github sponsors": "GitHub Sponsors",
   "thank you for being a supporter": "Thank you for being a supporter",
   "support banner already unlocked": "Support banner already unlocked",
-  "usage alerts": "Nutzungswarnungen",
-  "alerts": "Warnungen",
-  "alert": "Alarm",
+  "usage alerts": "Usage Alerts",
+  "alerts": "Alerts",
+  "alert": "Alert",
   "usage alert settings could not be saved": "Usage alert settings could not be saved",
   "usage alert settings saved successfully": "Usage alert settings saved successfully"  
 }
