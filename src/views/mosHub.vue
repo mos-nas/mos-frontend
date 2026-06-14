@@ -163,7 +163,7 @@
                         style="top: 12px; left: 12px; background: var(--v-theme-secondary); color: var(--v-theme-on-secondary)"
                         :href="tpl.maintainer_donate"
                         target="_blank"
-                        prepend-icon="mdi-github"
+                        prepend-icon="mdi-account"
                       >
                         {{ tpl.maintainer || $t('unknown') }}
                       </v-chip>
@@ -446,20 +446,19 @@
 </template>
 
 <script setup>
-import { onMounted, ref, reactive, nextTick } from 'vue';
+import { onMounted, ref, reactive, nextTick, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useRouter } from 'vue-router';
 
+const $router = useRouter();
 const props = defineProps({
   hubType: String,
 });
-
-const $router = useRouter();
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
 const overlay = ref(false);
-const mosServices = ref({});
+const mosServices = inject('mosServices');
 const searchOnlineTemplate = ref('');
 const hubLoading = ref(true);
 const releasesLoading = ref(false);
@@ -497,7 +496,6 @@ onMounted(() => {
     hubTypeSel.value = 'plugin';
   }
   getMosHub();
-  getMosServices();
   getHubTypes();
   getHubCategories();
 });
@@ -615,22 +613,6 @@ const setHubRepositories = async (repositories) => {
     showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     overlay.value = false;
-  }
-};
-
-const getMosServices = async () => {
-  try {
-    const res = await fetch('/api/v1/mos/services', {
-      method: 'GET',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-    });
-
-    if (!res.ok) throw new Error('API-Error');
-    mosServices.value = await res.json();
-  } catch (e) {
-    showSnackbarError(e.message);
   }
 };
 

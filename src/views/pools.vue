@@ -144,6 +144,12 @@
                       </template>
                       <v-list-item-title>{{ $t('nonraid schedules') }}</v-list-item-title>
                     </v-list-item>
+                    <v-list-item @click="openUsageAlertsDialog(pool)">
+                      <template #prepend>
+                        <v-icon size="18">mdi-bell-outline</v-icon>
+                      </template>
+                      <v-list-item-title>{{ $t('usage alerts') }}</v-list-item-title>
+                    </v-list-item>
                   </v-list>
                 </v-menu>
               </div>
@@ -917,6 +923,23 @@
     </v-card>
   </v-dialog>
 
+  <!-- Usage Alerts -->
+  <v-dialog v-model="usageAlertsDialog.value" max-width="400">
+    <v-card class="pa-0" :title="t('usage alerts')" prepend-icon="mdi-bell-outline" style="max-height: 60vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto" class="pt-2">
+        <v-text-field v-model="usageAlertsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%"/>
+        <v-text-field v-model="usageAlertsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto"/>
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-btn @click="usageAlertsDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn @click="saveUsageAlerts(usageAlertsDialog.pool.id, usageAlertsDialog.usage_alert)" color="onPrimary">
+          {{ $t('save') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialog.schedule" @apply="applyCronSchedule" @cancel="resetCronDialog" />
 
   <!-- Floating Action Button -->
@@ -1102,6 +1125,14 @@ const mergerfsPolicyDialog = reactive({
     search: 'ff',
   },
   availablePolicies: ['pfrd', 'rand', 'mfs', 'ff', 'lfs', 'lup', 'lus', 'all', 'msppfrd', 'mspmfs', 'msplfs', 'msplus', 'eppfrd', 'epmfs', 'eprand', 'epff', 'eplfs', 'eplus', 'epall', 'newest'],
+});
+const usageAlertsDialog = reactive({
+  value: false,
+  pool: null,
+  usage_alert: {
+    warning: 85,
+    alert: 90
+  }
 });
 
 onMounted(async () => {
@@ -1299,6 +1330,14 @@ const openNonRaidOperationDialog = (pool) => {
   nonRaidOperationDialog.pool = pool;
   nonRaidOperationDialog.operation = '';
   nonRaidOperationDialog.option = 'NOCORRECT';
+};
+const openUsageAlertsDialog = (pool) => {
+  usageAlertsDialog.value = true;
+  usageAlertsDialog.pool = pool;
+  usageAlertsDialog.usage_alert = {
+    warning: pool.config.usage_alert ? pool.config.usage_alert.warning : 85,
+    alert: pool.config.usage_alert ? pool.config.usage_alert.alert : 90,
+  };
 };
 
 const getPools = async () => {
@@ -2340,6 +2379,37 @@ const changeMergerfsPolicies = async (poolId, policies) => {
     showSnackbarSuccess(t('mergerfs policies changed successfully'));
     getPools();
     mergerfsPolicyDialog.value = false;
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const saveUsageAlerts = async (poolId, usageAlert) => {
+  overlay.value = true;
+  const payload = {
+    usage_alert: usageAlert,
+  };
+
+  try {
+    const res = await fetch(`/api/v1/pools/${poolId}/config`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('usage alert settings could not be saved')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('usage alert settings saved successfully'));
+    getPools();
+    usageAlertsDialog.value = false;
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);

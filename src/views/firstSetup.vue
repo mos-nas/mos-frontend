@@ -116,7 +116,7 @@ const password2 = ref('');
 const sambaUser = ref(true);
 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 const darkMode = ref(prefersDark ? 'dark' : 'light');
-const languages = ['en', 'de'];
+const languages = ['en', 'de', 'fr'];
 const selectedLanguage = ref('en');
 const byteFormats = ref([
   { value: 'binary', title: t('binary') },

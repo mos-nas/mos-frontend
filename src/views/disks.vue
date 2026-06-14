@@ -306,6 +306,29 @@
     </v-card>
   </v-dialog>
 
+  <!-- Floating Action Button with Menu -->
+  <v-menu location="top">
+    <template v-slot:activator="{ props }">
+      <v-fab v-bind="props" color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
+        <v-icon color="onPrimary">mdi-dots-vertical</v-icon>
+      </v-fab>
+    </template>
+    <v-list>
+      <v-list-item @click="sleepAll()">
+        <template v-slot:prepend>
+          <v-icon>mdi-sleep</v-icon>
+        </template>
+        <v-list-item-title>{{ $t('sleep all') }}</v-list-item-title>
+      </v-list-item>
+      <v-list-item @click="wakeAll()">
+        <template v-slot:prepend>
+          <v-icon>mdi-sleep-off</v-icon>
+        </template>
+        <v-list-item-title>{{ $t('wake all') }}</v-list-item-title>
+      </v-list-item>
+    </v-list>
+  </v-menu>
+
   <v-overlay :model-value="overlay" class="align-center justify-center">
     <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
   </v-overlay>
@@ -478,10 +501,71 @@ const sleepDisk = async (disk) => {
   }
 };
 
+const sleepAll = async () => {
+  overlay.value = true;
+  const payload = {
+    devices: [...disks.value.map((disk) => disk.name)],
+    mode: 'standby',
+  };
+
+  try {
+    const res = await fetch(`/api/v1/disks/sleep`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('disks could not be put to sleep')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+
+    showSnackbarSuccess(t('disks successfully put to sleep'));
+    getDisks();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const wakeAll = async () => {
+  overlay.value = true;
+  const payload = {
+    devices: [...disks.value.map((disk) => disk.name)],
+  };
+
+  try {
+    const res = await fetch(`/api/v1/disks/wake`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('disks could not be woken up')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+
+    showSnackbarSuccess(t('disks successfully woken up'));
+    getDisks();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
 const formatDisk = async (disk) => {
-
-
-  const formatDiskData = {
+  const payload = {
     device: formatDialog.disk.name,
     filesystem: formatDialog.filesystem,
     partition: formatDialog.partition,
@@ -504,7 +588,7 @@ const formatDisk = async (disk) => {
         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(formatDiskData),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {

@@ -98,12 +98,35 @@
         </v-list>
         <template #append>
           <div v-if="mosServices.tailscale?.enabled || mosServices.netbird?.enabled" class="d-flex justify-center flex-wrap ga-1 pt-2 pb-1">
-            <v-chip v-if="mosServices.tailscale?.enabled" size="x-small" :color="mosServices.tailscale?.online ? 'success' : 'error'" :prepend-icon="mosServices.tailscale?.online ? 'mdi-lock-outline' : 'mdi-lock-off-outline'" variant="tonal">Tailscale</v-chip>
-            <v-chip v-if="mosServices.netbird?.enabled" size="x-small" :color="mosServices.netbird?.online ? 'success' : 'error'" :prepend-icon="mosServices.netbird?.online ? 'mdi-lock-outline' : 'mdi-lock-off-outline'" variant="tonal">Netbird</v-chip>
+            <v-chip
+              v-if="mosServices.tailscale?.enabled"
+              size="x-small"
+              :color="mosServices.tailscale?.online ? 'success' : 'error'"
+              :prepend-icon="mosServices.tailscale?.online ? 'mdi-lock-outline' : 'mdi-lock-off-outline'"
+              variant="tonal"
+            >
+              Tailscale
+            </v-chip>
+            <v-chip
+              v-if="mosServices.netbird?.enabled"
+              size="x-small"
+              :color="mosServices.netbird?.online ? 'success' : 'error'"
+              :prepend-icon="mosServices.netbird?.online ? 'mdi-lock-outline' : 'mdi-lock-off-outline'"
+              variant="tonal"
+            >
+              Netbird
+            </v-chip>
           </div>
-          <v-divider></v-divider>
+          <v-divider />
           <div class="pa-2 pb-3">
             <div v-if="mosVersion" class="d-flex align-center justify-center ga-1 pt-2 text-caption text-disabled">{{ $t('mos') }}: {{ mosVersion }}</div>
+            <v-divider v-if="mosServices?.mos?.supporter" class="mt-3" />
+            <div v-if="mosServices?.mos?.supporter" class="d-flex align-center justify-center pt-2">
+              <div class="supporter-badge">
+                <v-img src="/mos_black.png" alt="MOS" width="32" height="32" contain class="supporter-badge__logo" />
+                <span class="supporter-badge__label">{{ $t('supporter') }}</span>
+              </div>
+            </div>
           </div>
         </template>
       </v-navigation-drawer>
@@ -131,7 +154,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, onUnmounted, computed, watch, provide } from 'vue';
 import Login from './views/login.vue';
 import FirstSetup from './views/firstSetup.vue';
 import { showSnackbarError, showSnackbarSuccess, showSnackbarInfo, showSnackbarWarning } from './composables/snackbar';
@@ -171,6 +194,8 @@ const RECONNECT_BASE_DELAY = 1000;
 let ws = null;
 let reconnectTimer = null;
 let reconnectAttempts = 0;
+
+provide('mosServices', mosServices);
 
 watch(drawer, (val) => {
   localStorage.setItem('drawer', String(val));
@@ -609,5 +634,33 @@ function cleanupWS(clearTimer = true) {
 .text-body-2 {
   font-size: 0.9rem !important;
   line-height: 1.4 !important;
+}
+.supporter-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  color: rgba(0, 0, 0, 0.82);
+  background: linear-gradient(115deg, rgba(165, 214, 167, 0.35) 0%, rgba(200, 230, 201, 0.3) 35%, rgba(178, 223, 219, 0.3) 60%, rgba(197, 225, 165, 0.35) 100%);
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  box-shadow:
+    0 1px 4px rgba(76, 175, 80, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.supporter-badge__logo {
+  flex: 0 0 auto;
+  margin: -8px 0;
+}
+
+.supporter-badge__label {
+  flex: 0 0 auto;
 }
 </style>

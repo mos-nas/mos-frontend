@@ -361,6 +361,15 @@
                       <v-icon size="small" color="medium-emphasis">mdi-chevron-right</v-icon>
                     </template>
                   </v-list-item>
+                  <v-list-item rounded="lg" @click="supportDialog = true" color="primary">
+                    <template v-slot:prepend>
+                      <v-icon icon="mdi-lifebuoy" class="mr-3"></v-icon>
+                    </template>
+                    <v-list-item-title class="font-weight-medium">{{ $t('support mos') }}</v-list-item-title>
+                    <template v-slot:append>
+                      <v-icon size="small" color="medium-emphasis">mdi-chevron-right</v-icon>
+                    </template>
+                  </v-list-item>
                 </v-list>
               </div>
             </div>
@@ -408,7 +417,7 @@
   <v-dialog v-model="updateOsDialog.value" max-width="600">
     <v-card max-width="600" prepend-icon="mdi-update" :title="t('update system')" class="pa-0">
       <v-card-text class="pa-0">
-        <div style="max-height: 60vh; overflow-y: auto; padding: 16px;" class="pb-0 mb-0">
+        <div style="max-height: 60vh; overflow-y: auto; padding: 16px" class="pb-0 mb-0">
           <div v-if="osInfo?.mos" class="ma-0 mb-4">
             <p class="ma-0 text-body-2">
               <b>{{ $t('mos version') }}:</b>
@@ -424,10 +433,16 @@
             </p>
           </div>
           <p class="ma-0 mb-4">{{ t('please select your target firmware!') }}</p>
-          <v-select v-model="updateOsDialog.channel" :items="getMosChannels()" :label="t('channel')" @update:modelValue="onChannelChange":hide-details="updateOsDialog.channel && updateOsDialog.channel !== osInfo?.mos?.channel ? 'auto' : false"></v-select>
-            <v-alert v-if="updateOsDialog.channel && updateOsDialog.channel !== osInfo?.mos?.channel" type="warning" icon="mdi-alert" variant="text" density="compact" class="text-caption">
-              {{ t('channel is being switched from') }} {{ osInfo.mos.channel }} {{ t('to') }} {{ updateOsDialog.channel }}
-            </v-alert>          
+          <v-select
+            v-model="updateOsDialog.channel"
+            :items="getMosChannels()"
+            :label="t('channel')"
+            @update:modelValue="onChannelChange"
+            :hide-details="updateOsDialog.channel && updateOsDialog.channel !== osInfo?.mos?.channel ? 'auto' : false"
+          ></v-select>
+          <v-alert v-if="updateOsDialog.channel && updateOsDialog.channel !== osInfo?.mos?.channel" type="warning" icon="mdi-alert" variant="text" density="compact" class="text-caption">
+            {{ t('channel is being switched from') }} {{ osInfo.mos.channel }} {{ t('to') }} {{ updateOsDialog.channel }}
+          </v-alert>
           <v-select v-model="updateOsDialog.release" :items="getMosReleasesOfChannel()" :label="t('release')"></v-select>
           <v-switch v-model="updateOsDialog.update_kernel" :label="t('update kernel')" inset density="compact" color="green" hide-details="auto" />
           <v-switch v-model="updateOsDialog.update_plugins" :label="t('update plugins')" inset density="compact" color="green" hide-details="auto" />
@@ -504,7 +519,6 @@
       </div>
       <v-divider />
       <v-card-actions style="position: sticky; bottom: 0; z-index: 2; background: var(--v-theme-surface, #fff)">
-        <v-btn prepend-icon="mdi-gift" color="primary" href="https://paypal.me/chips777" target="_blank" rel="noopener">{{ t('donate') }}</v-btn>
         <v-spacer />
         <v-btn color="onPrimary" :text="t('close')" @click="thanksDialog = false"></v-btn>
       </v-card-actions>
@@ -591,13 +605,51 @@
           </v-row>
         </v-card-text>
       </div>
-
       <v-divider />
       <v-card-actions style="position: sticky; bottom: 0; z-index: 2; background: var(--v-theme-surface, #fff)">
         <v-spacer />
         <v-btn variant="text" color="onPrimary" @click="aboutDialog = false">
           {{ t('close') }}
         </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Support MOS Dialog -->
+  <v-dialog v-model="supportDialog" max-width="700" persistent>
+    <v-card max-width="700" prepend-icon="mdi-lifebuoy" :title="t('support mos')" class="pa-0">
+      <v-card-text class="pt-0">
+        <span>{{ t('mos is and will be free for everyone') }}!</span>
+        <br />
+        <span>{{ t('if you would like to support the project, please consider to send a donation') }}.</span>
+        <br />
+        <span v-if="!mosServices?.mos?.supporter" class="d-block mt-2">
+          {{ t('as a thank you, every supporter who donates at least $5 will receive a code to unlock a support banner') }}.
+          <br />
+          <v-divider class="mt-2 mb-2"></v-divider>
+          <v-btn variant="text" @click="showEnterCode = !showEnterCode" class="mb-2" prepend-icon="mdi-ticket">
+            {{ showEnterCode ? t('hide code entry') : t('enter code') }}
+          </v-btn>
+          <v-slide-y-transition>
+            <div v-if="showEnterCode">
+              <v-text-field v-model="supportCode" :label="t('enter code')" hide-details class="mb-2"></v-text-field>
+              <div class="d-flex justify-end">
+                <v-btn variant="text" color="primary" @click="validateSupportCode()">{{ t('validate') }}</v-btn>
+              </div>
+            </div>
+          </v-slide-y-transition>
+        </span>
+        <span v-else class="d-block mt-2 text-primary">
+          <v-divider class="mt-2 mb-2"></v-divider>
+          {{ t('support banner already unlocked') }}. {{ t('thank you for being a supporter') }}!
+        </span>
+      </v-card-text>
+      <v-divider />
+      <v-card-actions>
+        <v-btn prepend-icon="mdi-gift" variant="text" color="primary" href="https://paypal.me/chips777" target="_blank" rel="noopener">{{ t('paypal') }}</v-btn>
+        <v-btn prepend-icon="mdi-gift" variant="text" color="primary" href="https://github.com/sponsors/ich777?frequency=one-time&sponsor=ich777" target="_blank" rel="noopener">{{ t('github sponsors') }}</v-btn>        
+        <v-spacer />
+        <v-btn color="onPrimary" :text="t('close')" @click="supportDialog = false"></v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -630,20 +682,24 @@
 </template>
 
 <script setup>
-import { onMounted, ref, reactive } from 'vue';
+import { onMounted, ref, reactive, inject } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const mosReleases = ref({});
+const mosServices = inject('mosServices');
 const mosKernel = ref([]);
 const thanksDialog = ref(false);
 const aboutDialog = ref(false);
+const supportDialog = ref(false);
 const rollbackKernelDialog = ref(false);
 const osInfo = ref({});
 const overlay = ref(false);
 const rebootDialog = ref(false);
 const shutdownDialog = ref(false);
+const showEnterCode = ref(false);
+const supportCode = ref('');
 const { t } = useI18n();
 const showSpecialActions = ref(0);
 const updateOsDialog = reactive({
@@ -967,6 +1023,37 @@ const downloadDiagnostics = async () => {
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const validateSupportCode = async () => {
+  const payload = {
+    supporter_key: supportCode.value,
+  };
+  try {
+    overlay.value = true;
+    const res = await fetch('/api/v1/mos/settings/system', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('invalid support code')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    showSnackbarSuccess(t('support banner successfully activated'));
+    supportDialog.value = false;
+    emit('refresh-drawer');
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);

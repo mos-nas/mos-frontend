@@ -137,5 +137,14 @@
   "disable mfa": "Désactiver MFA",
   "mfa": "MFA",
   "server ip": "IP du serveur",
-  "disabled": "Désactivé"
+  "disabled": "Désactivé",
+  "de": "Allemand",
+  "en": "Anglais",
+  "fr": "Français",
+  "support mos": "Soutenir MOS",
+  "mos is and will be free for everyone": "MOS est et sera toujours gratuit pour tous",
+  "if you would like to support the project, please consider to send a donation": "Si vous souhaitez soutenir le projet, veuillez envisager d'envoyer un don",
+  "as a thank you, we will send each supporter a code which can be used to unlock the support banner": "En guise de remerciement, nous enverrons à chaque partisan un code qui peut être utilisé pour déverrouiller la bannière de soutien",
+  "enter code": "Entrer le code",
+  "hide code entry": "Masquer l'entrée du code"
 }
