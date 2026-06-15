@@ -144,8 +144,8 @@
                       </template>
                       <v-list-item-title>{{ $t('nonraid schedules') }}</v-list-item-title>
                     </v-list-item>
-                    <v-divider v-if="pool.type === 'multi'"></v-divider>
-                    <v-list-item v-if="pool.type === 'multi'" @click="openMultiSchedulesDialog(pool)">
+                    <v-divider v-if="pool.type === 'multi' || pool.type === 'single'"></v-divider>
+                    <v-list-item v-if="pool.type === 'multi' || pool.type === 'single'" @click="openMultiSchedulesDialog(pool)">
                       <template #prepend>
                         <v-icon size="18">mdi-harddisk-plus</v-icon>
                       </template>
