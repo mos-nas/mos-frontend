@@ -918,7 +918,7 @@
           v-if="multiSchedulesDialog.scrub.enabled"
         />
         <v-switch
-          v-if="multiSchedulesDialog.pool.type === 'btrfs' && multiSchedulesDialog.pool.devices.length > 1"
+          v-if="multiSchedulesDialog.pool.type === 'btrfs' && multiSchedulesDialog.pool.data_devices.length > 1"
           v-model="multiSchedulesDialog.balance.enabled"
           :label="$t('balance enabled')"
           hide-details="auto"
