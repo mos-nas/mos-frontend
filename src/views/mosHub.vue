@@ -440,15 +440,13 @@
     </v-list>
   </v-menu>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { onMounted, ref, reactive, nextTick, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
+import { useOverlay } from '@/composables/useOverlay';
 import { useRouter } from 'vue-router';
 
 const $router = useRouter();
@@ -457,7 +455,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const mosServices = inject('mosServices');
 const searchOnlineTemplate = ref('');
 const hubLoading = ref(true);

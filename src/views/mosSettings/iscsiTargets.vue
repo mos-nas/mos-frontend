@@ -306,11 +306,12 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const targets = ref([]);
 const authMethods = [
   { label: 'None', value: 'none' },

@@ -99,20 +99,18 @@
   </v-fab>
 
   <!-- Loading Overlay -->
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive, onUnmounted } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const notifications = ref([]);
 const notificationsOrder = ref('desc');
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const notificationDialog = reactive({
   value: false,
   notification: {},

@@ -1054,15 +1054,13 @@
     <v-icon>mdi-plus</v-icon>
   </v-fab>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import draggable from 'vuedraggable';
 import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
@@ -1071,8 +1069,8 @@ const pools = ref([]);
 const poolsLoading = ref(true);
 const unassignedDisks = ref([]);
 const unassignedDisksLoading = ref(true);
-const overlay = ref(false);
 const { t } = useI18n();
+const { overlay } = useOverlay();
 const cronDialogApplyCallback = ref(null);
 const cronDialog = reactive({
   value: false,
@@ -1364,6 +1362,14 @@ const openSnapraidSchedulesDialog = (pool) => {
 const openMultiSchedulesDialog = (pool) => {
   multiSchedulesDialog.value = true;
   multiSchedulesDialog.pool = pool;
+  multiSchedulesDialog.scrub = {
+    enabled: false,
+    schedule: '0 4 * * WED',
+  };
+  multiSchedulesDialog.balance = {
+    enabled: false,
+    schedule: '0 5 * * SUN',
+  };
   multiSchedulesDialog.scrub = pool.config.scrub || {
     enabled: false,
     schedule: '0 4 * * WED',

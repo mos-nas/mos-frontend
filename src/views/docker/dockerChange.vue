@@ -504,10 +504,6 @@
   <v-fab color="primary" @click="updateDocker()" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
     <v-icon color="onPrimary">mdi-content-save</v-icon>
   </v-fab>
-
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
@@ -516,6 +512,7 @@ import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useDockerWebSocket } from '@/composables/useDockerWebSocket';
+import { useOverlay } from '@/composables/useOverlay';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 
 const fsDialog = ref(false);
@@ -523,7 +520,7 @@ const fsDialogCallback = ref(null);
 const router = useRouter();
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const gpus = ref({});
 const gpuIds = ref([]);
 const getDocker = ref({});

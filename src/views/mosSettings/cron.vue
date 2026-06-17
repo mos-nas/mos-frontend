@@ -201,11 +201,12 @@
 import { onMounted, ref, reactive, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const cronJobs = ref([]);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const { t } = useI18n();
 const createCronJobDialog = reactive({
   value: false,

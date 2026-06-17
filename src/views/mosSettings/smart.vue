@@ -132,6 +132,7 @@
 import { onMounted, ref } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 
 const fsDialog = ref(false);
@@ -158,7 +159,7 @@ const smartConfig = ref({
   },
 });
 const dockerServiceLoading = ref(true);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const { t } = useI18n();
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 

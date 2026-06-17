@@ -172,12 +172,13 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
 const adminToken = ref([]);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const showPassword = ref(false);
 const showPasswortGithub = ref(false);
 const showPasswortDockerhub = ref(false);

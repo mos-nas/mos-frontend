@@ -164,9 +164,6 @@
     <v-icon>mdi-content-save</v-icon>
   </v-fab>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
@@ -217,8 +214,8 @@ const confirmLogout = reactive({
   service: '',
 });
 const apiSettingsNetwork = ref(null);
-const overlay = ref(false);
 const { t } = useI18n();
+const { overlay } = useOverlay();
 
 onMounted(() => {
   getNetworkSettings();

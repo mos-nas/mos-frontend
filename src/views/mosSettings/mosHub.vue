@@ -81,15 +81,13 @@
     <v-icon>mdi-content-save</v-icon>
   </v-fab>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { onMounted, ref, reactive, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
@@ -112,7 +110,7 @@ const settingsMosHub = ref({
     }
   },
 });
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const { t } = useI18n();
 const mosHubLoading = ref(true);
 

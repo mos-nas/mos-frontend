@@ -917,16 +917,13 @@
   </v-menu>
 
   <DockerInfoDialog v-model="infoDialog.value" :docker="infoDialog.docker" />
-
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive, onUnmounted, computed, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
+import { useOverlay } from '@/composables/useOverlay';
 import { useI18n } from 'vue-i18n';
 import { openTerminalPopup } from '@/composables/terminalpopup';
 import { useDockerWebSocket } from '@/composables/useDockerWebSocket';
@@ -934,11 +931,11 @@ import DockerInfoDialog from '@/components/dockerInfoDialog.vue';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
+const { overlay } = useOverlay();
 const dockers = ref([]);
 const dockerGroups = ref([]);
 const mosDockers = ref([]);
 const composeStacks = ref([]);
-const overlay = ref(false);
 const unusedImages = ref([]);
 const dockerWaitTimesDialog = reactive({
   value: false,

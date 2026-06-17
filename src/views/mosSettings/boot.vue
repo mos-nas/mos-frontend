@@ -92,23 +92,20 @@
 
   <!-- File Edit Dialog -->
   <FileEditDialog v-model="editFileDialogVisible" :path="selectedFilePath" :createBackup="true" :title="$t('edit file')" @saved="onFileSaved" />
-
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular indeterminate size="64" color="primary" />
-  </v-overlay>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive, onUnmounted, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import FileEditDialog from '@/components/fileEditDialog.vue';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 
 const editFileDialogVisible = ref(false);
 const selectedFilePath = ref('');
-const overlay = ref(false);
 const { t } = useI18n();
+const { overlay } = useOverlay();
 const unassignedDisks = ref([]);
 const installToDiskDialog = reactive({
   value: false,

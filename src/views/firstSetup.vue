@@ -97,13 +97,14 @@
 import { ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from 'vuetify';
+import { useOverlay } from '@/composables/useOverlay';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const { t } = useI18n();
 const theme = useTheme();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const emit = defineEmits(['setup-complete']);
 const props = defineProps({
   token: String,

@@ -203,9 +203,6 @@
     <v-icon>mdi-plus</v-icon>
   </v-fab>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
@@ -213,6 +210,7 @@ import { ref, onMounted, reactive, onUnmounted, computed } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import draggable from 'vuedraggable';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import { openTerminalPopup } from '@/composables/terminalpopup';
 import FileEditDialog from '@/components/fileEditDialog.vue';
 import { io } from 'socket.io-client';
@@ -222,7 +220,7 @@ const selectedFilePath = ref('');
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const lxcs = ref([]);
 const images = ref([]);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const { t } = useI18n();
 const createDialog = reactive({
   value: false,

@@ -1086,15 +1086,13 @@
     </v-list>
   </v-menu>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import { io } from 'socket.io-client';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 import xmlEditor from '@/components/xmlEditor.vue';
@@ -1103,7 +1101,7 @@ import { useRouter } from 'vue-router';
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const vms = ref([]);
 const vmUsage = ref([]);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const { t } = useI18n();
 const vmsloading = ref(true);
 const searchTerm = ref('');

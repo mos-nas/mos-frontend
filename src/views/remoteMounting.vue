@@ -191,18 +191,16 @@
   </v-fab>
 
   <!-- Loading Overlay -->
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const loadingShares = ref(false);
 const loadingRemotes = ref(true);
 const listAllShares = ref([]);
