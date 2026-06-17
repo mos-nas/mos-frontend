@@ -439,7 +439,6 @@
       </v-list-item>
     </v-list>
   </v-menu>
-
 </template>
 
 <script setup>
@@ -586,7 +585,7 @@ const getHubRepositories = async () => {
 
 const setHubRepositories = async (repositories) => {
   overlay.value = true;
-  
+
   try {
     const res = await fetch('/api/v1/mos/hub/repositories', {
       method: 'POST',
