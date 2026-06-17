@@ -1364,16 +1364,13 @@ const openSnapraidSchedulesDialog = (pool) => {
 const openMultiSchedulesDialog = (pool) => {
   multiSchedulesDialog.value = true;
   multiSchedulesDialog.pool = pool;
-  multiSchedulesDialog.sync = pool.config.sync || {
+  multiSchedulesDialog.scrub = pool.config.scrub || {
     enabled: false,
-    scrub: {
-      enabled: false,
-      schedule: '0 4 * * WED',
-    },
-    balance: {
-      enabled: false,
-      schedule: '0 5 * * SUN',
-    },
+    schedule: '0 4 * * WED',
+  };
+  multiSchedulesDialog.balance = pool.config.balance || {
+    enabled: false,
+    schedule: '0 5 * * SUN',
   };
 };
 const openNonRaidSchedulesDialog = (pool) => {
