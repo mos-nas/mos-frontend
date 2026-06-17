@@ -465,9 +465,9 @@ const hubTypes = ref([]);
 const hubCategoriesSel = ref('all');
 const hubCategories = ref([]);
 const hubSortings = ref(['name', 'created', 'updated']);
-const hubSortingSel = ref('name');
+const hubSortingSel = ref('created');
 const hubOrders = ref(['asc', 'desc']);
-const hubOrderSel = ref('asc');
+const hubOrderSel = ref('desc');
 const installDialog = reactive({
   value: false,
   tpl: null,
@@ -498,7 +498,7 @@ onMounted(() => {
   getHubCategories();
 });
 
-const getMosHub = async (search, limit = 24, skip = 0, order = 'asc', sort = 'name', type = hubTypeSel.value, category = hubCategoriesSel.value) => {
+const getMosHub = async (search, limit = 24, skip = 0, order = hubOrderSel.value, sort = hubSortingSel.value, type = hubTypeSel.value, category = hubCategoriesSel.value) => {
   hubLoading.value = true;
   try {
     const url = new URL('/api/v1/mos/hub/index', window.location.origin);
@@ -511,7 +511,6 @@ const getMosHub = async (search, limit = 24, skip = 0, order = 'asc', sort = 'na
     if (type && type !== 'all') url.searchParams.append('type', type);
 
     const res = await fetch(url.toString(), {
-      search: order,
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
