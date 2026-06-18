@@ -636,6 +636,7 @@ const getPluginReleases = async (repository) => {
 
     const data = await res.json();
     releasesItems.value = (data.releases || []).map((r) => r.tag);
+    installDialog.release = releasesItems.value.length > 0 ? releasesItems.value[0] : null;
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
