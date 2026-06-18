@@ -144,10 +144,16 @@
                       </template>
                       <v-list-item-title>{{ $t('nonraid schedules') }}</v-list-item-title>
                     </v-list-item>
-                    <v-divider v-if="pool.type === 'xfs' || pool.type === 'btrfs'"></v-divider>
-                    <v-list-item v-if="pool.type === 'xfs' || pool.type === 'btrfs'" @click="openMultiSchedulesDialog(pool)">
+                    <v-divider v-if="pool.type === 'btrfs'"></v-divider>
+                    <v-list-item v-if="pool.type === 'btrfs'" @click="openMultiOperationDialog(pool)">
                       <template #prepend>
                         <v-icon size="18">mdi-harddisk-plus</v-icon>
+                      </template>
+                      <v-list-item-title>{{ $t('btrfs operation') }}</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item v-if="pool.type === 'btrfs'" @click="openMultiSchedulesDialog(pool)">
+                      <template #prepend>
+                        <v-icon size="18">mdi-clock-outline</v-icon>
                       </template>
                       <v-list-item-title>{{ $t('btrfs schedules') }}</v-list-item-title>
                     </v-list-item>
@@ -831,6 +837,23 @@
     </v-card>
   </v-dialog>
 
+  <!-- Btrfs Operation Dialog -->
+  <v-dialog v-model="multiOperationDialog.value" max-width="600">
+    <v-card class="pa-0" :title="t('btrfs operations')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto">
+        <p class="mb-4">{{ $t('select the btrfs operation to be performed') }}</p>
+        <v-select v-model="multiOperationDialog.operation" :items="multiOperationDialog.operations" :label="$t('operation')" density="comfortable" />
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-btn @click="multiOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn @click="multiOperationDialog.operation === 'scrub' ? performMultiOperationScrub(multiOperationDialog.pool.id, 'start') : performMultiOperationBalance(multiOperationDialog.pool.id, 'start')" color="onPrimary">
+          {{ $t('perform') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <!-- SnapRAID Schedules Dialog -->
   <v-dialog v-model="snapraidSchedulesDialog.value" max-width="600">
     <v-card class="pa-0" :title="t('snapraid schedules')" prepend-icon="mdi-clock-outline" style="max-height: 60vh; display: flex; flex-direction: column">
@@ -1234,6 +1257,12 @@ const nonRaidOperationDialog = reactive({
   option: 'NOCORRECT',
   options: ['CORRECT', 'NOCORRECT'],
 });
+const multiOperationDialog = reactive({
+  value: false,
+  pool: null,
+  operation: '',
+  operations: ['scrub', 'balance'],
+});
 const mergerfsPolicyDialog = reactive({
   value: false,
   pool: null,
@@ -1467,6 +1496,11 @@ const openNonRaidOperationDialog = (pool) => {
   nonRaidOperationDialog.pool = pool;
   nonRaidOperationDialog.operation = '';
   nonRaidOperationDialog.option = 'NOCORRECT';
+};
+const openMultiOperationDialog = (pool) => {
+  multiOperationDialog.value = true;
+  multiOperationDialog.pool = pool;
+  multiOperationDialog.operation = '';
 };
 const openUsageAlertsDialog = (pool) => {
   usageAlertsDialog.value = true;
@@ -2103,6 +2137,70 @@ const performNonRaidOperation = async (poolId, operation, option) => {
     getPools();
     getUnassignedDisks();
     nonRaidOperationDialog.value = false;
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const performMultiOperationScrub = async (poolId, task) => {
+  overlay.value = true;
+  const payload = {
+    operation: task,
+  };
+
+  try {
+    const res = await fetch(`/api/v1/pools/${poolId}/btrfs/scrub`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('btrfs operation could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('btrfs operation executed successfully'));
+    getPools();
+    getUnassignedDisks();
+    multiOperationDialog.value = false;
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const performMultiOperationBalance = async (poolId, task) => {
+  overlay.value = true;
+  const payload = {
+    operation: task
+  };
+
+  try {
+    const res = await fetch(`/api/v1/pools/${poolId}/btrfs/balance`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('btrfs operation could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('btrfs operation executed successfully'));
+    getPools();
+    getUnassignedDisks();
+    multiOperationDialog.value = false;
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);

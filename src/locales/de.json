@@ -1617,5 +1617,10 @@
   "scrub enabled": "Scrub aktiviert",
   "balance enabled": "Balance aktiviert",
   "schedules saved successfully": "Zeitpläne erfolgreich gespeichert",
-  "balance schedule (cron)": "Balance-Zeitplan (cron)"
+  "balance schedule (cron)": "Balance-Zeitplan (cron)",
+  "btrfs operation": "Btrfs Operation",
+  "select the btrfs operation to be performed": "Wähle die auszuführende Btrfs Operation aus",
+  "btrfs operation could not be executed": "Btrfs Operation konnte nicht ausgeführt werden",
+  "btrfs operation executed successfully": "Btrfs Operation erfolgreich ausgeführt",
+  "btrfs operations": "Btrfs Operationen"
 }
