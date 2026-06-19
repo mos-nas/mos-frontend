@@ -191,7 +191,38 @@
                   <thead>
                     <tr style="background-color: rgba(0, 0, 0, 0.04)">
                       <th class="text-caption" style="width: 42px"></th>
-                      <th class="text-caption">{{ $t('disks') }}</th>
+                      <th class="text-caption">{{ $t('disks') }}
+                        <v-tooltip v-if="pool.status?.scrub_operation" location="top">
+                            <template #activator="{ props }">
+                              <v-chip v-bind="props" color="green" size="x-small" class="ml-1" label variant="tonal">
+                                {{ $t('scrub running') }}
+                                <span v-if="pool.status?.scrub_progress?.percent != null" class="ml-1">({{ Math.round(pool.status.scrub_progress.percent) }}%)</span>
+                              </v-chip>
+                            </template>
+                            {{ $t('status') }}: {{ pool.status.scrub_progress?.status }}
+                            <br />
+                            {{ $t('speed') }}: {{ pool.status.scrub_progress?.speed }}
+                            <br />
+                            {{ $t('processed') }}: {{ pool.status.scrub_progress?.processed }}
+                            <br />
+                            {{ $t('errors') }}: {{ pool.status.scrub_progress?.errors }}
+                          </v-tooltip>
+                        <v-tooltip v-if="pool.status?.balance_operation" location="top">
+                            <template #activator="{ props }">
+                              <v-chip v-bind="props" color="green" size="x-small" class="ml-1" label variant="tonal">
+                                {{ $t('balance running') }}
+                                <span v-if="pool.status?.balance_progress?.percent != null" class="ml-1">({{ Math.round(pool.status.balance_progress.percent) }}%)</span>
+                              </v-chip>
+                            </template>
+                            {{ $t('status') }}: {{ pool.status.balance_progress?.status }}
+                            <br />
+                            {{ $t('speed') }}: {{ pool.status.balance_progress?.speed }}
+                            <br />
+                            {{ $t('processed') }}: {{ pool.status.balance_progress?.processed }}
+                            <br />
+                            {{ $t('errors') }}: {{ pool.status.balance_progress?.errors }}
+                          </v-tooltip>                          
+                      </th>
                       <th class="text-caption" style="width: 60%">{{ $t('usage') }}</th>
                       <th class="text-caption text-right pr-2" style="width: 60px">{{ $t('fs') }}</th>
                     </tr>
