@@ -1408,8 +1408,7 @@
   "critical": "Critique",
   "attribute notification cooldown": "Délai entre notifications d'attribut",
   "quiet mode": "Mode silencieux",
-  "ui": "Interface utilisateur"
-
+  "ui": "Interface utilisateur",
   "api": "API",
   "color scheme": "Thème de couleurs",
   "hide inactive menus": "Masquer les menus inactifs",
@@ -1564,8 +1563,7 @@
   "add lun": "Ajouter un LUN",
   "add portal": "Ajouter un portail",
   "add initiator": "Ajouter un initiateur",
-  "no luns configured": "Aucun LUN configuré"
-
+  "no luns configured": "Aucun LUN configuré",
   "no targets configured": "Aucune cible configurée",
   "no portals configured": "Aucun portail configuré",
   "no initiators configured": "Aucun initiateur configuré",
