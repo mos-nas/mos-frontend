@@ -442,6 +442,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, reactive, onBeforeUnmount, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import FileEditDialog from '@/components/fileEditDialog.vue';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
@@ -458,7 +459,7 @@ const items = ref([]);
 const canGoUp = ref(false);
 const parentPath = ref(null);
 const activeItem = ref(null);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const editFileDialogVisible = ref(false);
 const fsDialog = ref(false);
 const fsDialogCallback = ref(null);

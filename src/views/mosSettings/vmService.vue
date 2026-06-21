@@ -144,6 +144,7 @@
 import { onMounted, ref, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 
 const fsDialog = ref(false);
@@ -164,7 +165,7 @@ const vmSettings = ref({
 const usedHugePages = ref(0);
 const virtioIsos = ref([]);
 const { t } = useI18n();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const vmServiceLoading = ref(true);
 const loadingVirtioIsos = ref(false);
 const selectedVirtioIso = ref('');

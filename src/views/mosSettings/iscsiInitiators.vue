@@ -189,10 +189,11 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 
 const { t } = useI18n();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const testingConnection = ref(false);
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const initiatorTargets = ref([]);

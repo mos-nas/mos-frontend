@@ -101,6 +101,7 @@
 import { onMounted, ref, reactive } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const installedDrivers = ref({});
@@ -112,7 +113,7 @@ const updateDriversDialog = reactive({
   name: null,
   version: null,
 });
-const overlay = ref(false);
+const { overlay } = useOverlay();
 
 onMounted(async () => {
   getInstalledDrivers();

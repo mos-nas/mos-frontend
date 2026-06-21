@@ -175,11 +175,12 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const EMAIL_PROVIDER = 'email';
 const providers = ref({});
 const jsonEditors = ref({});

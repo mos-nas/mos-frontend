@@ -439,16 +439,13 @@
       </v-list-item>
     </v-list>
   </v-menu>
-
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { onMounted, ref, reactive, nextTick, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
+import { useOverlay } from '@/composables/useOverlay';
 import { useRouter } from 'vue-router';
 
 const $router = useRouter();
@@ -457,7 +454,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const mosServices = inject('mosServices');
 const searchOnlineTemplate = ref('');
 const hubLoading = ref(true);
@@ -467,9 +464,9 @@ const hubTypes = ref([]);
 const hubCategoriesSel = ref('all');
 const hubCategories = ref([]);
 const hubSortings = ref(['name', 'created', 'updated']);
-const hubSortingSel = ref('name');
+const hubSortingSel = ref('created');
 const hubOrders = ref(['asc', 'desc']);
-const hubOrderSel = ref('asc');
+const hubOrderSel = ref('desc');
 const installDialog = reactive({
   value: false,
   tpl: null,
@@ -500,7 +497,7 @@ onMounted(() => {
   getHubCategories();
 });
 
-const getMosHub = async (search, limit = 24, skip = 0, order = 'asc', sort = 'name', type = hubTypeSel.value, category = hubCategoriesSel.value) => {
+const getMosHub = async (search, limit = 24, skip = 0, order = hubOrderSel.value, sort = hubSortingSel.value, type = hubTypeSel.value, category = hubCategoriesSel.value) => {
   hubLoading.value = true;
   try {
     const url = new URL('/api/v1/mos/hub/index', window.location.origin);
@@ -513,7 +510,6 @@ const getMosHub = async (search, limit = 24, skip = 0, order = 'asc', sort = 'na
     if (type && type !== 'all') url.searchParams.append('type', type);
 
     const res = await fetch(url.toString(), {
-      search: order,
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
@@ -589,7 +585,7 @@ const getHubRepositories = async () => {
 
 const setHubRepositories = async (repositories) => {
   overlay.value = true;
-  
+
   try {
     const res = await fetch('/api/v1/mos/hub/repositories', {
       method: 'POST',
@@ -640,6 +636,7 @@ const getPluginReleases = async (repository) => {
 
     const data = await res.json();
     releasesItems.value = (data.releases || []).map((r) => r.tag);
+    installDialog.release = releasesItems.value.length > 0 ? releasesItems.value[0] : null;
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);

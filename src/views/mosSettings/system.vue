@@ -268,6 +268,7 @@
 import { onMounted, onUnmounted, ref, reactive, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
@@ -348,7 +349,7 @@ const proxies = ref({
 });
 const governors = ref([]);
 const architectures = ref([]);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const { t } = useI18n();
 const timedate = ref({
   date: '',

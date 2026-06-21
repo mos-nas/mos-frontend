@@ -329,20 +329,18 @@
     </v-list>
   </v-menu>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 
 const disks = ref([]);
 const { t } = useI18n();
+const { overlay } = useOverlay();
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
-const overlay = ref(false);
 const disksLoaded = ref(false);
 const formatAlgorithms = ['zero', 'one-zero', 'random', 'one'];
 const formatDialog = reactive({

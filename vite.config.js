@@ -10,7 +10,7 @@ export default defineConfig({
     federation({
       name: 'mos-host',
       remotes: {},
-      shared: ['vue', 'vue-router', 'vuetify', 'vue-i18n'],
+      shared: ['vue', 'vue-router', 'vuetify'],
     }),
     VitePWA({
       registerType: 'autoUpdate',
@@ -97,5 +97,8 @@ export default defineConfig({
     rollupOptions: {
       input: ['./reboot.html', './index.html', './shutdown.html'],
     },
+  },
+  optimizeDeps: {
+    exclude: ['vue-i18n'],
   },
 });

@@ -128,9 +128,6 @@
     </v-list>
   </v-menu>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
@@ -139,6 +136,7 @@ import { useRouter } from 'vue-router';
 import { usePlugins, hasMdiIcon, getPluginIconUrl, getPluginRoute, loadPluginLocales } from '@/composables/usePlugins';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const router = useRouter();
@@ -146,7 +144,7 @@ const i18n = useI18n();
 const { t, te } = i18n;
 const { plugins, getPlugins } = usePlugins();
 const loading = ref(true);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const iconErrors = ref({});
 const deleteDialog = reactive({
   value: false,

@@ -164,9 +164,6 @@
     <v-icon>mdi-content-save</v-icon>
   </v-fab>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
@@ -174,6 +171,7 @@ import { onMounted, ref, reactive, computed } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import { openTerminalPopup } from '@/composables/terminalpopup';
+import { useOverlay } from '@/composables/useOverlay';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const settingsNetwork = ref({
@@ -217,8 +215,8 @@ const confirmLogout = reactive({
   service: '',
 });
 const apiSettingsNetwork = ref(null);
-const overlay = ref(false);
 const { t } = useI18n();
+const { overlay } = useOverlay();
 
 onMounted(() => {
   getNetworkSettings();

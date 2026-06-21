@@ -144,6 +144,19 @@
                       </template>
                       <v-list-item-title>{{ $t('nonraid schedules') }}</v-list-item-title>
                     </v-list-item>
+                    <v-divider v-if="pool.type === 'btrfs'"></v-divider>
+                    <v-list-item v-if="pool.type === 'btrfs'" @click="openMultiOperationDialog(pool)">
+                      <template #prepend>
+                        <v-icon size="18">mdi-harddisk-plus</v-icon>
+                      </template>
+                      <v-list-item-title>{{ $t('btrfs operation') }}</v-list-item-title>
+                    </v-list-item>
+                    <v-list-item v-if="pool.type === 'btrfs'" @click="openMultiSchedulesDialog(pool)">
+                      <template #prepend>
+                        <v-icon size="18">mdi-clock-outline</v-icon>
+                      </template>
+                      <v-list-item-title>{{ $t('btrfs schedules') }}</v-list-item-title>
+                    </v-list-item>
                     <v-list-item @click="openUsageAlertsDialog(pool)">
                       <template #prepend>
                         <v-icon size="18">mdi-bell-outline</v-icon>
@@ -178,7 +191,38 @@
                   <thead>
                     <tr style="background-color: rgba(0, 0, 0, 0.04)">
                       <th class="text-caption" style="width: 42px"></th>
-                      <th class="text-caption">{{ $t('disks') }}</th>
+                      <th class="text-caption">{{ $t('disks') }}
+                        <v-tooltip v-if="pool.status?.scrub_operation" location="top">
+                            <template #activator="{ props }">
+                              <v-chip v-bind="props" color="green" size="x-small" class="ml-1" label variant="tonal">
+                                {{ $t('scrub running') }}
+                                <span v-if="pool.status?.scrub_progress?.percent != null" class="ml-1">({{ Math.round(pool.status.scrub_progress.percent) }}%)</span>
+                              </v-chip>
+                            </template>
+                            {{ $t('status') }}: {{ pool.status.scrub_progress?.status }}
+                            <br />
+                            {{ $t('speed') }}: {{ pool.status.scrub_progress?.speed }}
+                            <br />
+                            {{ $t('processed') }}: {{ pool.status.scrub_progress?.processed }}
+                            <br />
+                            {{ $t('errors') }}: {{ pool.status.scrub_progress?.errors }}
+                          </v-tooltip>
+                        <v-tooltip v-if="pool.status?.balance_operation" location="top">
+                            <template #activator="{ props }">
+                              <v-chip v-bind="props" color="green" size="x-small" class="ml-1" label variant="tonal">
+                                {{ $t('balance running') }}
+                                <span v-if="pool.status?.balance_progress?.percent != null" class="ml-1">({{ Math.round(pool.status.balance_progress.percent) }}%)</span>
+                              </v-chip>
+                            </template>
+                            {{ $t('status') }}: {{ pool.status.balance_progress?.status }}
+                            <br />
+                            {{ $t('speed') }}: {{ pool.status.balance_progress?.speed }}
+                            <br />
+                            {{ $t('processed') }}: {{ pool.status.balance_progress?.processed }}
+                            <br />
+                            {{ $t('errors') }}: {{ pool.status.balance_progress?.errors }}
+                          </v-tooltip>                          
+                      </th>
                       <th class="text-caption" style="width: 60%">{{ $t('usage') }}</th>
                       <th class="text-caption text-right pr-2" style="width: 60px">{{ $t('fs') }}</th>
                     </tr>
@@ -426,7 +470,7 @@
   <v-dialog v-model="createPoolDialog.value" max-width="600">
     <v-card class="pa-0" :title="t('create pool')" prepend-icon="mdi-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
-        <v-text-field v-model="createPoolDialog.name" :label="$t('name')" class="pt-2" />
+        <v-text-field v-model="createPoolDialog.name" :label="$t('name')" class="pt-2" density="comfortable" />
         <v-select v-model="createPoolDialog.type" :items="poolTypes" :label="$t('type')" density="comfortable" @update:model-value="switchPoolType" />
         <v-select
           v-model="createPoolDialog.devices"
@@ -494,7 +538,16 @@
             <div v-if="createPoolDialog.showAdvanced">
               <v-text-field v-if="createPoolDialog.type === 'mergerfs'" v-model="createPoolDialog.mergerfsOptions" :label="$t('mergerfs options')" />
               <div @click="createPoolDialog.skip_size_check_clicks < 5 ? createPoolDialog.skip_size_check_clicks++ : null">
-                <v-switch v-if="createPoolDialog.type === 'mergerfs'" v-model="createPoolDialog.skip_size_check" :label="$t('skip size check')" hide-details density="compact" color="red" inset :disabled="createPoolDialog.skip_size_check_clicks < 5"/>
+                <v-switch
+                  v-if="createPoolDialog.type === 'mergerfs'"
+                  v-model="createPoolDialog.skip_size_check"
+                  :label="$t('skip size check')"
+                  hide-details
+                  density="compact"
+                  color="red"
+                  inset
+                  :disabled="createPoolDialog.skip_size_check_clicks < 5"
+                />
               </div>
             </div>
           </v-slide-y-transition>
@@ -571,7 +624,11 @@
         <v-form>
           <v-select
             v-model="removeMergerfsDevicesDialog.devices"
-            :items="removeMergerfsDevicesDialog.pool ? removeMergerfsDevicesDialog.pool.data_devices.map((device) => ({ title: `${device.device} (${device.size_human}) (${device.serial ? device.serial : '—'})`, value: device.device })) : []"
+            :items="
+              removeMergerfsDevicesDialog.pool
+                ? removeMergerfsDevicesDialog.pool.data_devices.map((device) => ({ title: `${device.device} (${device.size_human}) (${device.serial ? device.serial : '—'})`, value: device.device }))
+                : []
+            "
             item-title="title"
             item-value="value"
             :label="$t('devices')"
@@ -597,7 +654,11 @@
       <v-card-text style="overflow: auto" class="pt-2">
         <v-select
           v-model="replaceMergerfsDeviceDialog.oldDevice"
-          :items="replaceMergerfsDeviceDialog.pool ? replaceMergerfsDeviceDialog.pool.data_devices.map((device) => ({ title: `${device.device} (${device.size_human}) (${device.serial ? device.serial : '—'})`, value: device.device })) : []"
+          :items="
+            replaceMergerfsDeviceDialog.pool
+              ? replaceMergerfsDeviceDialog.pool.data_devices.map((device) => ({ title: `${device.device} (${device.size_human}) (${device.serial ? device.serial : '—'})`, value: device.device }))
+              : []
+          "
           item-title="title"
           item-value="value"
           :label="$t('old device')"
@@ -631,24 +692,35 @@
     <v-card class="pa-0" :title="t('add parity devices')" prepend-icon="mdi-harddisk-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select devices to add as parity') }}</p>
-          <v-select
-            v-model="addParityDevicesDialog.devices"
-            :items="Array.isArray(unassignedDisks) ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.size_human}) (${disk.serial ? disk.serial : '—'})`, value: disk.device })) : []"
-            item-title="title"
-            item-value="value"
-            :label="$t('devices')"
-            :multiple="true"
-            density="comfortable"
+        <v-select
+          v-model="addParityDevicesDialog.devices"
+          :items="Array.isArray(unassignedDisks) ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.size_human}) (${disk.serial ? disk.serial : '—'})`, value: disk.device })) : []"
+          item-title="title"
+          item-value="value"
+          :label="$t('devices')"
+          :multiple="true"
+          density="comfortable"
+        />
+        <v-switch v-model="addParityDevicesDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
+        <div @click="addParityDevicesDialog.skip_size_check_clicks < 5 ? addParityDevicesDialog.skip_size_check_clicks++ : null">
+          <v-switch
+            v-model="addParityDevicesDialog.skip_size_check"
+            :label="$t('skip size check')"
+            hide-details
+            density="compact"
+            color="red"
+            inset
+            :disabled="addParityDevicesDialog.skip_size_check_clicks < 5"
           />
-          <v-switch v-model="addParityDevicesDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
-          <div @click="addParityDevicesDialog.skip_size_check_clicks < 5 ? addParityDevicesDialog.skip_size_check_clicks++ : null">
-            <v-switch v-model="addParityDevicesDialog.skip_size_check" :label="$t('skip size check')" hide-details density="compact" color="red" inset :disabled="addParityDevicesDialog.skip_size_check_clicks < 5" />
-          </div>
+        </div>
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="addParityDevicesDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn @click="addMergerfsParityDevice(addParityDevicesDialog.pool.id, addParityDevicesDialog.devices, addParityDevicesDialog.format, addParityDevicesDialog.skip_size_check)" color="onPrimary">
+        <v-btn
+          @click="addMergerfsParityDevice(addParityDevicesDialog.pool.id, addParityDevicesDialog.devices, addParityDevicesDialog.format, addParityDevicesDialog.skip_size_check)"
+          color="onPrimary"
+        >
           {{ $t('add') }}
         </v-btn>
       </v-card-actions>
@@ -663,7 +735,11 @@
         <v-form>
           <v-select
             v-model="removeParityDevicesDialog.devices"
-            :items="removeParityDevicesDialog.pool ? removeParityDevicesDialog.pool.parity_devices.map((device) => ({ title: `${device.device} (${device.size_human}) (${device.serial ? device.serial : '—'})`, value: device.device })) : []"
+            :items="
+              removeParityDevicesDialog.pool
+                ? removeParityDevicesDialog.pool.parity_devices.map((device) => ({ title: `${device.device} (${device.size_human}) (${device.serial ? device.serial : '—'})`, value: device.device }))
+                : []
+            "
             item-title="title"
             item-value="value"
             :label="$t('devices')"
@@ -690,7 +766,11 @@
         <v-form>
           <v-select
             v-model="replaceParityDeviceDialog.oldDevice"
-            :items="replaceParityDeviceDialog.pool ? replaceParityDeviceDialog.pool.parity_devices.map((device) => ({ title: `${device.device} (${device.size_human}) (${device.serial ? device.serial : '—'})`, value: device.device })) : []"
+            :items="
+              replaceParityDeviceDialog.pool
+                ? replaceParityDeviceDialog.pool.parity_devices.map((device) => ({ title: `${device.device} (${device.size_human}) (${device.serial ? device.serial : '—'})`, value: device.device }))
+                : []
+            "
             item-title="title"
             item-value="value"
             :label="$t('old device')"
@@ -706,7 +786,15 @@
           />
           <v-switch v-model="replaceParityDeviceDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
           <div @click="replaceParityDeviceDialog.skip_size_check_clicks < 5 ? replaceParityDeviceDialog.skip_size_check_clicks++ : null">
-            <v-switch v-model="replaceParityDeviceDialog.skip_size_check" :label="$t('skip size check')" hide-details density="compact" color="red" inset :disabled="replaceParityDeviceDialog.skip_size_check_clicks < 5" />
+            <v-switch
+              v-model="replaceParityDeviceDialog.skip_size_check"
+              :label="$t('skip size check')"
+              hide-details
+              density="compact"
+              color="red"
+              inset
+              :disabled="replaceParityDeviceDialog.skip_size_check_clicks < 5"
+            />
           </div>
         </v-form>
       </v-card-text>
@@ -714,7 +802,15 @@
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="replaceParityDeviceDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
         <v-btn
-          @click="replaceMergerfsParityDevice(replaceParityDeviceDialog.pool.id, replaceParityDeviceDialog.oldDevice, replaceParityDeviceDialog.newDevice, replaceParityDeviceDialog.format, replaceParityDeviceDialog.skip_size_check)"
+          @click="
+            replaceMergerfsParityDevice(
+              replaceParityDeviceDialog.pool.id,
+              replaceParityDeviceDialog.oldDevice,
+              replaceParityDeviceDialog.newDevice,
+              replaceParityDeviceDialog.format,
+              replaceParityDeviceDialog.skip_size_check,
+            )
+          "
           color="red"
         >
           {{ $t('replace') }}
@@ -766,6 +862,24 @@
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="nonRaidOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
         <v-btn @click="performNonRaidOperation(nonRaidOperationDialog.pool.id, nonRaidOperationDialog.operation, nonRaidOperationDialog.option)" color="onPrimary">
+          {{ $t('perform') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Btrfs Operation Dialog -->
+  <v-dialog v-model="multiOperationDialog.value" max-width="600">
+    <v-card class="pa-0" :title="t('btrfs operations')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto">
+        <p class="mb-4">{{ $t('select the btrfs operation to be performed') }}</p>
+        <v-select v-model="multiOperationDialog.operation" :items="multiOperationDialog.operations" :label="$t('operation')" density="comfortable" />
+        <v-select v-model="multiOperationDialog.option" :items="multiOperationDialog.options" :label="$t('options')" density="comfortable" />
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-btn @click="multiOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn @click="multiOperationDialog.operation === 'scrub' ? performMultiOperationScrub(multiOperationDialog.pool.id, multiOperationDialog.option) : performMultiOperationBalance(multiOperationDialog.pool.id, multiOperationDialog.option)" color="onPrimary">
           {{ $t('perform') }}
         </v-btn>
       </v-card-actions>
@@ -844,6 +958,49 @@
     </v-card>
   </v-dialog>
 
+  <!-- Multi Schedules Dialog -->
+  <v-dialog v-model="multiSchedulesDialog.value" max-width="400">
+    <v-card class="pa-0" :title="t('btrfs schedules')" prepend-icon="mdi-clock-outline" style="max-height: 60vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto">
+        <v-switch v-model="multiSchedulesDialog.scrub.enabled" :label="$t('scrub enabled')" hide-details="auto" density="compact" color="green" inset />
+        <v-text-field
+          v-model="multiSchedulesDialog.scrub.schedule"
+          :label="$t('scrub schedule (cron)')"
+          hide-details="auto"
+          class="mt-2 mb-4"
+          append-inner-icon="mdi-calendar-clock"
+          @click:append-inner="openCronDialog(multiSchedulesDialog.scrub.schedule, (schedule) => (multiSchedulesDialog.scrub.schedule = schedule))"
+          v-if="multiSchedulesDialog.scrub.enabled"
+        />
+        <v-switch
+          v-if="multiSchedulesDialog.pool.type === 'btrfs' && multiSchedulesDialog.pool.data_devices.length > 1"
+          v-model="multiSchedulesDialog.balance.enabled"
+          :label="$t('balance enabled')"
+          hide-details="auto"
+          density="compact"
+          color="green"
+          inset
+        />
+        <v-text-field
+          v-model="multiSchedulesDialog.balance.schedule"
+          :label="$t('balance schedule (cron)')"
+          hide-details="auto"
+          class="mt-2 mb-4"
+          append-inner-icon="mdi-calendar-clock"
+          @click:append-inner="openCronDialog(multiSchedulesDialog.balance.schedule, (schedule) => (multiSchedulesDialog.balance.schedule = schedule))"
+          v-if="multiSchedulesDialog.balance.enabled"
+        />
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-btn @click="multiSchedulesDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn color="onPrimary" @click="saveMultiSchedules(multiSchedulesDialog.pool.id, multiSchedulesDialog.scrub, multiSchedulesDialog.balance)">
+          {{ $t('save') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <!-- Add Non-Raid Devices Dialog -->
   <v-dialog v-model="addNonRaidDeviceDialog.value" max-width="600">
     <v-card class="pa-0" :title="t('add device')" prepend-icon="mdi-harddisk-plus" style="max-height: 60vh; display: flex; flex-direction: column">
@@ -876,7 +1033,12 @@
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select devices to add as parity') }}</p>
         <v-form>
-          <v-select v-model="addNonRaidParityDialog.device" :items="Array.isArray(unassignedDisks) ? unassignedDisks.map((disk) => `${disk.device} (${disk.size_human}) (${disk.serial ? disk.serial : '—'})`) : []" :label="$t('device')" density="comfortable" />
+          <v-select
+            v-model="addNonRaidParityDialog.device"
+            :items="Array.isArray(unassignedDisks) ? unassignedDisks.map((disk) => `${disk.device} (${disk.size_human}) (${disk.serial ? disk.serial : '—'})`) : []"
+            :label="$t('device')"
+            density="comfortable"
+          />
         </v-form>
       </v-card-text>
       <v-divider />
@@ -927,8 +1089,8 @@
   <v-dialog v-model="usageAlertsDialog.value" max-width="400">
     <v-card class="pa-0" :title="t('usage alerts')" prepend-icon="mdi-bell-outline" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto" class="pt-2">
-        <v-text-field v-model="usageAlertsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%"/>
-        <v-text-field v-model="usageAlertsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto"/>
+        <v-text-field v-model="usageAlertsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" />
+        <v-text-field v-model="usageAlertsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
@@ -947,15 +1109,13 @@
     <v-icon>mdi-plus</v-icon>
   </v-fab>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive, watch } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import draggable from 'vuedraggable';
 import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
@@ -964,8 +1124,8 @@ const pools = ref([]);
 const poolsLoading = ref(true);
 const unassignedDisks = ref([]);
 const unassignedDisksLoading = ref(true);
-const overlay = ref(false);
 const { t } = useI18n();
+const { overlay } = useOverlay();
 const cronDialogApplyCallback = ref(null);
 const cronDialog = reactive({
   value: false,
@@ -1094,6 +1254,18 @@ const nonRaidSchedulesDialog = reactive({
     schedule: '0 0 * */3 SUN',
   },
 });
+const multiSchedulesDialog = reactive({
+  value: false,
+  scrub: {
+    enabled: false,
+    schedule: '0 4 * * WED',
+  },
+  balance: {
+    enabled: false,
+    schedule: '0 5 * * SUN',
+  },
+});
+
 const addNonRaidDeviceDialog = reactive({
   value: false,
   pool: null,
@@ -1117,6 +1289,14 @@ const nonRaidOperationDialog = reactive({
   option: 'NOCORRECT',
   options: ['CORRECT', 'NOCORRECT'],
 });
+const multiOperationDialog = reactive({
+  value: false,
+  pool: null,
+  operation: '',
+  operations: ['scrub', 'balance'],
+  option: '',
+  options: ['start', 'pause', 'resume', 'cancel'],
+});
 const mergerfsPolicyDialog = reactive({
   value: false,
   pool: null,
@@ -1131,8 +1311,8 @@ const usageAlertsDialog = reactive({
   pool: null,
   usage_alert: {
     warning: 85,
-    alert: 90
-  }
+    alert: 90,
+  },
 });
 
 onMounted(async () => {
@@ -1242,6 +1422,26 @@ const openSnapraidSchedulesDialog = (pool) => {
     },
   };
 };
+const openMultiSchedulesDialog = (pool) => {
+  multiSchedulesDialog.value = true;
+  multiSchedulesDialog.pool = pool;
+  multiSchedulesDialog.scrub = {
+    enabled: false,
+    schedule: '0 4 * * WED',
+  };
+  multiSchedulesDialog.balance = {
+    enabled: false,
+    schedule: '0 5 * * SUN',
+  };
+  multiSchedulesDialog.scrub = pool.config.scrub || {
+    enabled: false,
+    schedule: '0 4 * * WED',
+  };
+  multiSchedulesDialog.balance = pool.config.balance || {
+    enabled: false,
+    schedule: '0 5 * * SUN',
+  };
+};
 const openNonRaidSchedulesDialog = (pool) => {
   nonRaidSchedulesDialog.value = true;
   nonRaidSchedulesDialog.pool = pool;
@@ -1330,6 +1530,11 @@ const openNonRaidOperationDialog = (pool) => {
   nonRaidOperationDialog.pool = pool;
   nonRaidOperationDialog.operation = '';
   nonRaidOperationDialog.option = 'NOCORRECT';
+};
+const openMultiOperationDialog = (pool) => {
+  multiOperationDialog.value = true;
+  multiOperationDialog.pool = pool;
+  multiOperationDialog.operation = '';
 };
 const openUsageAlertsDialog = (pool) => {
   usageAlertsDialog.value = true;
@@ -1974,6 +2179,70 @@ const performNonRaidOperation = async (poolId, operation, option) => {
   }
 };
 
+const performMultiOperationScrub = async (poolId, option) => {
+  overlay.value = true;
+  const payload = {
+    operation: option,
+  };
+
+  try {
+    const res = await fetch(`/api/v1/pools/${poolId}/btrfs/scrub`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('btrfs scrub could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('btrfs scrub executed successfully'));
+    getPools();
+    getUnassignedDisks();
+    multiOperationDialog.value = false;
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const performMultiOperationBalance = async (poolId, option) => {
+  overlay.value = true;
+  const payload = {
+    operation: option
+  };
+
+  try {
+    const res = await fetch(`/api/v1/pools/${poolId}/btrfs/balance`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('btrfs balance could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('btrfs balance executed successfully'));
+    getPools();
+    getUnassignedDisks();
+    multiOperationDialog.value = false;
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
 const saveSnapraidSchedules = async (id, sync) => {
   overlay.value = true;
   const configData = {
@@ -2030,6 +2299,39 @@ const saveNonRaidCheckSchedule = async (id, check) => {
     getPools();
     getUnassignedDisks();
     nonRaidSchedulesDialog.value = false;
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const saveMultiSchedules = async (id, scrub, balance) => {
+  overlay.value = true;
+  const configData = {
+    scrub: scrub,
+    balance: balance,
+  };
+
+  try {
+    const res = await fetch(`/api/v1/pools/${id}/config`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(configData),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('schedules could not be saved')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('schedules saved successfully'));
+    getPools();
+    getUnassignedDisks();
+    multiSchedulesDialog.value = false;
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);

@@ -195,12 +195,14 @@
 import { ref, onMounted, reactive } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
+
 const showPassword = ref(false);
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const users = ref([]);
 const usersLoaded = ref(false);
 const { t } = useI18n();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const deleteDialog = reactive({
   value: false,
   user: null,

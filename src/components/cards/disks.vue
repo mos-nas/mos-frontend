@@ -103,8 +103,10 @@
             </div>
           </v-col>
           <v-col cols="2" sm="2" class="pt-1" style="min-width: 0; overflow: hidden">
-            <div class="text-body-2" style="font-variant-numeric: tabular-nums; line-height: 1.1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">
-              {{ parity_device.temperature ?? '—' }}{{ parity_device.temperature ? '°' : '' }}
+            <div class="d-flex align-center" style="gap: 4px; line-height: 1.1">
+              <div class="text-body-2" style="font-variant-numeric: tabular-nums; line-height: 1.1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis">
+                {{ parity_device.temperature ?? '—' }}{{ parity_device.temperature ? '°' : '' }}
+              </div>
               <v-icon v-if="parity_device.temperatureStatus === 'warning'" size="small" color="warning" style="flex: 0 0 auto">mdi-alert</v-icon>
               <v-icon v-if="parity_device.temperatureStatus === 'error'" size="small" color="error" style="flex: 0 0 auto">mdi-alert-circle</v-icon>              
             </div>

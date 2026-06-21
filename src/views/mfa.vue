@@ -45,9 +45,6 @@
     </v-container>
   </div>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
@@ -58,6 +55,7 @@ import { useRouter } from 'vue-router';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import mosBlack from '/mos_black.png';
 import mosWhite from '/mos_white.png';
+import { useOverlay } from '@/composables/useOverlay';
 
 const props = defineProps({
   mfaToken: {
@@ -75,7 +73,7 @@ const loading = ref(false);
 const isValid = ref(false);
 const formRef = ref(null);
 const totpCode = ref('');
-const overlay = ref(false);
+const { overlay } = useOverlay();
 
 const logoColorThemed = computed(() => {
   return theme.global.name.value === 'dark' ? mosWhite : mosBlack;

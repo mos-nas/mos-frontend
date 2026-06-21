@@ -516,10 +516,6 @@
   <v-fab color="primary" @click="createDocker()" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
     <v-icon color="onPrimary">mdi-content-save</v-icon>
   </v-fab>
-
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
@@ -527,6 +523,7 @@ import { onMounted, ref, nextTick } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import { useOverlay } from '@/composables/useOverlay';
 import { useDockerWebSocket } from '@/composables/useDockerWebSocket';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 
@@ -540,7 +537,7 @@ const props = defineProps({
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
 const router = useRouter();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const networkOptions = ref([]);
 const loadingNetworks = ref(false);
 const containerOptions = ref([]);

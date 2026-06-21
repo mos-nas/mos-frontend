@@ -273,9 +273,10 @@
 import { onMounted, ref, computed } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const sensorsLoading = ref(true);
 const { t } = useI18n();
 

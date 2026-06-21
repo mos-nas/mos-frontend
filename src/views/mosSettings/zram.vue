@@ -131,6 +131,7 @@
 import { onMounted, ref, reactive } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const zram = ref({
@@ -138,7 +139,7 @@ const zram = ref({
   zram_devices: 0,
   devices: [],
 });
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const { t } = useI18n();
 const createZramDeviceDialog = reactive({
   value: false,

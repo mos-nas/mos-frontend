@@ -563,11 +563,12 @@
 import { onMounted, ref, computed, reactive, watch, onBeforeUnmount } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const settingsNetwork = ref({ interfaces: [] });
 const saveNetworkSettingsDialog = reactive({ value: false });
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const { t } = useI18n();
 const settingsNetworkCountdown = reactive({
   value: false,

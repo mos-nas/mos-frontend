@@ -374,15 +374,13 @@
     </v-list>
   </v-menu>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 
 const fsDialog = ref(false);
@@ -390,7 +388,7 @@ const fsDialogCallback = ref(null);
 const fsDialogInitialPath = ref('/');
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const shares = ref([
   {
     smb: [],

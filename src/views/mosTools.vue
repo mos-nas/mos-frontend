@@ -137,14 +137,12 @@
     </v-card>
   </v-dialog>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
@@ -152,7 +150,7 @@ const rebootDialog = ref(false);
 const shutdownDialog = ref(false);
 const { t } = useI18n();
 const showSpecialActions = ref(0);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 
 const rebootOS = async () => {
 

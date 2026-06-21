@@ -49,22 +49,20 @@
     <v-icon>mdi-refresh</v-icon>
   </v-fab>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
+import { useOverlay } from '@/composables/useOverlay';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const logs = ref([]);
 const selectedLog = ref('');
 const logFileContent = ref('');
 const lines = ref(10000);
-const overlay = ref(false);
+const { overlay } = useOverlay();
 const { t } = useI18n();
 
 onMounted(() => {
