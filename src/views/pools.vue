@@ -874,11 +874,12 @@
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select the btrfs operation to be performed') }}</p>
         <v-select v-model="multiOperationDialog.operation" :items="multiOperationDialog.operations" :label="$t('operation')" density="comfortable" />
+        <v-select v-model="multiOperationDialog.option" :items="multiOperationDialog.options" :label="$t('options')" density="comfortable" />
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="multiOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn @click="multiOperationDialog.operation === 'scrub' ? performMultiOperationScrub(multiOperationDialog.pool.id, 'start') : performMultiOperationBalance(multiOperationDialog.pool.id, 'start')" color="onPrimary">
+        <v-btn @click="multiOperationDialog.operation === 'scrub' ? performMultiOperationScrub(multiOperationDialog.pool.id, multiOperationDialog.option) : performMultiOperationBalance(multiOperationDialog.pool.id, multiOperationDialog.option)" color="onPrimary">
           {{ $t('perform') }}
         </v-btn>
       </v-card-actions>
@@ -1293,6 +1294,8 @@ const multiOperationDialog = reactive({
   pool: null,
   operation: '',
   operations: ['scrub', 'balance'],
+  option: '',
+  options: ['start', 'pause', 'resume', 'cancel'],
 });
 const mergerfsPolicyDialog = reactive({
   value: false,
@@ -2176,10 +2179,10 @@ const performNonRaidOperation = async (poolId, operation, option) => {
   }
 };
 
-const performMultiOperationScrub = async (poolId, task) => {
+const performMultiOperationScrub = async (poolId, option) => {
   overlay.value = true;
   const payload = {
-    operation: task,
+    operation: option,
   };
 
   try {
@@ -2194,9 +2197,9 @@ const performMultiOperationScrub = async (poolId, task) => {
 
     if (!res.ok) {
       const errorDetails = await res.json();
-      throw new Error(`${t('btrfs operation could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
+      throw new Error(`${t('btrfs scrub could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
     }
-    showSnackbarSuccess(t('btrfs operation executed successfully'));
+    showSnackbarSuccess(t('btrfs scrub executed successfully'));
     getPools();
     getUnassignedDisks();
     multiOperationDialog.value = false;
@@ -2208,10 +2211,10 @@ const performMultiOperationScrub = async (poolId, task) => {
   }
 };
 
-const performMultiOperationBalance = async (poolId, task) => {
+const performMultiOperationBalance = async (poolId, option) => {
   overlay.value = true;
   const payload = {
-    operation: task
+    operation: option
   };
 
   try {
@@ -2226,9 +2229,9 @@ const performMultiOperationBalance = async (poolId, task) => {
 
     if (!res.ok) {
       const errorDetails = await res.json();
-      throw new Error(`${t('btrfs operation could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
+      throw new Error(`${t('btrfs balance could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
     }
-    showSnackbarSuccess(t('btrfs operation executed successfully'));
+    showSnackbarSuccess(t('btrfs balance executed successfully'));
     getPools();
     getUnassignedDisks();
     multiOperationDialog.value = false;

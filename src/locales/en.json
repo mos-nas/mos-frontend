@@ -1622,9 +1622,13 @@
   "select the btrfs operation to be performed": "Select the Btrfs operation to be performed",
   "btrfs operation could not be executed": "Btrfs operation could not be executed",
   "btrfs operation executed successfully": "Btrfs operation executed successfully",
+  "btrfs scrub could not be executed": "Btrfs Scrub could not be executed",
+  "btrfs scrub executed successfully": "Btrfs Scrub successfully executed",
+  "btrfs balance could not be executed": "Btrfs Balance could not be executed",
+  "btrfs balance executed successfully": "Btrfs Balance successfully executed",  
   "btrfs operations": "Btrfs operations",
   "scrub running": "Scrub running",
   "balance running": "Balance running",
-  "processed": "Verarbeitet",
-  "errors": "Fehler"
+  "processed": "Processed",
+  "errors": "Errors"
 }
