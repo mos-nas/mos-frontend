@@ -264,9 +264,6 @@
     </v-card>
   </v-dialog>
 
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular color="onPrimary" size="64" indeterminate />
-  </v-overlay>
 </template>
 
 <script setup>

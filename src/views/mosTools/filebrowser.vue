@@ -433,10 +433,6 @@
 
   <!-- File System Navigator Dialog -->
   <fsNavigatorDialog v-model="fsDialog" :initial-path="'/'" select-type="directory" :title="$t('select directory')" persistent @selected="handleFsSelected" />
-
-  <v-overlay :model-value="overlay" class="align-center justify-center">
-    <v-progress-circular indeterminate size="64" color="primary" />
-  </v-overlay>
 </template>
 
 <script setup>
