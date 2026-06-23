@@ -767,7 +767,7 @@
         <div style="max-height: 60vh; overflow-y: auto; padding: 16px; padding-bottom: 32px">
           <v-text-field v-model="editComposeStackDialog.name" :label="$t('stack name')" readonly></v-text-field>
           <v-textarea v-model="editComposeStackDialog.yaml" :label="$t('compose yaml')" rows="10" required></v-textarea>
-          <v-textarea v-model="editComposeStackDialog.env" :label="$t('environment variables')" rows="5"></v-textarea>
+          <v-textarea v-model="editComposeStackDialog.env" :label="$t('environment variables')" rows="10"></v-textarea>
           <v-text-field v-model="editComposeStackDialog.icon" :label="$t('icon url')"></v-text-field>
           <v-text-field v-model="editComposeStackDialog.webui" :label="$t('web ui url')"></v-text-field>
           <v-switch :label="$t('no autoupdate')" v-model="editComposeStackDialog.no_autoupdate" inset color="green" density="compact"></v-switch>

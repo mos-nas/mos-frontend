@@ -67,7 +67,7 @@
                 {{ $t('show used ports') }}
               </v-btn>
             </div>
-            <v-textarea v-model="composeStack.env" :label="$t('environment variables')" rows="5"></v-textarea>
+            <v-textarea v-model="composeStack.env" :label="$t('environment variables')" rows="10"></v-textarea>
             <v-text-field v-model="composeStack.icon" :label="$t('icon url')"></v-text-field>
             <v-text-field v-model="composeStack.web_ui_url" :label="$t('web ui url')"></v-text-field>
             <v-switch :label="$t('no autoupdate')" v-model="composeStack.no_autoupdate" inset color="green" density="compact" hide-details="auto"></v-switch>
