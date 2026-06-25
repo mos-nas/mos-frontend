@@ -396,9 +396,9 @@ const smartDialog = reactive({
     temperatureCritical: 0,
     monitoredAttributes: [5, 187, 198, 199],
     attributeNotificationCooldown: 0,
-    lastSeen: '2026-04-08T12:14:07.437Z',
-    model: 'WDC WD40EFRX-68N32N0',
-    diskType: 'hdd',
+    lastSeen: '',
+    model: '',
+    diskType: '',
     warning: false,
     acknowledged: { 5: null, 187: null, 198: null, 199: null },
   },
@@ -784,6 +784,7 @@ const payload = {
 
     showSnackbarSuccess(t('smart attribute acknowledged successfully'));
     smartDialog.smartInfos = await getSmartInfos(smartDialog.disk, false);
+    smartDialog.smartDiskConfig = await getSmartDiskConfig(smartDialog.disk);
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
