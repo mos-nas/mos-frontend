@@ -289,7 +289,7 @@
                   <td>{{ attr.threshold }}</td>
                   <td>{{ attr.rawValue }}</td>
                   <td>
-                    <v-btn v-if="attr.rawValue > attr.value && (attr.id === 5 || attr.id === 187 || attr.id === 198 || attr.id === 199)" size="x-small" type="text" @click="acknowledgeSmartAttribute(attr.id)">
+                    <v-btn v-if="(!smartDialog.smartDiskConfig.acknowledged || smartDialog.smartDiskConfig.acknowledged[attr.id] === null || parseInt(attr.rawValue) > smartDialog.smartDiskConfig.acknowledged[attr.id]) && attr.rawValue > 0" size="x-small" type="text" @click="acknowledgeSmartAttribute(attr.id)">
                       {{ $t('acknowledge') }}
                     </v-btn>
                   </td>
@@ -400,6 +400,7 @@ const smartDialog = reactive({
     model: 'WDC WD40EFRX-68N32N0',
     diskType: 'hdd',
     warning: false,
+    acknowledged: { 5: null, 187: null, 198: null, 199: null },
   },
   loading: false,
 });
