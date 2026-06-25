@@ -1632,5 +1632,6 @@
   "processed": "Processed",
   "errors": "Errors",
   "create vpool": "Create VPool",
-  "vpool": "VPool"
+  "vpool": "VPool",
+  "acknowledge": "Acknowledge"
 }
