@@ -180,7 +180,7 @@
   </v-dialog>
 
   <!-- Confirm S.M.A.R.T. Dialog -->
-  <v-dialog v-model="smartDialog.value" max-width="800">
+  <v-dialog v-model="smartDialog.value" width="1000" max-width="1000px">
     <v-card class="pa-0" :title="$t('smart infos')" prepend-icon="mdi-chart-timeline-variant-shimmer">
       <v-card-text style="overflow: auto">
         <div v-if="smartDialog.loading">
@@ -277,6 +277,7 @@
                   <th>{{ $t('worst') }}</th>
                   <th>{{ $t('threshold') }}</th>
                   <th>{{ $t('raw value') }}</th>
+                  <th>{{ $t('acknowledge') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,6 +288,11 @@
                   <td>{{ attr.worst }}</td>
                   <td>{{ attr.threshold }}</td>
                   <td>{{ attr.rawValue }}</td>
+                  <td>
+                    <v-btn v-if="attr.id === 5 || attr.id === 187 || attr.id === 198 || attr.id === 199" size="x-small" type="text" @click="acknowledgeSmartAttribute(attr.id)">
+                      {{ $t('acknowledge') }}
+                    </v-btn>
+                  </td>
                 </tr>
               </tbody>
             </v-table>
@@ -744,6 +750,39 @@ const saveSmartDiskConfig = async () => {
 
     showSnackbarSuccess(t('smart disk config saved successfully'));
     smartDialog.value = false;
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const acknowledgeSmartAttribute = async (attributeId) => {
+const payload = {
+    attributes: [ 
+      attributeId,
+    ],
+  };
+
+  try {
+    overlay.value = true;
+    const res = await fetch(`/api/v1/disks/smart/config/disks/${smartDialog.disk.name}/acknowledge`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('smart attribute could not be acknowledged')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+
+    showSnackbarSuccess(t('smart attribute acknowledged successfully'));
+    smartDialog.smartInfos = await getSmartInfos(smartDialog.disk, false);
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);

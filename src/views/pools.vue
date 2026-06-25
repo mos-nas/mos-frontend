@@ -1105,9 +1105,33 @@
   <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialog.schedule" @apply="applyCronSchedule" @cancel="resetCronDialog" />
 
   <!-- Floating Action Button -->
-  <v-fab color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon @click="openCreatePoolDialog()">
+  <!-- <v-fab color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon @click="openCreatePoolDialog()">
     <v-icon>mdi-plus</v-icon>
-  </v-fab>
+  </v-fab>-->
+
+  <!-- Floating Action Button with Menu -->
+  <v-menu location="top">
+    <template v-slot:activator="{ props }">
+      <v-fab v-bind="props" color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
+        <v-icon color="onPrimary">mdi-dots-vertical</v-icon>
+      </v-fab>
+    </template>
+    <v-list>
+      <v-list-item @click="openCreatePoolDialog()">
+        <template v-slot:prepend>
+          <v-icon>mdi-plus</v-icon>
+        </template>
+        <v-list-item-title>{{ $t('create pool') }}</v-list-item-title>
+      </v-list-item>
+      <v-list-item @click="openCreateVPoolDialog()">
+        <template v-slot:prepend>
+          <v-icon>mdi-plus</v-icon>
+        </template> 
+        <v-list-item-title>{{ $t('create vpool') }}</v-list-item-title>
+      </v-list-item>
+    </v-list>
+    
+  </v-menu>
 
 </template>
 

@@ -1630,5 +1630,7 @@
   "scrub running": "Scrub running",
   "balance running": "Balance running",
   "processed": "Processed",
-  "errors": "Errors"
+  "errors": "Errors",
+  "create vpool": "Create VPool",
+  "vpool": "VPool"
 }

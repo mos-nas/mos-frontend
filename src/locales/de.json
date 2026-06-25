@@ -1630,5 +1630,8 @@
   "scrub running": "Scrub läuft",
   "balance running": "Balance läuft",
   "processed": "Verarbeitet",
-  "errors": "Fehler"
+  "errors": "Fehler",
+  "create vpool": "VPool anlegen",
+  "vpool": "VPool",
+  "acknowledge": "Bestätigen"
 }
