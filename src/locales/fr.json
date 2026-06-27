@@ -1637,5 +1637,8 @@
   "scrub running": "Scrub en cours",
   "balance running": "Équilibrage en cours",
   "processed": "Traité",
-  "errors": "Erreurs"
+  "errors": "Erreurs",
+  "create vpool": "Créer un VPool",
+  "vpool": "VPool",
+  "acknowledge": "Prendre acte de"
 }
