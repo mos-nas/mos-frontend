@@ -1640,5 +1640,12 @@
   "errors": "Erreurs",
   "create vpool": "Créer un VPool",
   "vpool": "VPool",
-  "acknowledge": "Prendre acte de"
+  "acknowledge": "Prendre acte de",
+    "btrfs scrub could not be executed": "Impossible d'exécuter le scrub Btrfs",
+  "btrfs scrub executed successfully": "Scrub Btrfs exécuté avec succès",
+  "btrfs balance could not be executed": "Impossible d'exécuter l'équilibrage Btrfs",
+  "btrfs balance executed successfully": "Équilibrage Btrfs exécuté avec succès",
+  "recommended repositories": "Dépôts recommandés",
+  "could not get recommended repositories": "Impossible de récupérer les dépôts recommandés",
+  "reinstall": "Réinstaller"
 }
