@@ -61,18 +61,18 @@
             <v-divider class="my-4"></v-divider>
             <v-text-field v-model="composeStack.name" :label="$t('stack name')" required></v-text-field>
             <div class="mb-4">
-              <v-label class="text-body2" style="display: block;">{{ $t('compose yaml') }}</v-label>
-              <div ref="yamlEditorContainer" style="border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 4px; overflow: hidden;"></div>
+              <v-label class="text-body2" style="display: block">{{ $t('compose yaml') }}</v-label>
+              <div ref="yamlEditorContainer" style="border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 4px; overflow: hidden"></div>
             </div>
             <div class="d-flex mb-2 mt-2">
-              <v-btn variant="text" size="small" class="pa-0" style="min-width: 0;" @click="sidePanel.open = true">
+              <v-btn variant="text" size="small" class="pa-0" style="min-width: 0" @click="sidePanel.open = true">
                 <v-icon size="18" class="mr-1">mdi-eye</v-icon>
                 {{ $t('show used ports') }}
               </v-btn>
             </div>
             <div class="mb-4 mt-4">
-              <v-label class="text-body2" style="display: block;">{{ $t('environment variables') }}</v-label>
-              <div ref="envEditorContainer" style="border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 4px; overflow: hidden;"></div>
+              <v-label class="text-body2" style="display: block">{{ $t('environment variables') }}</v-label>
+              <div ref="envEditorContainer" style="border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 4px; overflow: hidden"></div>
             </div>
             <v-text-field v-model="composeStack.icon" :label="$t('icon url')"></v-text-field>
             <v-text-field v-model="composeStack.web_ui_url" :label="$t('web ui url')"></v-text-field>
@@ -138,17 +138,18 @@
   <v-fab color="primary" @click="createComposeStack()" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
     <v-icon color="onPrimary">mdi-content-save</v-icon>
   </v-fab>
-
 </template>
 
 <script setup>
 import { reactive, ref, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import { useTheme } from 'vuetify';
 import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 import { yaml } from '@codemirror/lang-yaml';
+import { oneDark } from '@codemirror/theme-one-dark';
 import { useOverlay } from '@/composables/useOverlay';
 import { useDockerWebSocket } from '@/composables/useDockerWebSocket';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
@@ -156,6 +157,7 @@ import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
 const router = useRouter();
+const theme = useTheme();
 const { overlay } = useOverlay();
 const sidePanel = ref({ open: false });
 const usedDockerPorts = ref([]);
@@ -203,6 +205,10 @@ const { wsIsConnected, wsError, wsOperationDialog, wsScrollContainer, sendDocker
   onCompleted: async () => {},
 });
 
+const getEditorTheme = () => {
+  return theme.global.name.value === 'dark' ? [oneDark] : [];
+};
+
 const initYamlEditor = () => {
   if (!yamlEditorContainer.value) return;
 
@@ -211,6 +217,7 @@ const initYamlEditor = () => {
     extensions: [
       basicSetup,
       yaml(),
+      ...getEditorTheme(),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           composeStack.yaml = update.state.doc.toString();
@@ -232,6 +239,7 @@ const initEnvEditor = () => {
     doc: composeStack.env,
     extensions: [
       basicSetup,
+      ...getEditorTheme(),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           composeStack.env = update.state.doc.toString();
@@ -322,7 +330,6 @@ const getComposeTemplateNames = async () => {
 
     const result = await res.json();
     composeTemplates.value = [...(result.installed || []), ...(result.removed || [])];
-    
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
@@ -397,7 +404,6 @@ const getDockerPorts = async () => {
     usedDockerPorts.value = [];
   }
 };
-
 </script>
 
 <style scoped>

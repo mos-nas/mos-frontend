@@ -926,11 +926,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, onUnmounted, computed, watch } from 'vue';
+import { ref, onMounted, reactive, onUnmounted, computed, watch, nextTick } from 'vue';
 import draggable from 'vuedraggable';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useOverlay } from '@/composables/useOverlay';
 import { useI18n } from 'vue-i18n';
+import { useTheme } from 'vuetify';
 import { openTerminalPopup } from '@/composables/terminalpopup';
 import { useDockerWebSocket } from '@/composables/useDockerWebSocket';
 import DockerInfoDialog from '@/components/dockerInfoDialog.vue';
@@ -938,9 +939,11 @@ import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 import { yaml } from '@codemirror/lang-yaml';
+import { oneDark } from '@codemirror/theme-one-dark';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
+const theme = useTheme();
 const { overlay } = useOverlay();
 const dockers = ref([]);
 const dockerGroups = ref([]);
@@ -2106,6 +2109,11 @@ const closeRemoveComposeStackDialog = () => {
   removeComposeStackDialog.value = false;
   removeComposeStackDialog.name = '';
 };
+
+const getEditorTheme = () => {
+  return theme.global.name.value === 'dark' ? [oneDark] : [];
+};
+
 const initEditDialogYamlEditor = () => {
   if (!editDialogYamlEditorContainer.value) return;
 
@@ -2114,6 +2122,7 @@ const initEditDialogYamlEditor = () => {
     extensions: [
       basicSetup,
       yaml(),
+      ...getEditorTheme(),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           editComposeStackDialog.yaml = update.state.doc.toString();
@@ -2135,6 +2144,7 @@ const initEditDialogEnvEditor = () => {
     doc: editComposeStackDialog.env,
     extensions: [
       basicSetup,
+      ...getEditorTheme(),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           editComposeStackDialog.env = update.state.doc.toString();
@@ -2180,8 +2190,7 @@ const openEditComposeStackDialog = async (name) => {
   editComposeStackDialog.icon = stack.icon;
   editComposeStackDialog.webui = stack.webui || '';
   editComposeStackDialog.no_autoupdate = stack.no_autoupdate || false;
-  
-  await new Promise(resolve => setTimeout(resolve, 100));
+  await nextTick();
   initEditDialogYamlEditor();
   initEditDialogEnvEditor();
 };
