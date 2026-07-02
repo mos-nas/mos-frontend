@@ -361,7 +361,7 @@
                       <v-icon size="small" color="medium-emphasis">mdi-chevron-right</v-icon>
                     </template>
                   </v-list-item>
-                  <v-list-item rounded="lg" @click="supportDialog = true" color="primary">
+                  <v-list-item rounded="lg" @click="openSupportDialog()" color="primary">
                     <template v-slot:prepend>
                       <v-icon icon="mdi-lifebuoy" class="mr-3"></v-icon>
                     </template>
@@ -616,7 +616,7 @@
   </v-dialog>
 
   <!-- Support MOS Dialog -->
-  <v-dialog v-model="supportDialog" max-width="700" persistent>
+  <v-dialog v-model="supportDialog.value" max-width="700" persistent>
     <v-card max-width="700" prepend-icon="mdi-lifebuoy" :title="t('support mos')" class="pa-0">
       <v-card-text class="pt-0">
         <span>{{ t('mos is and will be free for everyone') }}!</span>
@@ -627,14 +627,14 @@
           {{ t('as a thank you, every supporter who donates at least $5 will receive a code to unlock a support banner') }}.
           <br />
           <v-divider class="mt-2 mb-2"></v-divider>
-          <v-btn variant="text" @click="showEnterCode = !showEnterCode" class="mb-2" prepend-icon="mdi-ticket">
-            {{ showEnterCode ? t('hide code entry') : t('enter code') }}
+          <v-btn variant="text" @click="supportDialog.showEnterCode = !supportDialog.showEnterCode" class="mb-2" prepend-icon="mdi-ticket">
+            {{ supportDialog.showEnterCode ? t('hide code entry') : t('enter code') }}
           </v-btn>
           <v-slide-y-transition>
-            <div v-if="showEnterCode">
-              <v-text-field v-model="supportCode" :label="t('enter code')" hide-details class="mb-2"></v-text-field>
+            <div v-if="supportDialog.showEnterCode">
+              <v-text-field v-model="supportDialog.supportCode" :label="t('enter code')" hide-details class="mb-2"></v-text-field>
               <div class="d-flex justify-end">
-                <v-btn variant="text" color="primary" @click="validateSupportCode()">{{ t('validate') }}</v-btn>
+                <v-btn variant="text" color="primary" @click="validateSupportCode(supportDialog.supportCode)">{{ t('validate') }}</v-btn>
               </div>
             </div>
           </v-slide-y-transition>
@@ -649,7 +649,7 @@
         <v-btn prepend-icon="mdi-gift" variant="text" color="primary" href="https://paypal.me/chips777" target="_blank" rel="noopener">{{ t('paypal') }}</v-btn>
         <v-btn prepend-icon="mdi-gift" variant="text" color="primary" href="https://github.com/sponsors/ich777?frequency=one-time&sponsor=ich777" target="_blank" rel="noopener">{{ t('github sponsors') }}</v-btn>        
         <v-spacer />
-        <v-btn color="onPrimary" :text="t('close')" @click="supportDialog = false"></v-btn>
+        <v-btn color="onPrimary" :text="t('close')" @click="supportDialog.value = false"></v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -690,7 +690,11 @@ const mosServices = inject('mosServices');
 const mosKernel = ref([]);
 const thanksDialog = ref(false);
 const aboutDialog = ref(false);
-const supportDialog = ref(false);
+const supportDialog = reactive({
+  value: false,
+  showEnterCode: false,
+  supportCode: '',
+});
 const rollbackKernelDialog = ref(false);
 const rebootDialog = ref(false);
 const shutdownDialog = ref(false);
@@ -1027,9 +1031,9 @@ const downloadDiagnostics = async () => {
   }
 };
 
-const validateSupportCode = async () => {
+const validateSupportCode = async (supportCode) => {
   const payload = {
-    supporter_key: supportCode.value,
+    supporter_key: supportCode,
   };
   try {
     overlay.value = true;
@@ -1058,6 +1062,11 @@ const validateSupportCode = async () => {
   }
 };
 
+const openSupportDialog = () => {
+  supportDialog.value = true;
+  supportDialog.showEnterCode = false;
+  supportDialog.supportCode = '';
+};
 const openUpdateOsDialog = () => {
   updateOsDialog.value = true;
   clearUpdateOsDialog();
