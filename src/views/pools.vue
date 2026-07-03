@@ -191,37 +191,38 @@
                   <thead>
                     <tr style="background-color: rgba(0, 0, 0, 0.04)">
                       <th class="text-caption" style="width: 42px"></th>
-                      <th class="text-caption">{{ $t('disks') }}
+                      <th class="text-caption">
+                        {{ $t('disks') }}
                         <v-tooltip v-if="pool.status?.scrub_operation" location="top">
-                            <template #activator="{ props }">
-                              <v-chip v-bind="props" color="green" size="x-small" class="ml-1" label variant="tonal">
-                                {{ $t('scrub running') }}
-                                <span v-if="pool.status?.scrub_progress?.percent != null" class="ml-1">({{ Math.round(pool.status.scrub_progress.percent) }}%)</span>
-                              </v-chip>
-                            </template>
-                            {{ $t('status') }}: {{ pool.status.scrub_progress?.status }}
-                            <br />
-                            {{ $t('speed') }}: {{ pool.status.scrub_progress?.speed }}
-                            <br />
-                            {{ $t('processed') }}: {{ pool.status.scrub_progress?.processed }}
-                            <br />
-                            {{ $t('errors') }}: {{ pool.status.scrub_progress?.errors }}
-                          </v-tooltip>
+                          <template #activator="{ props }">
+                            <v-chip v-bind="props" color="green" size="x-small" class="ml-1" label variant="tonal">
+                              {{ $t('scrub running') }}
+                              <span v-if="pool.status?.scrub_progress?.percent != null" class="ml-1">({{ Math.round(pool.status.scrub_progress.percent) }}%)</span>
+                            </v-chip>
+                          </template>
+                          {{ $t('status') }}: {{ pool.status.scrub_progress?.status }}
+                          <br />
+                          {{ $t('speed') }}: {{ pool.status.scrub_progress?.speed }}
+                          <br />
+                          {{ $t('processed') }}: {{ pool.status.scrub_progress?.processed }}
+                          <br />
+                          {{ $t('errors') }}: {{ pool.status.scrub_progress?.errors }}
+                        </v-tooltip>
                         <v-tooltip v-if="pool.status?.balance_operation" location="top">
-                            <template #activator="{ props }">
-                              <v-chip v-bind="props" color="green" size="x-small" class="ml-1" label variant="tonal">
-                                {{ $t('balance running') }}
-                                <span v-if="pool.status?.balance_progress?.percent != null" class="ml-1">({{ Math.round(pool.status.balance_progress.percent) }}%)</span>
-                              </v-chip>
-                            </template>
-                            {{ $t('status') }}: {{ pool.status.balance_progress?.status }}
-                            <br />
-                            {{ $t('speed') }}: {{ pool.status.balance_progress?.speed }}
-                            <br />
-                            {{ $t('processed') }}: {{ pool.status.balance_progress?.processed }}
-                            <br />
-                            {{ $t('errors') }}: {{ pool.status.balance_progress?.errors }}
-                          </v-tooltip>                          
+                          <template #activator="{ props }">
+                            <v-chip v-bind="props" color="green" size="x-small" class="ml-1" label variant="tonal">
+                              {{ $t('balance running') }}
+                              <span v-if="pool.status?.balance_progress?.percent != null" class="ml-1">({{ Math.round(pool.status.balance_progress.percent) }}%)</span>
+                            </v-chip>
+                          </template>
+                          {{ $t('status') }}: {{ pool.status.balance_progress?.status }}
+                          <br />
+                          {{ $t('speed') }}: {{ pool.status.balance_progress?.speed }}
+                          <br />
+                          {{ $t('processed') }}: {{ pool.status.balance_progress?.processed }}
+                          <br />
+                          {{ $t('errors') }}: {{ pool.status.balance_progress?.errors }}
+                        </v-tooltip>
                       </th>
                       <th class="text-caption" style="width: 60%">{{ $t('usage') }}</th>
                       <th class="text-caption text-right pr-2" style="width: 60px">{{ $t('fs') }}</th>
@@ -344,7 +345,7 @@
           </v-card-text>
         </v-card>
         <div class="text-title-medium font-weight-medium" style="margin-top: 20px">{{ $t('unassigned disks') }}</div>
-        <v-card fluid style="margin-bottom: 80px" variant="outlined" rounded="lg" class="pa-0">
+        <v-card fluid :style="vpools.length > 0 ? '' : 'margin-bottom: 80px'" variant="outlined" rounded="lg" class="pa-0">
           <v-skeleton-loader v-if="unassignedDisksLoading" :loading="true" type="table-row@3" />
           <template v-if="unassignedDisks.length === 0 && !unassignedDisksLoading">
             <v-card-text class="pa-4 text-body-2">
@@ -418,6 +419,82 @@
                 </tr>
               </tbody>
             </v-table>
+          </template>
+        </v-card>
+        <div v-if="vpools.length > 0 && !vpoolsLoading" class="text-title-medium font-weight-medium" style="margin-top: 20px">{{ $t('virtual pools') }}</div>
+        <v-card v-if="vpools.length > 0" fluid style="margin-bottom: 80px" variant="outlined" rounded="lg" class="pa-0">
+          <v-skeleton-loader v-if="vpoolsLoading" :loading="true" type="card" />
+          <template v-if="vpools.length === 0 && !vpoolsLoading">
+            <v-card-text class="pa-4 text-body-2">
+              {{ $t('no virtual pools found') }}
+            </v-card-text>
+          </template>
+          <template v-if="vpools.length > 0">
+            <draggable v-model="vpools" item-key="id" handle=".vpool-drag-handle" @end="onDragEndVPool">
+              <template #item="{ element: vpool }">
+                <div>
+                  <v-divider />
+                  <div class="d-flex align-center px-3 py-2">
+                    <span class="vpool-drag-handle mr-2" style="cursor: grab; line-height: 1" aria-label="drag handle" aria-hidden>
+                      <v-icon size="18">mdi-drag</v-icon>
+                    </span>
+                    <span class="font-weight-medium text-truncate text-h6">{{ vpool.name }}</span>
+                    <span v-if="vpool.mountPoint" class="text-caption text-medium-emphasis ml-2 d-none d-sm-inline text-truncate" style="max-width: 200px">{{ vpool.mountPoint }}</span>
+                    <v-spacer />
+                    <v-chip v-if="vpool.status?.health" size="x-small" variant="tonal" :color="vpool.status.health === 'healthy' ? 'green' : 'warning'" class="mr-2">
+                      {{ vpool.status.health }}
+                    </v-chip>
+                    <v-chip v-if="vpool.status?.mounted" size="x-small" color="green" variant="tonal">{{ $t('mounted') }}</v-chip>
+                    <v-chip v-else size="x-small" color="grey" variant="tonal">{{ $t('unmounted') }}</v-chip>
+                    <v-switch v-model="vpool.automount" hide-details density="compact" color="green" inset class="ml-3 flex-grow-0" style="transform: scale(0.8)" />
+                    <v-menu>
+                      <template #activator="{ props }">
+                        <v-btn variant="text" icon size="small" v-bind="props" color="onPrimary">
+                          <v-icon size="20">mdi-dots-vertical</v-icon>
+                        </v-btn>
+                      </template>
+                      <v-list density="compact">
+                        <v-list-item @click="vpool.status?.mounted ? unmountVPool(vpool) : mountVPool(vpool)">
+                          <template #prepend>
+                            <v-icon size="18">{{ vpool.status?.mounted ? 'mdi-power-plug-off' : 'mdi-connection' }}</v-icon>
+                          </template>
+                          <v-list-item-title>{{ vpool.status?.mounted ? $t('unmount') : $t('mount') }}</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item @click="deleteVPool(vpool)">
+                          <template #prepend>
+                            <v-icon size="18">mdi-delete</v-icon>
+                          </template>
+                          <v-list-item-title>{{ $t('delete') }}</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </div>
+                  <div v-if="vpool.status" class="px-3 pb-2">
+                    <div class="mb-1">
+                      <v-progress-linear
+                        :model-value="vpool.status.usagePercent"
+                        height="8"
+                        :color="getUsageColor(vpool.status.usagePercent)"
+                        rounded
+                        bg-opacity="0.25"
+                        class="flex-grow-1"
+                        style="min-width: 80px"
+                      />
+                    <div class="mt-1 d-flex justify-space-between align-center" style="white-space: nowrap">
+                      <span class="text-caption text-medium-emphasis">{{ vpool.status.usagePercent }}%</span>
+                      <span class="text-caption text-medium-emphasis">{{ vpool.status.usedSpace_human }} / {{ vpool.status.totalSpace_human }}</span>
+                    </div>
+                  </div>
+                  <div class="d-flex flex-wrap" style="gap: 4px">
+                    <v-chip v-for="(path, idx) in vpool.paths" :key="`path-${idx}`" size="x-small" variant="tonal">
+                      {{ path }}
+                    </v-chip>
+                    <v-chip v-if="vpool.comment" size="x-small" variant="tonal">{{ vpool.comment }}</v-chip>
+                  </div>
+                </div>
+                </div>
+              </template>
+            </draggable>
           </template>
         </v-card>
       </v-container>
@@ -879,7 +956,14 @@
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="multiOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn @click="multiOperationDialog.operation === 'scrub' ? performMultiOperationScrub(multiOperationDialog.pool.id, multiOperationDialog.option) : performMultiOperationBalance(multiOperationDialog.pool.id, multiOperationDialog.option)" color="onPrimary">
+        <v-btn
+          @click="
+            multiOperationDialog.operation === 'scrub'
+              ? performMultiOperationScrub(multiOperationDialog.pool.id, multiOperationDialog.option)
+              : performMultiOperationBalance(multiOperationDialog.pool.id, multiOperationDialog.option)
+          "
+          color="onPrimary"
+        >
           {{ $t('perform') }}
         </v-btn>
       </v-card-actions>
@@ -1102,12 +1186,50 @@
     </v-card>
   </v-dialog>
 
+  <!-- Create Virtual Pool Dialog -->
+  <v-dialog v-model="createVpoolDialog.value" max-width="600">
+    <v-card class="pa-0" :title="t('create virtual pool')" prepend-icon="mdi-plus" style="max-height: 60vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto">
+        <v-text-field v-model="createVpoolDialog.name" :label="$t('name')" density="comfortable" class="pt-2" />
+        <div class="mb-4">
+          <div class="d-flex justify-space-between align-center">
+            <label class="text-body-2 font-weight-medium">{{ $t('paths') }}</label>
+            <v-btn variant="text" size="small" color="green" class="pa-0" style="min-width: auto" @click="openVpoolFsDialog()" title="Add" aria-label="add">
+              <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+              {{ $t('add') }}
+            </v-btn>
+          </div>
+          <div class="mt-2">
+            <v-chip v-for="(path, index) in createVpoolDialog.paths" :key="index" closable @click:close="createVpoolDialog.paths.splice(index, 1)" class="mr-2 mb-2">
+              {{ path }}
+            </v-chip>
+          </div>
+        </div>
+        <v-text-field v-model="createVpoolDialog.comment" :label="$t('comment')" density="comfortable" />
+        <v-select v-model="createVpoolDialog.config.policies.create" :items="createVpoolDialog.availablePolicies" :label="$t('create policy')" density="comfortable" />
+        <v-select v-model="createVpoolDialog.config.policies.search" :items="createVpoolDialog.availableSearchPolicies" :label="$t('search policy')" density="comfortable" />
+        <v-switch v-model="createVpoolDialog.automount" :label="$t('automount')" hide-details density="compact" color="green" inset />
+        <v-switch v-model="createVpoolDialog.config.shared" :label="$t('shared')" hide-details density="compact" color="green" inset />
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-btn @click="createVpoolDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn @click="createVPool()" color="onPrimary">{{ $t('create') }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialog.schedule" @apply="applyCronSchedule" @cancel="resetCronDialog" />
 
-  <!-- Floating Action Button -->
-  <!-- <v-fab color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon @click="openCreatePoolDialog()">
-    <v-icon>mdi-plus</v-icon>
-  </v-fab>-->
+  <!-- File System Navigator Dialog for Virtual Pool Paths -->
+  <fsNavigatorDialog
+    v-model="vpoolFsDialog.value"
+    :initial-path="vpoolFsDialog.initialPath"
+    :roots="vpoolFsDialog.initialPath"
+    select-type="directory"
+    :title="$t('select directory')"
+    @selected="handleVpoolFsSelected"
+  />
 
   <!-- Floating Action Button with Menu -->
   <v-menu location="top">
@@ -1123,16 +1245,14 @@
         </template>
         <v-list-item-title>{{ $t('create pool') }}</v-list-item-title>
       </v-list-item>
-      <!--<v-list-item @click="openCreateVPoolDialog()">
+      <v-list-item @click="openCreateVPoolDialog()">
         <template v-slot:prepend>
           <v-icon>mdi-plus</v-icon>
-        </template> 
-        <v-list-item-title>{{ $t('create vpool') }}</v-list-item-title>
-      </v-list-item>-->
+        </template>
+        <v-list-item-title>{{ $t('create virtual pool') }}</v-list-item-title>
+      </v-list-item>
     </v-list>
-    
   </v-menu>
-
 </template>
 
 <script setup>
@@ -1142,12 +1262,15 @@ import { useI18n } from 'vue-i18n';
 import { useOverlay } from '@/composables/useOverlay';
 import draggable from 'vuedraggable';
 import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
+import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const pools = ref([]);
 const poolsLoading = ref(true);
 const unassignedDisks = ref([]);
 const unassignedDisksLoading = ref(true);
+const vpools = ref([]);
+const vpoolsLoading = ref(true);
 const { t } = useI18n();
 const { overlay } = useOverlay();
 const cronDialogApplyCallback = ref(null);
@@ -1337,25 +1460,30 @@ const usageAlertsDialog = reactive({
     alert: 90,
   },
 });
-const vpools = reactive({
-  "name": "mediapath",
-  "paths": [
-    "/mnt/disk1/media",
-    "/mnt/disk2/media"
-  ],
-  "automount": true,
-  "comment": "",
-  "config": {
-    "policies": {
-      "create": "mspmfs",
-      "search": "ff"
+const createVpoolDialog = reactive({
+  value: false,
+  name: '',
+  paths: [],
+  automount: true,
+  comment: '',
+  config: {
+    policies: {
+      create: 'mspmfs',
+      search: 'ff',
     },
-    "shared": false
-  }
+    shared: false,
+  },
+  availablePolicies: ['pfrd', 'rand', 'mfs', 'ff', 'lfs', 'lup', 'lus', 'all', 'msppfrd', 'mspmfs', 'msplfs', 'msplus', 'eppfrd', 'epmfs', 'eprand', 'epff', 'eplfs', 'eplus', 'epall', 'newest'],
+  availableSearchPolicies: ['ff', 'lfs', 'lus', 'all', 'newest'],
+});
+const vpoolFsDialog = reactive({
+  value: false,
+  initialPath: '/',
 });
 
 onMounted(async () => {
   getPools();
+  getVPools();
   getUnassignedDisks();
   getPoolTypes();
 });
@@ -1583,6 +1711,55 @@ const openUsageAlertsDialog = (pool) => {
     alert: pool.config.usage_alert ? pool.config.usage_alert.alert : 90,
   };
 };
+const openCreateVPoolDialog = () => {
+  createVpoolDialog.value = true;
+  createVpoolDialog.name = '';
+  createVpoolDialog.paths = [];
+  createVpoolDialog.automount = true;
+  createVpoolDialog.comment = '';
+  createVpoolDialog.config = {
+    policies: {
+      create: 'mspmfs',
+      search: 'ff',
+    },
+    shared: false,
+  };
+  createVpoolDialog.availablePolicies = [
+    'pfrd',
+    'rand',
+    'mfs',
+    'ff',
+    'lfs',
+    'lup',
+    'lus',
+    'all',
+    'msppfrd',
+    'mspmfs',
+    'msplfs',
+    'msplus',
+    'eppfrd',
+    'epmfs',
+    'eprand',
+    'epff',
+    'eplfs',
+    'eplus',
+    'epall',
+    'newest',
+  ];
+  createVpoolDialog.availableSearchPolicies = ['ff', 'lfs', 'lus', 'all', 'newest'];
+};
+
+const openVpoolFsDialog = () => {
+  vpoolFsDialog.value = true;
+  vpoolFsDialog.initialPath = '/';
+};
+
+const handleVpoolFsSelected = (item) => {
+  if (item && item.path && !createVpoolDialog.paths.includes(item.path)) {
+    createVpoolDialog.paths.push(item.path);
+  }
+  vpoolFsDialog.value = false;
+};
 
 const getPools = async () => {
   try {
@@ -1603,6 +1780,128 @@ const getPools = async () => {
     showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     poolsLoading.value = false;
+  }
+};
+
+const getVPools = async () => {
+  try {
+    const res = await fetch('/api/v1/pools/vpools', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('virtual pools could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    vpools.value = await res.json();
+    vpools.value.sort((a, b) => a.index - b.index);
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    vpoolsLoading.value = false;
+  }
+};
+
+const onDragEndVPool = async () => {
+  const payload = {
+    order: vpools.value.map((vpool, index) => ({
+      id: vpool.id,
+      index: index + 1,
+    })),
+  };
+
+  try {
+    const res = await fetch('/api/v1/pools/vpools/order', {
+      method: 'PUT',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('virtual pool order could not be saved')}|$| ${error.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('virtual pool order saved successfully'));
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  }
+};
+
+const mountVPool = async (vpool) => {
+  overlay.value = true;
+  try {
+    const res = await fetch(`/api/v1/pools/vpools/${vpool.id}/mount`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('virtual pool could not be mounted')}|$| ${error.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('virtual pool mounted successfully'));
+    getVPools();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const unmountVPool = async (vpool) => {
+  overlay.value = true;
+  try {
+    const res = await fetch(`/api/v1/pools/vpools/${vpool.id}/unmount`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('virtual pool could not be unmounted')}|$| ${error.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('virtual pool unmounted successfully'));
+    getVPools();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const deleteVPool = async (vpool) => {
+  overlay.value = true;
+  try {
+    const res = await fetch(`/api/v1/pools/vpools/${vpool.id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('virtual pool could not be deleted')}|$| ${error.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('virtual pool deleted successfully'));
+    getVPools();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
   }
 };
 
@@ -1900,6 +2199,46 @@ const createPoolSingle = async () => {
     clearCreatePoolDialog();
     getPools();
     getUnassignedDisks();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const createVPool = async() => {
+  const payload = {
+    name: createVpoolDialog.name,
+    paths: createVpoolDialog.paths,
+    options: {
+      automount: createVpoolDialog.automount,
+      comment: createVpoolDialog.comment,
+      policies: createVpoolDialog.config.policies,
+    },
+    config: {
+      shared: createVpoolDialog.config.shared,
+    },
+  };
+  overlay.value = true;
+
+  try {
+    const res = await fetch(`/api/v1/pools/vpools`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('virtual pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('virtual pool created successfully'));
+    getVPools();
+    createVpoolDialog.value = false;
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
@@ -2253,7 +2592,7 @@ const performMultiOperationScrub = async (poolId, option) => {
 const performMultiOperationBalance = async (poolId, option) => {
   overlay.value = true;
   const payload = {
-    operation: option
+    operation: option,
   };
 
   try {

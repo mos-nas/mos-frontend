@@ -1636,5 +1636,18 @@
   "acknowledge": "Bestätigen",
   "recommended repositories": "Empfohlene Repositories",
   "could not get recommended repositories": "Empfohlene Repositories konnten nicht abgerufen werden",
-  "reinstall": "Neu installieren"
+  "reinstall": "Neu installieren",
+  "create virtual pool": "Virtuellen Pool erstellen",
+  "virtual pool created successfully": "Virtueller Pool erfolgreich erstellt",
+  "virtual pool could not be created": "Virtueller Pool konnte nicht erstellt werden",
+  "virtual pools": "Virtuelle Pools",
+  "virtual pools could not be loaded": "Virtuelle Pools konnten nicht geladen werden",
+  "virtual pool could not be mounted": "VPool konnte nicht eingebunden werden",
+  "virtual pool mounted successfully": "VPool erfolgreich eingebunden",
+  "virtual pool could not be unmounted": "VPool konnte nicht ausgebunden werden",
+  "virtual pool unmounted successfully": "VPool erfolgreich ausgebunden",
+  "virtual pool could not be deleted": "VPool konnte nicht gelöscht werden",
+  "virtual pool deleted successfully": "VPool erfolgreich gelöscht",
+  "virtual pool order could not be saved": "VPool-Reihenfolge konnte nicht gespeichert werden",
+  "virtual pool order saved successfully": "Virtuelle Pool Reihenfolge erfolgreich gespeichert"
 }
