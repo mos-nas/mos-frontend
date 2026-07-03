@@ -617,6 +617,10 @@ function cleanupWS(clearTimer = true) {
 </script>
 
 <style>
+html {
+  scrollbar-gutter: stable;
+}
+
 .v-btn--variant-flat.bg-primary,
 .v-btn--variant-elevated.bg-primary {
   background: rgb(var(--v-theme-primary)) !important;

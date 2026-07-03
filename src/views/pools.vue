@@ -344,8 +344,85 @@
             {{ $t('no pools have been created yet') }}
           </v-card-text>
         </v-card>
+
+        <!-- Virtual Pools Section -->
+        <div v-if="vpools.length > 0 && !vpoolsLoading" class="text-title-medium font-weight-medium" style="margin-top: 20px">{{ $t('virtual pools') }}</div>
+        <v-card v-if="vpools.length > 0" fluid variant="outlined" rounded="lg" class="pa-0">
+          <v-skeleton-loader v-if="vpoolsLoading" :loading="true" type="card" />
+          <template v-if="vpools.length === 0 && !vpoolsLoading">
+            <v-card-text class="pa-4 text-body-2">
+              {{ $t('no virtual pools found') }}
+            </v-card-text>
+          </template>
+          <template v-if="vpools.length > 0">
+            <draggable v-model="vpools" item-key="id" handle=".vpool-drag-handle" @end="onDragEndVPool">
+              <template #item="{ element: vpool }">
+                <div>
+                  <v-divider />
+                  <div class="d-flex align-center px-3 py-2">
+                    <span class="vpool-drag-handle mr-2" style="cursor: grab; line-height: 1" aria-label="drag handle" aria-hidden>
+                      <v-icon size="18">mdi-drag</v-icon>
+                    </span>
+                    <span class="font-weight-medium text-truncate text-h6">{{ vpool.name }}</span>
+                    <span v-if="vpool.mountPoint" class="text-caption text-medium-emphasis ml-2 d-none d-sm-inline text-truncate" style="max-width: 200px">{{ vpool.mountPoint }}</span>
+                    <v-spacer />
+                    <v-chip v-if="vpool.status?.mounted" size="x-small" color="green" variant="tonal">{{ $t('mounted') }}</v-chip>
+                    <v-chip v-else size="x-small" color="grey" variant="tonal">{{ $t('unmounted') }}</v-chip>
+                    <v-switch v-model="vpool.automount" hide-details density="compact" color="green" inset class="ml-3 flex-grow-0" style="transform: scale(0.8)" @change="switchVPoolAutomount(vpool)"/>
+                    <v-menu>
+                      <template #activator="{ props }">
+                        <v-btn variant="text" icon size="small" v-bind="props" color="onPrimary">
+                          <v-icon size="20">mdi-dots-vertical</v-icon>
+                        </v-btn>
+                      </template>
+                      <v-list density="compact">
+                        <v-list-item @click="vpool.status?.mounted ? unmountVPool(vpool) : mountVPool(vpool)">
+                          <template #prepend>
+                            <v-icon size="18">{{ vpool.status?.mounted ? 'mdi-power-plug-off' : 'mdi-connection' }}</v-icon>
+                          </template>
+                          <v-list-item-title>{{ vpool.status?.mounted ? $t('unmount') : $t('mount') }}</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item @click="deleteVPool(vpool)">
+                          <template #prepend>
+                            <v-icon size="18">mdi-delete</v-icon>
+                          </template>
+                          <v-list-item-title>{{ $t('delete') }}</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </div>
+                  <div v-if="vpool.status" class="px-3 pb-2">
+                    <div class="mb-1">
+                      <v-progress-linear
+                        :model-value="vpool.status.usagePercent"
+                        height="8"
+                        :color="getUsageColor(vpool.status.usagePercent)"
+                        rounded
+                        bg-opacity="0.25"
+                        class="flex-grow-1"
+                        style="min-width: 80px"
+                      />
+                    <div class="mt-1 d-flex justify-space-between align-center" style="white-space: nowrap">
+                      <span class="text-caption text-medium-emphasis">{{ vpool.status.usagePercent }}%</span>
+                      <span class="text-caption text-medium-emphasis">{{ vpool.status.usedSpace_human }} / {{ vpool.status.totalSpace_human }}</span>
+                    </div>
+                  </div>
+                  <div class="d-flex flex-wrap" style="gap: 4px">
+                    <v-chip v-for="(path, idx) in vpool.paths" :key="`path-${idx}`" size="x-small" variant="tonal">
+                      {{ path }}
+                    </v-chip>
+                    <v-chip v-if="vpool.comment" size="x-small" variant="tonal">{{ vpool.comment }}</v-chip>
+                  </div>
+                </div>
+                </div>
+              </template>
+            </draggable>
+          </template>
+        </v-card>
+
+        <!-- Unassigned Disks Section -->
         <div class="text-title-medium font-weight-medium" style="margin-top: 20px">{{ $t('unassigned disks') }}</div>
-        <v-card fluid :style="vpools.length > 0 ? '' : 'margin-bottom: 80px'" variant="outlined" rounded="lg" class="pa-0">
+        <v-card fluid style="margin-bottom: 80px" variant="outlined" rounded="lg" class="pa-0">
           <v-skeleton-loader v-if="unassignedDisksLoading" :loading="true" type="table-row@3" />
           <template v-if="unassignedDisks.length === 0 && !unassignedDisksLoading">
             <v-card-text class="pa-4 text-body-2">
@@ -419,79 +496,6 @@
                 </tr>
               </tbody>
             </v-table>
-          </template>
-        </v-card>
-        <div v-if="vpools.length > 0 && !vpoolsLoading" class="text-title-medium font-weight-medium" style="margin-top: 20px">{{ $t('virtual pools') }}</div>
-        <v-card v-if="vpools.length > 0" fluid style="margin-bottom: 80px" variant="outlined" rounded="lg" class="pa-0">
-          <v-skeleton-loader v-if="vpoolsLoading" :loading="true" type="card" />
-          <template v-if="vpools.length === 0 && !vpoolsLoading">
-            <v-card-text class="pa-4 text-body-2">
-              {{ $t('no virtual pools found') }}
-            </v-card-text>
-          </template>
-          <template v-if="vpools.length > 0">
-            <draggable v-model="vpools" item-key="id" handle=".vpool-drag-handle" @end="onDragEndVPool">
-              <template #item="{ element: vpool }">
-                <div>
-                  <v-divider />
-                  <div class="d-flex align-center px-3 py-2">
-                    <span class="vpool-drag-handle mr-2" style="cursor: grab; line-height: 1" aria-label="drag handle" aria-hidden>
-                      <v-icon size="18">mdi-drag</v-icon>
-                    </span>
-                    <span class="font-weight-medium text-truncate text-h6">{{ vpool.name }}</span>
-                    <span v-if="vpool.mountPoint" class="text-caption text-medium-emphasis ml-2 d-none d-sm-inline text-truncate" style="max-width: 200px">{{ vpool.mountPoint }}</span>
-                    <v-spacer />
-                    <v-chip v-if="vpool.status?.mounted" size="x-small" color="green" variant="tonal">{{ $t('mounted') }}</v-chip>
-                    <v-chip v-else size="x-small" color="grey" variant="tonal">{{ $t('unmounted') }}</v-chip>
-                    <v-switch v-model="vpool.automount" hide-details density="compact" color="green" inset class="ml-3 flex-grow-0" style="transform: scale(0.8)" @change="switchVPoolAutomount(vpool)"/>
-                    <v-menu>
-                      <template #activator="{ props }">
-                        <v-btn variant="text" icon size="small" v-bind="props" color="onPrimary">
-                          <v-icon size="20">mdi-dots-vertical</v-icon>
-                        </v-btn>
-                      </template>
-                      <v-list density="compact">
-                        <v-list-item @click="vpool.status?.mounted ? unmountVPool(vpool) : mountVPool(vpool)">
-                          <template #prepend>
-                            <v-icon size="18">{{ vpool.status?.mounted ? 'mdi-power-plug-off' : 'mdi-connection' }}</v-icon>
-                          </template>
-                          <v-list-item-title>{{ vpool.status?.mounted ? $t('unmount') : $t('mount') }}</v-list-item-title>
-                        </v-list-item>
-                        <v-list-item @click="deleteVPool(vpool)">
-                          <template #prepend>
-                            <v-icon size="18">mdi-delete</v-icon>
-                          </template>
-                          <v-list-item-title>{{ $t('delete') }}</v-list-item-title>
-                        </v-list-item>
-                      </v-list>
-                    </v-menu>
-                  </div>
-                  <div v-if="vpool.status" class="px-3 pb-2">
-                    <div class="mb-1">
-                      <v-progress-linear
-                        :model-value="vpool.status.usagePercent"
-                        height="8"
-                        :color="getUsageColor(vpool.status.usagePercent)"
-                        rounded
-                        bg-opacity="0.25"
-                        class="flex-grow-1"
-                        style="min-width: 80px"
-                      />
-                    <div class="mt-1 d-flex justify-space-between align-center" style="white-space: nowrap">
-                      <span class="text-caption text-medium-emphasis">{{ vpool.status.usagePercent }}%</span>
-                      <span class="text-caption text-medium-emphasis">{{ vpool.status.usedSpace_human }} / {{ vpool.status.totalSpace_human }}</span>
-                    </div>
-                  </div>
-                  <div class="d-flex flex-wrap" style="gap: 4px">
-                    <v-chip v-for="(path, idx) in vpool.paths" :key="`path-${idx}`" size="x-small" variant="tonal">
-                      {{ path }}
-                    </v-chip>
-                    <v-chip v-if="vpool.comment" size="x-small" variant="tonal">{{ vpool.comment }}</v-chip>
-                  </div>
-                </div>
-                </div>
-              </template>
-            </draggable>
           </template>
         </v-card>
       </v-container>
