@@ -42,7 +42,6 @@
   "gpu": "Carte graphique",
   "temperature": "Température",
   "temperature / min / max": "Température / Min / Max",
-
   "uptime": "Disponibilité",
   "version": "Version",
   "status": "Statut",
@@ -89,7 +88,6 @@
   "restart": "Redémarrer",
   "kill": "Forcer l'arrêt",
   "are you sure you want to delete this docker container?": "Êtes-vous sûr de vouloir supprimer ce conteneur Docker ?",
-
   "docker containers could not be loaded": "Impossible de charger les conteneurs Docker",
   "docker container could not be stopped": "Impossible d'arrêter le conteneur Docker",
   "docker container stopped successfully": "Conteneur Docker arrêté avec succès",
@@ -141,7 +139,6 @@
   "disk name": "Nom du disque",
   "disk size": "Taille du disque",
   "disk type": "Type de disque",
-
   "enabled": "Activé",
   "browseable": "Navigable",
   "read only": "Lecture seule",
@@ -215,7 +212,6 @@
   "netbird": "Netbird",
   "netbird update check": "Vérification des mises à jour Netbird",
   "netbird service params": "Paramètres du service Netbird",
-
   "lxc container could not be stopped": "Impossible d'arrêter le conteneur LXC",
   "lxc container stopped successfully": "Conteneur LXC arrêté avec succès",
   "lxc container could not be started": "Impossible de démarrer le conteneur LXC",
@@ -292,7 +288,6 @@
   "samba user": "Utilisateur Samba",
   "samba only": "Utilisateur Samba uniquement",
   "samba": "Samba",
-
   "system settings could not be changed": "Impossible de modifier les paramètres système",
   "system settings changed successfully": "Paramètres système modifiés avec succès",
   "hostname": "Nom d'hôte",
@@ -390,7 +385,6 @@
   "samples": "Échantillons",
   "history": "Historique",
   "last": "Dernier",
-
   "create docker group": "Créer un groupe Docker",
   "select containers": "Sélectionner des conteneurs",
   "group name": "Nom du groupe",
@@ -543,7 +537,6 @@
   "please enter type and server ip first": "Veuillez d'abord saisir le type et l'IP du serveur",
   "available shares": "Partages disponibles",
   "no shares found": "Aucun partage trouvé",
-
   "disk successfully put to sleep": "Disque mis en veille avec succès",
   "failed to put disk to sleep": "Impossible de mettre le disque en veille",
   "required": "Obligatoire",
@@ -843,7 +836,6 @@
   "pool order saved successfully": "Ordre des pools sauvegardé avec succès",
   "target devices": "Périphériques cibles",
   "target devices could not be set": "Impossible de définir les périphériques cibles",
-
   "target devices set successfully": "Périphériques cibles définis avec succès",
   "target devices could not be loaded": "Impossible de charger les périphériques cibles",
   "dashboard could not be loaded": "Impossible de charger le tableau de bord",
@@ -998,7 +990,6 @@
   "samba discovery": "Découverte Samba",
   "workgroup": "Groupe de travail",
   "edit xml": "Modifier le XML",
-
   "for": "pour",
   "save changes": "Enregistrer les modifications",
   "create vm": "Créer une VM",
@@ -1130,7 +1121,6 @@
   "smb share could not be updated": "Impossible de mettre à jour le partage SMB",
   "smb share updated successfully": "Partage SMB mis à jour avec succès",
   "edit nfs share": "Modifier le partage NFS",
-
   "add nfs share": "Ajouter un partage NFS",
   "edit smb share": "Modifier le partage SMB",
   "add smb share": "Ajouter un partage SMB",
@@ -1244,7 +1234,6 @@
   "enable binfmt": "Activer Binfmt",
   "binfmt architectures": "Architectures Binfmt",
   "lxc backups could not be loaded": "Impossible de charger les sauvegardes LXC",
-
   "allow running container during backup": "Autoriser l'exécution du conteneur pendant la sauvegarde",
   "backups": "Sauvegardes",
   "no backups have been created yet": "Aucune sauvegarde n'a encore été créée",
@@ -1633,18 +1622,29 @@
   "select the btrfs operation to be performed": "Sélectionner l'opération Btrfs à effectuer",
   "btrfs operation could not be executed": "Impossible d'exécuter l'opération Btrfs",
   "btrfs operation executed successfully": "Opération Btrfs exécutée avec succès",
+  "btrfs scrub could not be executed": "Impossible d'exécuter le scrub Btrfs",
+  "btrfs scrub executed successfully": "Scrub Btrfs exécuté avec succès",
+  "btrfs balance could not be executed": "Impossible d'exécuter l'équilibrage Btrfs",
+  "btrfs balance executed successfully": "Équilibrage Btrfs exécuté avec succès",
   "btrfs operations": "Opérations Btrfs",
   "scrub running": "Scrub en cours",
   "balance running": "Équilibrage en cours",
   "processed": "Traité",
   "errors": "Erreurs",
-  "create vpool": "Créer un VPool",
-  "vpool": "VPool",
+  "virtual pool": "Virtual Pool",
+  "virtual pool created successfully": "Virtual Pool créé avec succès",
+  "virtual pool could not be created": "Impossible de créer le Virtual Pool",
+  "virtual pools": "Virtual Pools",
+  "virtual pools could not be loaded": "Impossible de charger les Virtual Pools",
+  "virtual pool could not be mounted": "Impossible de monter le Virtual Pool",
+  "virtual pool mounted successfully": "Virtual Pool monté avec succès",
+  "virtual pool could not be unmounted": "Impossible de démonter le Virtual Pool",
+  "virtual pool unmounted successfully": "Virtual Pool démonté avec succès",
+  "virtual pool could not be deleted": "Impossible de supprimer le Virtual Pool",
+  "virtual pool deleted successfully": "Virtual Pool supprimé avec succès",
+  "virtual pool order could not be saved": "Impossible de sauvegarder l'ordre des Virtual Pools",
+  "virtual pool order saved successfully": "Ordre des Virtual Pools sauvegardé avec succès",
   "acknowledge": "Prendre acte de",
-    "btrfs scrub could not be executed": "Impossible d'exécuter le scrub Btrfs",
-  "btrfs scrub executed successfully": "Scrub Btrfs exécuté avec succès",
-  "btrfs balance could not be executed": "Impossible d'exécuter l'équilibrage Btrfs",
-  "btrfs balance executed successfully": "Équilibrage Btrfs exécuté avec succès",
   "recommended repositories": "Dépôts recommandés",
   "could not get recommended repositories": "Impossible de récupérer les dépôts recommandés",
   "reinstall": "Réinstaller"
