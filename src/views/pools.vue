@@ -441,12 +441,9 @@
                     <span class="font-weight-medium text-truncate text-h6">{{ vpool.name }}</span>
                     <span v-if="vpool.mountPoint" class="text-caption text-medium-emphasis ml-2 d-none d-sm-inline text-truncate" style="max-width: 200px">{{ vpool.mountPoint }}</span>
                     <v-spacer />
-                    <v-chip v-if="vpool.status?.health" size="x-small" variant="tonal" :color="vpool.status.health === 'healthy' ? 'green' : 'warning'" class="mr-2">
-                      {{ vpool.status.health }}
-                    </v-chip>
                     <v-chip v-if="vpool.status?.mounted" size="x-small" color="green" variant="tonal">{{ $t('mounted') }}</v-chip>
                     <v-chip v-else size="x-small" color="grey" variant="tonal">{{ $t('unmounted') }}</v-chip>
-                    <v-switch v-model="vpool.automount" hide-details density="compact" color="green" inset class="ml-3 flex-grow-0" style="transform: scale(0.8)" />
+                    <v-switch v-model="vpool.automount" hide-details density="compact" color="green" inset class="ml-3 flex-grow-0" style="transform: scale(0.8)" @change="switchVPoolAutomount(vpool)"/>
                     <v-menu>
                       <template #activator="{ props }">
                         <v-btn variant="text" icon size="small" v-bind="props" color="onPrimary">
@@ -2297,6 +2294,34 @@ const switchAutomount = async (pool) => {
     showSnackbarSuccess(t('automount setting changed successfully'));
 
     getPools();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const switchVPoolAutomount = async (vpool) => {
+  overlay.value = true;
+
+  try {
+    const res = await fetch(`/api/v1/pools/vpools/${vpool.id}/automount`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ enabled: vpool.automount }),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('could not change automount setting')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('automount setting changed successfully'));
+
+    getVPools();
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
