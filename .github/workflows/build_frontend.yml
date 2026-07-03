@@ -63,7 +63,7 @@ jobs:
       id: version
       run: |
         LAST_TAG=$(curl -s --request GET \
-            --url "https://api.github.com/repos/ich777/mos-frontend/releases?per_page=50" \
+            --url "https://api.github.com/repos/mos-nas/mos-frontend/releases?per_page=50" \
             --header "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             --header "X-GitHub-Api-Version: 2022-11-28" | jq -r '.[].tag_name' | sort -V | tail -1)
         echo "Last tag: $LAST_TAG"
