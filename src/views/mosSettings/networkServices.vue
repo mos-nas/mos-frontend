@@ -57,6 +57,28 @@
                 <v-switch :label="$t('tailscale update check')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.update_check"></v-switch>
               </v-col>
             </v-row>
+            <v-row no-gutters class="pt-2 pb-2 align-center">
+              <v-col cols="12" md="3" class="pr-2">
+                <v-switch :label="$t('tailscale web')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.web.enabled"></v-switch>
+              </v-col>
+              <v-col cols="12" md="4" class="pr-2" v-show="settingsNetwork.tailscale.web.enabled">
+                <v-text-field :label="$t('tailscale web address')" color="green" inset hide-details="auto" v-model="settingsNetwork.tailscale.web.address"></v-text-field>
+              </v-col>
+              <v-col cols="12" md="2" class="pr-2" v-show="settingsNetwork.tailscale.web.enabled">
+                <v-text-field :label="$t('tailscale web port')" color="green" inset hide-details="auto" v-model="settingsNetwork.tailscale.web.port"></v-text-field>
+              </v-col>
+              <v-col cols="12" md="3" v-show="settingsNetwork.tailscale.web.enabled">
+                <v-btn 
+                  variant="text"
+                  size="small"
+                  style="color: green;"
+                  @click="openTailscaleWeb()"
+                >
+                  <v-icon size="18" class="mr-1">mdi-open-in-new</v-icon>
+                  {{ $t('open tailscale web') }}
+                </v-btn>
+              </v-col>
+            </v-row>
             <v-text-field class="mt-2" :label="$t('tailscale params')" v-model="settingsNetwork.tailscale.tailscaled_params"></v-text-field>
             <v-btn
               v-if="apiSettingsNetwork && apiSettingsNetwork.tailscale.enabled && !settingsNetwork.tailscale.online"
@@ -197,11 +219,18 @@ const settingsNetwork = ref({
     enabled: false,
     update_check: false,
     tailscaled_params: null,
+    web: {
+      enabled: false,
+      address: '0.0.0.0',
+      port: 5252
+    },
+    online: false
   },
   netbird: {
     enabled: false,
     update_check: false,
     netbird_service_params: null,
+    online: false,
   },
   remote_mounting: {
     enabled: false,
@@ -235,7 +264,22 @@ const getNetworkSettings = async () => {
       throw new Error(`${t('network settings could not be loaded')}|$| ${error.error || t('unknown error')}`);
     }
 
-    settingsNetwork.value = await res.json();
+    const apiData = await res.json();
+    settingsNetwork.value = {
+      ssh: { ...settingsNetwork.value.ssh, ...(apiData.ssh || {}) },
+      samba: { ...settingsNetwork.value.samba, ...(apiData.samba || {}) },
+      samba_discovery: { ...settingsNetwork.value.samba_discovery, ...(apiData.samba_discovery || {}) },
+      nfs: { ...settingsNetwork.value.nfs, ...(apiData.nfs || {}) },
+      nut: { ...settingsNetwork.value.nut, ...(apiData.nut || {}) },
+      tailscale: {
+        ...settingsNetwork.value.tailscale,
+        ...(apiData.tailscale || {}),
+        web: { ...settingsNetwork.value.tailscale.web, ...((apiData.tailscale?.web) || {}) }
+      },
+      netbird: { ...settingsNetwork.value.netbird, ...(apiData.netbird || {}) },
+      remote_mounting: { ...settingsNetwork.value.remote_mounting, ...(apiData.remote_mounting || {}) },
+      dnsmasq: { ...settingsNetwork.value.dnsmasq, ...(apiData.dnsmasq || {}) },
+    };
     apiSettingsNetwork.value = JSON.parse(JSON.stringify(settingsNetwork.value));
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
@@ -278,6 +322,11 @@ const openWebTerminal = async (service) => {
   } else {
     showSnackbarError(t('failed to create terminal session'));
   }
+};
+
+const openTailscaleWeb = () => {
+  const url = `http://${settingsNetwork.value.tailscale.web.address}:${settingsNetwork.value.tailscale.web.port}`;
+  window.open(url, '_blank');
 };
 
 const createTerminalSession = async (service) => {
