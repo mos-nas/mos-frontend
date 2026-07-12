@@ -1649,7 +1649,7 @@
   "virtual pool order could not be saved": "Impossible de sauvegarder l'ordre des Virtual Pools",
   "virtual pool order saved successfully": "Ordre des Virtual Pools sauvegardé avec succès",
   "acknowledge": "Prendre acte de",
-  "recommended repositories": "Dépôts recommandés",
-  "could not get recommended repositories": "Impossible de récupérer les dépôts recommandés",
+  "known repositories": "Dépôts connus",
+  "could not get known repositories": "Impossible de récupérer les dépôts connus",
   "reinstall": "Réinstaller"
 }

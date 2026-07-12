@@ -272,12 +272,10 @@
   </v-container>
 
   <!-- Repositories Dialog -->
-  <v-dialog v-model="mosHubRepositoriesDialog.value" max-width="600px">
-    <v-card class="pa-0">
-      <v-card-title>{{ $t('repositories') }}</v-card-title>
-      <v-card-text class="pa-0">
-        <v-container fluid>
-          <v-row class="pa-0">
+  <v-dialog v-model="mosHubRepositoriesDialog.value" max-width="600px" scrollable>
+    <v-card class="pa-0" :title="$t('repositories')" prepend-icon="mdi-source-repository">
+      <v-card-text class="py-0" style="max-height: 60vh; overflow-y: auto">
+          <v-row class="pa-0 pt-2">
             <v-col cols="12" v-for="(repo, index) in mosHubRepositoriesDialog.repositories" :key="index" class="d-flex align-center">
               <v-text-field
                 v-model="mosHubRepositoriesDialog.repositories[index]"
@@ -292,22 +290,21 @@
             </v-col>
           </v-row>
           <v-row>
-            <v-col cols="12" class="d-flex flex-column gap-2 mt-2 mb-0" style="align-items: flex-end">
-              <v-btn color="primary" variant="text" prepend-icon="mdi-plus" @click="openRecommendedReposDialog()">
-                {{ $t('recommended repositories') }}
+            <v-col cols="12" class="d-flex flex-column gap-2 mt-0 mb-2" style="align-items: flex-end">
+              <v-btn color="primary" variant="text" prepend-icon="mdi-plus" @click="openKnownReposDialog()">
+                {{ $t('known repositories') }}
               </v-btn>
               <v-btn color="primary" variant="text" prepend-icon="mdi-plus" @click="mosHubRepositoriesDialog.repositories.push('')">
                 {{ $t('add repository') }}
               </v-btn>
             </v-col>
           </v-row>
-        </v-container>
       </v-card-text>
       <v-divider />
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn text @click="mosHubRepositoriesDialog.value = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="primary" @click="setHubRepositories(mosHubRepositoriesDialog.repositories)">{{ $t('save') }}</v-btn>
+      <v-card-actions style="flex-shrink: 0">
+        <v-spacer />
+        <v-btn color="onPrimary" @click="mosHubRepositoriesDialog.value = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="onPrimary" @click="setHubRepositories(mosHubRepositoriesDialog.repositories)">{{ $t('save') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -411,9 +408,9 @@
         </v-row>
       </v-card-text>
       <v-divider />
-      <v-card-actions class="px-6 py-2">
+      <v-card-actions style="flex-shrink: 0">
         <v-spacer />
-        <v-btn color="onPrimary" variant="text" @click="installDialog.value = false">
+        <v-btn color="onPrimary" @click="installDialog.value = false">
           {{ $t('cancel') }}
         </v-btn>
         <v-btn color="onPrimary" :disabled="installDialog.type === 'plugin' ? !installDialog.release : !mosServices?.docker?.running" :prepend-icon="getInstallDialogIcon()" @click="doDialogInstall()">
@@ -423,24 +420,24 @@
     </v-card>
   </v-dialog>
 
-  <!-- Pick recommended repos -->
-  <v-dialog v-model="recommendedReposDialog.value" persistent max-width="600px">
-    <v-card>
-      <v-card-title>{{ $t('recommended repositories') }}</v-card-title>
-      <v-card-text>
-        <v-list>
-          <v-list-item v-for="repo in recommendedRepos" :key="repo" @click="toggleRecommendedRepo(repo)">
-            <template #append>
-              <v-icon v-if="selectedRecommendedRepos.includes(repo)" color="success">mdi-check-circle</v-icon>
-            </template>
-            <v-list-item-title>{{ repo }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
+  <!-- Pick known repos -->
+  <v-dialog v-model="knownReposDialog.value" persistent max-width="600" scrollable>
+    <v-card :title="$t('known repositories')" prepend-icon="mdi-source-repository">
+      <v-card-text style="max-height: 60vh; overflow-y: auto">
+          <v-list>
+            <v-list-item v-for="repo in knownRepos" :key="repo" @click="toggleKnownRepo(repo)">
+              <template #append>
+                <v-icon v-if="selectedKnownRepos.includes(repo)" color="success">mdi-check-circle</v-icon>
+              </template>
+              <v-list-item-title>{{ repo }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
       </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn text @click="recommendedReposDialog.value = false">{{ $t('close') }}</v-btn>
-        <v-btn text color="primary" @click="saveSelectedRecommendedRepos()">{{ $t('save') }}</v-btn>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-spacer />
+        <v-btn color="onPrimary" @click="knownReposDialog.value = false">{{ $t('close') }}</v-btn>
+        <v-btn color="onPrimary" @click="saveSelectedKnownRepos()">{{ $t('save') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -505,9 +502,9 @@ const errorMsg = ref('');
 const releasesItems = ref([]);
 const mosHub = ref([]);
 const mosHubCount = ref(0);
-const recommendedRepos = ref([]);
-const selectedRecommendedRepos = ref([]);
-const recommendedReposDialog = reactive({
+const knownRepos = ref([]);
+const selectedKnownRepos = ref([]);
+const knownReposDialog = reactive({
   value: false,
   loading: false,
 });
@@ -795,17 +792,17 @@ const openPluginInstallDialog = (tpl) => {
   installDialog.release = null;
   getPluginReleases(tpl?.repository);
 };
-const openRecommendedReposDialog = async () => {
-  recommendedReposDialog.value = true;
-  recommendedReposDialog.loading = true;
-  await getRecommendedRepos();
-  selectedRecommendedRepos.value = [...mosHubRepositoriesDialog.repositories];
-  recommendedReposDialog.loading = false;
+const openKnownReposDialog = async () => {
+  knownReposDialog.value = true;
+  knownReposDialog.loading = true;
+  await getKnownRepos();
+  selectedKnownRepos.value = [...mosHubRepositoriesDialog.repositories];
+  knownReposDialog.loading = false;
 };
 
-const getRecommendedRepos = async () => {
+const getKnownRepos = async () => {
   try {
-    const res = await fetch('/api/v1/mos/hub/recommended', {
+    const res = await fetch('/api/v1/mos/hub/knownrepositories', {
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
       },
@@ -813,28 +810,28 @@ const getRecommendedRepos = async () => {
 
     if (!res.ok) {
       const error = await res.json();
-      throw new Error(`${t('could not get recommended repositories')}|$| ${error.error || t('unknown error')}`);
+      throw new Error(`${t('could not get known repositories')}|$| ${error.error || t('unknown error')}`);
     }
 
-    recommendedRepos.value = await res.json();
+    knownRepos.value = await res.json();
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
   }
 };
 
-const toggleRecommendedRepo = (repoName) => {
-  const index = selectedRecommendedRepos.value.indexOf(repoName);
+const toggleKnownRepo = (repoName) => {
+  const index = selectedKnownRepos.value.indexOf(repoName);
   if (index === -1) {
-    selectedRecommendedRepos.value.push(repoName);
+    selectedKnownRepos.value.push(repoName);
   } else {
-    selectedRecommendedRepos.value.splice(index, 1);
+    selectedKnownRepos.value.splice(index, 1);
   }
 };
 
-const saveSelectedRecommendedRepos = () => {
-  mosHubRepositoriesDialog.repositories = [...selectedRecommendedRepos.value];
-  recommendedReposDialog.value = false;
+const saveSelectedKnownRepos = () => {
+  mosHubRepositoriesDialog.repositories = [...selectedKnownRepos.value];
+  knownReposDialog.value = false;
 };
 </script>
 
