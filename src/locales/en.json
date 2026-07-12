@@ -1652,5 +1652,6 @@
   "virtual pool could not be deleted": "Virtual Pool could not be deleted",
   "virtual pool deleted successfully": "Virtual Pool deleted successfully",
   "virtual pool order could not be saved": "Virtual Pool order could not be saved",
-  "virtual pool order saved successfully": "Virtual Pool order saved successfully"
+  "virtual pool order saved successfully": "Virtual Pool order saved successfully",
+  "smart attribute acknowledged successfully": "SMART attribute acknowledged successfully"
 }
