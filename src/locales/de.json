@@ -1653,5 +1653,6 @@
   "virtual pool deleted successfully": "Virtueller Pool erfolgreich gelöscht",
   "virtual pool order could not be saved": "Virtueller Pool-Reihenfolge konnte nicht gespeichert werden",
   "virtual pool order saved successfully": "Virtuelle Pool Reihenfolge erfolgreich gespeichert",
-  "smart attribute acknowledged successfully": "SMART Attribut erfolgreich bestätigt"
+  "smart attribute acknowledged successfully": "SMART Attribut erfolgreich bestätigt",
+  "logsize": "Loggröße"
 }

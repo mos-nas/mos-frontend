@@ -47,6 +47,9 @@
             <v-text-field :label="$t('local dns searchname')" v-model="settingsSystem.webui.local_dns_searchname" class="mb-4" hide-details="auto"></v-text-field>
             <v-select :items="listenInterfaces" :label="$t('network interfaces')" v-model="settingsSystem.webui.listen_interfaces" multiple chips></v-select>
             <v-divider class="my-2"></v-divider>
+            <span class="text-title-medium font-weight-medium">{{ $t('logs') }}</span>
+            <v-text-field :label="$t('logsize')" type="number" v-model="settingsSystem.logsize" class="mb-4 mt-4" suffix="MB"></v-text-field>
+            <v-divider class="my-2"></v-divider>
             <span class="text-title-medium font-weight-medium">{{ $t('update settings') }}</span>
             <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" class="pt-4" density="compact"></v-switch>
             <v-text-field
@@ -320,6 +323,7 @@ const settingsSystem = ref({
     enabled: true,
     update_check_schedule: '0 1 * * *',
   },
+  logsize: 200,
   binfmt: {
     enabled: false,
     architectures: [],
