@@ -91,6 +91,73 @@
                   ></v-text-field>
                 </v-col>
               </v-row>
+              <v-divider class="my-4"></v-divider>
+              <v-row>
+                <v-col cols="12" class="d-flex align-center justify-space-between">
+                  <span class="text-title-medium font-weight-medium">{{ $t('docker networks') }}</span>
+                  <v-btn
+                    variant="text"
+                    size="small"
+                    color="green"
+                    class="ma-1 pa-0"
+                    style="min-width: 0; color: green"
+                    @click="openCreateNetworkDialog()"
+                    title="Add network"
+                    aria-label="add network"
+                  >
+                    <v-icon size="18" class="mr-1">mdi-plus</v-icon>
+                    {{ $t('add') }}
+                  </v-btn>
+                </v-col>
+              </v-row>
+              <v-skeleton-loader :loading="dockerNetworksLoading" type="table" class="w-100 mt-2">
+                <v-table class="bg-transparent mt-2" density="compact">
+                  <thead>
+                    <tr style="background-color: rgba(0, 0, 0, 0.04)">
+                      <th style="padding: 8px; text-align: left;">{{ $t('name') }}</th>
+                      <th style="padding: 8px; text-align: left; width: 120px;">{{ $t('driver') }}</th>
+                      <th style="padding: 8px; text-align: left;">{{ $t('subnet') }}</th>
+                      <th style="padding: 8px; text-align: left; width: 100px;">{{ $t('gateway') }}</th>
+                      <th style="padding: 8px; text-align: left; width: 80px;">{{ $t('scope') }}</th>
+                      <th style="padding: 8px; text-align: left; width: 150px;">{{ $t('ip version') }}</th>
+                      <th style="padding: 8px; text-align: center; width: 50px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="network in dockerNetworks" :key="network.Id" style="border-bottom: 1px solid rgba(0,0,0,0.06)">
+                      <td style="padding: 8px; font-weight: 500;">{{ network.Name }}</td>
+                      <td style="padding: 8px;">
+                        <v-chip size="small">{{ network.Driver || 'unknown' }}</v-chip>
+                      </td>
+                      <td style="padding: 8px; font-size: 0.85rem;">
+                        <div v-if="network.IPAM?.Config && network.IPAM.Config.length > 0">
+                          <div v-for="(config, idx) in network.IPAM.Config" :key="idx">
+                            {{ config.Subnet }}
+                          </div>
+                        </div>
+                        <span v-else style="color: rgba(0,0,0,0.38);">-</span>
+                      </td>
+                      <td style="padding: 8px; font-size: 0.85rem;">
+                        <div v-if="network.IPAM?.Config && network.IPAM.Config.length > 0">
+                          <div v-for="(config, idx) in network.IPAM.Config" :key="idx">
+                            {{ config.Gateway || '-' }}
+                          </div>
+                        </div>
+                        <span v-else style="color: rgba(0,0,0,0.38);">-</span>
+                      </td>
+                      <td style="padding: 8px;">{{ network.Scope }}</td>
+                      <td style="padding: 8px; display: flex; gap: 4px;">
+                        <v-chip v-if="network.EnableIPv4" size="small" color="info" text-color="white">IPv4</v-chip>
+                        <v-chip v-if="network.EnableIPv6" size="small" color="warning" text-color="white">IPv6</v-chip>
+                      </td>
+                      <td style="padding: 8px; text-align: center;">
+                        <v-icon size="small" color="error" style="cursor: pointer;" @click="deleteDockerNetwork(network)">mdi-delete</v-icon>
+                      </td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </v-skeleton-loader>
+              
             </v-card-text>
           </v-card>
         </v-skeleton-loader>
@@ -100,6 +167,41 @@
 
   <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialog.schedule" @apply="applyCronSchedule" @cancel="resetCronDialog" />
 
+  <!-- Delete Network Dialog -->
+  <v-dialog v-model="deleteNetworkDialog.value" max-width="500">
+    <v-card class="pa-0">
+      <v-card-title class="text-h6" v-if="deleteNetworkDialog.network">{{ $t('delete') }} - {{ deleteNetworkDialog.network.Name }}</v-card-title>
+      <v-card-text>
+        {{ $t('are you sure you want to delete this docker network') }}?
+      </v-card-text>
+      <v-divider />
+      <v-card-actions>
+        <v-spacer />
+        <v-btn color="onPrimary" @click="deleteNetworkDialog.value = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="red" @click="confirmDeleteNetwork()">
+          {{ $t('delete') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- Create Network Dialog -->
+  <v-dialog v-model="createNetworkDialog.value" max-width="500">
+    <v-card class="pa-0">
+      <v-card-title class="text-h6">{{ $t('create docker network') }}</v-card-title>
+      <v-card-text>
+        <v-text-field v-model="createNetworkDialog.form.Name" :label="$t('name')" required class="mt-4"></v-text-field>
+        <v-select v-model="createNetworkDialog.form.Driver" :items="['bridge', 'ipvlan', 'macvlan', 'overlay']" :label="$t('driver')" required></v-select>
+      </v-card-text>
+      <v-divider />
+      <v-card-actions>
+        <v-spacer />
+        <v-btn color="onPrimary" @click="createNetworkDialog.value = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="green" @click="createDockerNetwork()">
+          {{ $t('create') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   <!-- File System Navigator Dialog -->
   <fsNavigatorDialog v-model="fsDialog" :initial-path="'/'" select-type="directory" :title="$t('select directory')" @selected="handleFsSelected" />
 
@@ -146,12 +248,26 @@ const settingsDocker = ref({
   },
 });
 const dockerServiceLoading = ref(true);
+const dockerNetworks = ref([]);
+const dockerNetworksLoading = ref(true);
+const deleteNetworkDialog = reactive({
+  value: false,
+  network: null,
+});
+const createNetworkDialog = reactive({
+  value: false,
+  form: {
+    Name: '',
+    Driver: 'bridge',
+  },
+});
 const { overlay } = useOverlay();
 const { t } = useI18n();
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 
 onMounted(() => {
   getDockerService();
+  getDockerNetworks();
 });
 
 const openFsDialog = (cb) => {
@@ -211,6 +327,102 @@ const getDockerService = async () => {
     showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     dockerServiceLoading.value = false;
+  }
+};
+
+const getDockerNetworks = async () => {
+  try {
+    const res = await fetch('/api/v1/docker/networks', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('docker networks could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    dockerNetworks.value = await res.json();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    dockerNetworksLoading.value = false;
+  }
+};
+
+const deleteDockerNetwork = async (network) => {
+  deleteNetworkDialog.value = true;
+  deleteNetworkDialog.network = network;
+};
+
+const confirmDeleteNetwork = async () => {
+  try {
+    overlay.value = true;
+    const res = await fetch(`/api/v1/docker/networks/${deleteNetworkDialog.network.Id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('docker network could not be deleted')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    showSnackbarSuccess(`${t('docker network')} "${deleteNetworkDialog.network.Name}" ${t('deleted successfully')}`);
+    deleteNetworkDialog.value = false;
+    deleteNetworkDialog.network = null;
+    getDockerNetworks();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const openCreateNetworkDialog = () => {
+  createNetworkDialog.form.Name = '';
+  createNetworkDialog.form.Driver = 'bridge';
+  createNetworkDialog.value = true;
+};
+
+const createDockerNetwork = async () => {
+  if (!createNetworkDialog.form.Name.trim()) {
+    showSnackbarError(t('name required'));
+    return;
+  }
+
+  try {
+    overlay.value = true;
+    const res = await fetch('/api/v1/docker/networks/create', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        Name: createNetworkDialog.form.Name,
+        Driver: createNetworkDialog.form.Driver,
+      }),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('docker network could not be created')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    showSnackbarSuccess(`${t('docker network')} "${createNetworkDialog.form.Name}" ${t('created successfully')}`);
+    createNetworkDialog.value = false;
+    getDockerNetworks();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
   }
 };
 
