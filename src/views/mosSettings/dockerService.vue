@@ -3,10 +3,10 @@
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
-          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px;">
-            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle;">mdi-arrow-left</v-icon>
+          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px">
+            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle">mdi-arrow-left</v-icon>
           </v-col>
-          <div class="d-flex align-center ga-3 mb-4" style="height: 40px;">
+          <div class="d-flex align-center ga-3 mb-4" style="height: 40px">
             <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
             <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ $t('docker service') }}</h2>
           </div>
@@ -87,7 +87,9 @@
                     density="comfortable"
                     hide-details="auto"
                     append-inner-icon="mdi-calendar-clock"
-                    @click:append-inner="openCronDialog(settingsDocker.update_check.auto_update.auto_update_schedule, (schedule) => (settingsDocker.update_check.auto_update.auto_update_schedule = schedule))"
+                    @click:append-inner="
+                      openCronDialog(settingsDocker.update_check.auto_update.auto_update_schedule, (schedule) => (settingsDocker.update_check.auto_update.auto_update_schedule = schedule))
+                    "
                   ></v-text-field>
                 </v-col>
               </v-row>
@@ -95,16 +97,7 @@
               <v-row>
                 <v-col cols="12" class="d-flex align-center justify-space-between">
                   <span class="text-title-medium font-weight-medium">{{ $t('docker networks') }}</span>
-                  <v-btn
-                    variant="text"
-                    size="small"
-                    color="green"
-                    class="ma-1 pa-0"
-                    style="min-width: 0; color: green"
-                    @click="openCreateNetworkDialog()"
-                    title="Add network"
-                    aria-label="add network"
-                  >
+                  <v-btn variant="text" size="small" color="green" class="ma-1 pa-0" style="min-width: 0; color: green" @click="openCreateNetworkDialog()" title="Add network" aria-label="add network">
                     <v-icon size="18" class="mr-1">mdi-plus</v-icon>
                     {{ $t('add') }}
                   </v-btn>
@@ -114,50 +107,56 @@
                 <v-table class="bg-transparent mt-2" density="compact">
                   <thead>
                     <tr style="background-color: rgba(0, 0, 0, 0.04)">
-                      <th style="padding: 8px; text-align: left;">{{ $t('name') }}</th>
-                      <th style="padding: 8px; text-align: left; width: 120px;">{{ $t('driver') }}</th>
-                      <th style="padding: 8px; text-align: left;">{{ $t('subnet') }}</th>
-                      <th style="padding: 8px; text-align: left; width: 100px;">{{ $t('gateway') }}</th>
-                      <th style="padding: 8px; text-align: left; width: 80px;">{{ $t('scope') }}</th>
-                      <th style="padding: 8px; text-align: left; width: 150px;">{{ $t('ip version') }}</th>
-                      <th style="padding: 8px; text-align: center; width: 50px;"></th>
+                      <th style="padding: 4px 8px; text-align: left">{{ $t('name') }}</th>
+                      <th style="padding: 4px 8px; text-align: left; width: 120px">{{ $t('driver') }}</th>
+                      <th style="padding: 4px 8px; text-align: left" width="100px">{{ $t('subnet') }}</th>
+                      <th style="padding: 4px 8px; text-align: left; width: 100px">{{ $t('gateway') }}</th>
+                      <th style="padding: 4px 8px; text-align: left; width: 80px">{{ $t('scope') }}</th>
+                      <th style="padding: 4px 8px; text-align: left; width: 150px">{{ $t('ip version') }}</th>
+                      <th style="padding: 4px 8px; text-align: left; width: 50px"></th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="network in dockerNetworks" :key="network.Id" style="border-bottom: 1px solid rgba(0,0,0,0.06)">
-                      <td style="padding: 8px; font-weight: 500;">{{ network.Name }}</td>
-                      <td style="padding: 8px;">
+                    <tr v-for="network in dockerNetworks" :key="network.Id" style="border-bottom: 1px solid rgba(0, 0, 0, 0.06)">
+                      <td style="padding: 4px 8px; font-weight: 500">{{ network.Name }}</td>
+                      <td style="padding: 4px 8px">
                         <v-chip size="small">{{ network.Driver || 'unknown' }}</v-chip>
                       </td>
-                      <td style="padding: 8px; font-size: 0.85rem;">
+                      <td style="padding: 4px 8px; font-size: 0.85rem">
                         <div v-if="network.IPAM?.Config && network.IPAM.Config.length > 0">
-                          <div v-for="(config, idx) in network.IPAM.Config" :key="idx">
-                            {{ config.Subnet }}
-                          </div>
+                          <div v-for="(config, idx) in network.IPAM.Config" :key="idx">{{ config.Subnet }}</div>
                         </div>
-                        <span v-else style="color: rgba(0,0,0,0.38);">-</span>
+                        <span v-else style="color: rgba(0, 0, 0, 0.38)">-</span>
                       </td>
-                      <td style="padding: 8px; font-size: 0.85rem;">
+                      <td style="padding: 4px 8px">
                         <div v-if="network.IPAM?.Config && network.IPAM.Config.length > 0">
-                          <div v-for="(config, idx) in network.IPAM.Config" :key="idx">
-                            {{ config.Gateway || '-' }}
-                          </div>
+                          <div v-for="(config, idx) in network.IPAM.Config" :key="idx">{{ config.Gateway || '-' }}</div>
                         </div>
-                        <span v-else style="color: rgba(0,0,0,0.38);">-</span>
+                        <span v-else style="color: rgba(0, 0, 0, 0.38)">-</span>
                       </td>
-                      <td style="padding: 8px;">{{ network.Scope }}</td>
-                      <td style="padding: 8px; display: flex; gap: 4px;">
+                      <td style="padding: 4px 8px">{{ network.Scope }}</td>
+                      <td style="padding: 4px 8px">
                         <v-chip v-if="network.EnableIPv4" size="small" color="info" text-color="white">IPv4</v-chip>
                         <v-chip v-if="network.EnableIPv6" size="small" color="warning" text-color="white">IPv6</v-chip>
                       </td>
-                      <td style="padding: 8px; text-align: center;">
-                        <v-icon size="small" color="error" style="cursor: pointer;" @click="deleteDockerNetwork(network)">mdi-delete</v-icon>
+                      <td style="padding: 4px 8px">
+                        <v-btn
+                          variant="text"
+                          size="small"
+                          color="red"
+                          class="pa-0"
+                          style="min-width: 0; height: 24px; color: red"
+                          @click="deleteDockerNetwork(network)"
+                          title="Delete network"
+                          aria-label="delete network"
+                        >
+                          <v-icon size="18">mdi-delete</v-icon>
+                        </v-btn>
                       </td>
                     </tr>
                   </tbody>
                 </v-table>
               </v-skeleton-loader>
-              
             </v-card-text>
           </v-card>
         </v-skeleton-loader>
@@ -165,15 +164,10 @@
     </v-container>
   </v-container>
 
-  <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialog.schedule" @apply="applyCronSchedule" @cancel="resetCronDialog" />
-
   <!-- Delete Network Dialog -->
   <v-dialog v-model="deleteNetworkDialog.value" max-width="500">
-    <v-card class="pa-0">
-      <v-card-title class="text-h6" v-if="deleteNetworkDialog.network">{{ $t('delete') }} - {{ deleteNetworkDialog.network.Name }}</v-card-title>
-      <v-card-text>
-        {{ $t('are you sure you want to delete this docker network') }}?
-      </v-card-text>
+    <v-card class="pa-0" :title="`${$t('delete')} - ${deleteNetworkDialog.network.Name}`" prepend-icon="mdi-delete">
+      <v-card-text>{{ $t('are you sure you want to delete this docker network') }}?</v-card-text>
       <v-divider />
       <v-card-actions>
         <v-spacer />
@@ -184,10 +178,10 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
   <!-- Create Network Dialog -->
   <v-dialog v-model="createNetworkDialog.value" max-width="500">
-    <v-card class="pa-0">
-      <v-card-title class="text-h6">{{ $t('create docker network') }}</v-card-title>
+    <v-card class="pa-0" :title="$t('create docker network')" prepend-icon="mdi-plus">
       <v-card-text>
         <v-text-field v-model="createNetworkDialog.form.Name" :label="$t('name')" required class="mt-4"></v-text-field>
         <v-select v-model="createNetworkDialog.form.Driver" :items="['bridge', 'ipvlan', 'macvlan', 'overlay']" :label="$t('driver')" required></v-select>
@@ -196,12 +190,16 @@
       <v-card-actions>
         <v-spacer />
         <v-btn color="onPrimary" @click="createNetworkDialog.value = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="green" @click="createDockerNetwork()">
+        <v-btn color="onPrimary" @click="createDockerNetwork()">
           {{ $t('create') }}
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- Cron Schedule Dialog -->
+  <CronScheduleDialog v-model="cronDialog.value" :schedule="cronDialog.schedule" @apply="applyCronSchedule" @cancel="resetCronDialog" />
+
   <!-- File System Navigator Dialog -->
   <fsNavigatorDialog v-model="fsDialog" :initial-path="'/'" select-type="directory" :title="$t('select directory')" @selected="handleFsSelected" />
 
@@ -209,7 +207,6 @@
   <v-fab @click="setDockerService()" color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
     <v-icon>mdi-content-save</v-icon>
   </v-fab>
-
 </template>
 
 <script setup>
@@ -451,6 +448,5 @@ const setDockerService = async () => {
   } finally {
     overlay.value = false;
   }
-
 };
 </script>
