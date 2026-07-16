@@ -1665,5 +1665,5 @@
   "virtual pool order could not be saved": "Virtueller Pool-Reihenfolge konnte nicht gespeichert werden",
   "virtual pool order saved successfully": "Virtuelle Pool Reihenfolge erfolgreich gespeichert",
   "smart attribute acknowledged successfully": "SMART Attribut erfolgreich bestätigt",
-  "logsize": "Loggröße"
+  "max log directory size": "Maximale Log Verzeichnisgröße"
 }

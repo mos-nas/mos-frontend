@@ -1665,5 +1665,5 @@
   "virtual pool order could not be saved": "Virtual Pool order could not be saved",
   "virtual pool order saved successfully": "Virtual Pool order saved successfully",
   "smart attribute acknowledged successfully": "SMART attribute acknowledged successfully",
-  "logsize": "Logsize"
+  "max log directory size": "Max log directory size"
 }
