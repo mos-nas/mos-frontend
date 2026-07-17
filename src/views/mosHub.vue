@@ -409,6 +409,11 @@
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
+        <v-tooltip :text="$t('mos hub is community driven and not all templates are tested and verified. please check the template/source before installing and use at your own risk')" location="top" max-width="300">
+          <template #activator="{ props }">
+            <v-icon v-bind="props" color="info" icon="mdi-information"></v-icon>
+          </template>
+        </v-tooltip>
         <v-spacer />
         <v-btn color="onPrimary" @click="installDialog.value = false">
           {{ $t('cancel') }}

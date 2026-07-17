@@ -1665,5 +1665,6 @@
   "virtual pool order could not be saved": "Virtueller Pool-Reihenfolge konnte nicht gespeichert werden",
   "virtual pool order saved successfully": "Virtuelle Pool Reihenfolge erfolgreich gespeichert",
   "smart attribute acknowledged successfully": "SMART Attribut erfolgreich bestätigt",
-  "max log directory size": "Maximale Log Verzeichnisgröße"
+  "max log directory size": "Maximale Log Verzeichnisgröße",
+  "mos hub is community driven and not all templates are tested and verified. please check the template/source before installing and use at your own risk": "MOS Hub ist Community getrieben und nicht alle Vorlagen sind getestet und verifiziert. Bitte überprüfe die Vorlage/den Quellcode vor der Installation und nutze sie auf eigenes Risiko"
 }

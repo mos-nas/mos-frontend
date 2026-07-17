@@ -1665,5 +1665,6 @@
   "virtual pool order could not be saved": "Virtual Pool order could not be saved",
   "virtual pool order saved successfully": "Virtual Pool order saved successfully",
   "smart attribute acknowledged successfully": "SMART attribute acknowledged successfully",
-  "max log directory size": "Max log directory size"
+  "max log directory size": "Max log directory size",
+  "mos hub is community driven and not all templates are tested and verified. please check the template/source before installing and use at your own risk":  "MOS Hub is community driven and not all templates are tested and verified. Please check the template/source before installing and use at your own risk"
 }
