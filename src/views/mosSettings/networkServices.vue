@@ -51,28 +51,29 @@
             <v-chip size="small" v-if="settingsNetwork.tailscale.online" color="green">{{ $t('online') }}</v-chip>
             <v-row no-gutters class="pt-2 pb-2">
               <v-col cols="12" md="6">
-                <v-switch :label="$t('tailscale')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.enabled"></v-switch>
+                <v-switch :label="$t('tailscale')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.enabled" @change="onTailscaleEnabledChange(settingsNetwork.tailscale.enabled)"></v-switch>
               </v-col>
               <v-col cols="12" md="6">
-                <v-switch :label="$t('tailscale update check')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.update_check"></v-switch>
+                <v-switch :label="$t('tailscale update check')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.update_check" :readonly="!settingsNetwork.tailscale.enabled"></v-switch>
               </v-col>
             </v-row>
             <v-row no-gutters class="pt-2 pb-2 align-center">
               <v-col cols="12" md="3" class="pr-2">
-                <v-switch :label="$t('tailscale web')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.web.enabled"></v-switch>
+                <v-switch :label="$t('tailscale web')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.web.enabled" :readonly="!settingsNetwork.tailscale.enabled"></v-switch>
               </v-col>
-              <v-col cols="12" md="4" class="pr-2" v-show="settingsNetwork.tailscale.web.enabled">
-                <v-text-field :label="$t('tailscale web address')" color="green" inset hide-details="auto" v-model="settingsNetwork.tailscale.web.address"></v-text-field>
+              <v-col cols="12" md="4" class="pr-2">
+                <v-text-field :label="$t('tailscale web address')" color="green" inset hide-details="auto" v-model="settingsNetwork.tailscale.web.address" :disabled="!settingsNetwork.tailscale.web.enabled"></v-text-field>
               </v-col>
-              <v-col cols="12" md="2" class="pr-2" v-show="settingsNetwork.tailscale.web.enabled">
-                <v-text-field :label="$t('tailscale web port')" color="green" inset hide-details="auto" v-model="settingsNetwork.tailscale.web.port"></v-text-field>
+              <v-col cols="12" md="2" class="pr-2">
+                <v-text-field :label="$t('tailscale web port')" color="green" inset hide-details="auto" v-model="settingsNetwork.tailscale.web.port" :disabled="!settingsNetwork.tailscale.web.enabled"></v-text-field>
               </v-col>
-              <v-col cols="12" md="3" v-show="settingsNetwork.tailscale.web.enabled">
+              <v-col cols="12" md="3">
                 <v-btn 
                   variant="text"
                   size="small"
                   style="color: green;"
                   @click="openTailscaleWeb()"
+                  :disabled="!settingsNetwork.tailscale.web.enabled"
                 >
                   <v-icon size="18" class="mr-1">mdi-open-in-new</v-icon>
                   {{ $t('open tailscale web') }}
@@ -330,6 +331,13 @@ const openTailscaleWeb = () => {
     : settingsNetwork.value.tailscale.web.address;
   const url = `http://${address}:${settingsNetwork.value.tailscale.web.port}`;
   window.open(url, '_blank');
+};
+
+const onTailscaleEnabledChange = (enabled) => {
+  if (!enabled) {
+    settingsNetwork.value.tailscale.web.enabled = false;
+    settingsNetwork.value.tailscale.update_check = false;
+  }
 };
 
 const createTerminalSession = async (service) => {
