@@ -325,7 +325,10 @@ const openWebTerminal = async (service) => {
 };
 
 const openTailscaleWeb = () => {
-  const url = `http://${settingsNetwork.value.tailscale.web.address}:${settingsNetwork.value.tailscale.web.port}`;
+  const address = settingsNetwork.value.tailscale.web.address === '0.0.0.0' 
+    ? window.location.hostname 
+    : settingsNetwork.value.tailscale.web.address;
+  const url = `http://${address}:${settingsNetwork.value.tailscale.web.port}`;
   window.open(url, '_blank');
 };
 
