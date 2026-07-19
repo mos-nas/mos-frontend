@@ -151,23 +151,23 @@
               <template v-if="mosHub.length > 0">
                 <div class="hub-grid">
                   <v-card v-for="(tpl, i) in mosHub" :key="tpl.name || i" style="height: 250px; display: flex; flex-direction: column" class="pa-0">
-                    <v-card-text class="pa-0 pt-4">
+                    <v-card-text class="pa-0 pt-4" style="position: relative">
                       <div class="d-flex justify-center">
-                        <v-img v-if="tpl.icon" :src="tpl.icon" height="60" contain style="max-width: 100%"></v-img>
-                        <v-icon v-else size="60" color="grey" style="opacity: 0.5">mdi-package-variant</v-icon>
+                        <v-img v-if="tpl.icon" :src="tpl.icon" height="60" contain style="max-width: 100%; z-index: 0"></v-img>
+                        <v-icon v-else size="100" color="grey" style="opacity: 0.5; z-index: 0">mdi-package-variant</v-icon>
                       </div>
                       <v-chip
                         v-if="tpl.maintainer"
                         size="small"
                         class="position-absolute"
-                        style="top: 12px; left: 12px; background: var(--v-theme-secondary); color: var(--v-theme-on-secondary)"
+                        style="top: 12px; left: 12px; background: var(--v-theme-secondary); color: var(--v-theme-on-secondary); z-index: 1"
                         :href="tpl.maintainer_donate"
                         target="_blank"
                         prepend-icon="mdi-account"
                       >
                         {{ tpl.maintainer || $t('unknown') }}
                       </v-chip>
-                      <v-chip v-if="tpl.type" size="small" class="position-absolute" style="top: 12px; right: 12px; background: var(--v-theme-primary); color: var(--v-theme-on-primary)">
+                      <v-chip v-if="tpl.type" size="small" class="position-absolute" style="top: 12px; right: 12px; background: var(--v-theme-primary); color: var(--v-theme-on-primary); z-index: 1">
                         {{ $t(tpl.type) }}
                       </v-chip>
                     </v-card-text>
