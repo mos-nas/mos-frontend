@@ -111,9 +111,19 @@
         <v-text-field v-model="createAdminTokenDialog.description" :label="$t('description')"></v-text-field>
         <v-select v-model="createAdminTokenDialog.permissions.mode" :label="$t('mode')" :items="permissionModes"></v-select>
         <div v-if="createAdminTokenDialog.permissions.mode === 'custom'">
+          <v-select v-model="createAdminTokenDialog.permissions.resources.auth" :label="$t('auth')" :items="resourcesValueModes"></v-select>
+          <v-select v-model="createAdminTokenDialog.permissions.resources.disks" :label="$t('disks')" :items="resourcesValueModes"></v-select>
+          <v-select v-model="createAdminTokenDialog.permissions.resources.pools" :label="$t('pools')" :items="resourcesValueModes"></v-select>
+          <v-select v-model="createAdminTokenDialog.permissions.resources.iscsi" :label="$t('iscsi')" :items="resourcesValueModes"></v-select>
           <v-select v-model="createAdminTokenDialog.permissions.resources.docker" :label="$t('docker')" :items="resourcesValueModes"></v-select>
+          <v-select v-model="createAdminTokenDialog.permissions.resources.lxc" :label="$t('lxc')" :items="resourcesValueModes"></v-select>
           <v-select v-model="createAdminTokenDialog.permissions.resources.vm" :label="$t('vm')" :items="resourcesValueModes"></v-select>
+          <v-select v-model="createAdminTokenDialog.permissions.resources.users" :label="$t('users')" :items="resourcesValueModes"></v-select>
+          <v-select v-model="createAdminTokenDialog.permissions.resources.shares" :label="$t('shares')" :items="resourcesValueModes"></v-select>
+          <v-select v-model="createAdminTokenDialog.permissions.resources.cron" :label="$t('cron')" :items="resourcesValueModes"></v-select>
           <v-select v-model="createAdminTokenDialog.permissions.resources.system" :label="$t('system')" :items="resourcesValueModes"></v-select>
+          <v-select v-model="createAdminTokenDialog.permissions.resources.mos" :label="$t('mos')" :items="resourcesValueModes"></v-select>
+          <v-select v-model="createAdminTokenDialog.permissions.resources.terminal" :label="$t('terminal')" :items="resourcesValueModes"></v-select>
         </div>
       </v-card-text>
       <v-divider />
@@ -192,12 +202,22 @@ const createAdminTokenDialog = reactive({
   value: false,
   name: '',
   description: '',
-  "permissions": {
-    "mode": "full",
-    "resources": {
-      "docker": "read",
-      "vm": "read",
-      "system": "read"
+  permissions: {
+    mode: "full",
+    resources: {
+      auth: "read",
+      disks: "read",
+      pools: "read",
+      iscsi: "read",
+      docker: "read",
+      lxc: "read",
+      vm: "read",
+      users: "read",
+      shares: "read",
+      cron: "read",
+      system: "read",
+      mos: "read",
+      terminal: "read"
     }
   }
 });
