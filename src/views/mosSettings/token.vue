@@ -197,7 +197,7 @@ const showPassword = ref(false);
 const showPasswortGithub = ref(false);
 const showPasswortDockerhub = ref(false);
 const permissionModes = ['full', 'custom', 'readonly'];
-const resourcesValueModes = ['read', 'write'];
+const resourcesValueModes = ['read', 'write', 'none'];
 const createAdminTokenDialog = reactive({
   value: false,
   name: '',
