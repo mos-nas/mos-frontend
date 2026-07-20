@@ -1666,5 +1666,8 @@
   "virtual pool order saved successfully": "Virtual Pool order saved successfully",
   "smart attribute acknowledged successfully": "SMART attribute acknowledged successfully",
   "max log directory size": "Max log directory size",
-  "mos hub is community driven and not all templates are tested and verified. please check the template/source before installing and use at your own risk":  "MOS Hub is community driven and not all templates are tested and verified. Please check the template/source before installing and use at your own risk"
+  "mos hub is community driven and not all templates are tested and verified. please check the template/source before installing and use at your own risk":  "MOS Hub is community driven and not all templates are tested and verified. Please check the template/source before installing and use at your own risk",
+  "bond": "Bond",
+  "not enough physical network interfaces for bonding": "Not enough physical network interfaces for bonding",
+  "bonding requires at least two physical network adapters, only one was found": "Bonding requires at least two physical network adapters, only one was found"
 }

@@ -262,13 +262,13 @@
               <v-text-field :label="$t('mode')" model-value="802.3ad" variant="outlined" readonly></v-text-field>
               <v-select
                 :label="$t('interfaces')"
-                v-model="iface.interfaces"
+                :model-value="iface.interfaces"
                 :items="getAvailableBondedInterfacesForBond(iface)"
                 multiple
                 chips
                 variant="outlined"
                 hide-details="auto"
-                max="2"
+                @update:model-value="(val) => { iface.interfaces = val.length > 2 ? val.slice(0, 2) : val; }"
               ></v-select>
               <v-divider class="my-4"></v-divider>
               <div class="d-flex align-center mb-2">
@@ -678,11 +678,27 @@ const getNetworkSettings = async () => {
 };
 
 const validateBondInterfaces = () => {
-  const invalidBond = settingsNetwork.value.interfaces.find((iface) => iface.type === 'bond' && (!Array.isArray(iface.interfaces) || iface.interfaces.length !== 2));
-  if (!invalidBond) return true;
+  const bonds = settingsNetwork.value.interfaces.filter((iface) => iface.type === 'bond');
+  
+  for (const bond of bonds) {
+    const memberCount = Array.isArray(bond.interfaces) ? bond.interfaces.length : 0;
 
-  showSnackbarError(t('bond requires exactly two interfaces'));
-  return false;
+    if (memberCount === 2) continue;
+
+    const available = getAvailableBondedInterfacesForBond(bond);
+    const potentialTotal = memberCount + available.length;
+
+    if (potentialTotal < 2) {
+      showSnackbarError(
+        t('not enough physical network interfaces for bonding'),
+        t('bonding requires at least two physical network adapters, only one was found')
+      );
+    } else {
+      showSnackbarError(t('bond requires exactly two interfaces'));
+    }
+    return false;
+  }
+  return true;
 };
 
 const normalizeMtuValue = (value) => {
@@ -947,9 +963,17 @@ const findBridgeForInterface = (iface) => {
 };
 
 const getAvailableBondedInterfacesForBond = (bond) => {
-  const bondedInterfaces = settingsNetwork.value.interfaces.filter((i) => i.type === 'bonded').map((i) => i.name);
-  const assignedInOtherBonds = settingsNetwork.value.interfaces.filter((i) => i.type === 'bond' && i.name !== bond.name && Array.isArray(i.interfaces)).flatMap((i) => i.interfaces);
-  return bondedInterfaces.filter((name) => !assignedInOtherBonds.includes(name));
+  const physicalInterfaces = settingsNetwork.value.interfaces.filter((i) => i.type === 'ethernet' && i.mac && i.mac !== '' && i.mac !== null && i.mac !== undefined).map((i) => i.name);
+  
+  const assignedInOtherBonds = settingsNetwork.value.interfaces
+    .filter((i) => i.type === 'bond' && i.name !== bond.name && Array.isArray(i.interfaces))
+    .flatMap((i) => i.interfaces);
+  
+  const assignedInBridges = settingsNetwork.value.interfaces
+    .filter((i) => i.type === 'bridge' && Array.isArray(i.interfaces))
+    .flatMap((i) => i.interfaces);
+  
+  return physicalInterfaces.filter((name) => !assignedInOtherBonds.includes(name) && !assignedInBridges.includes(name));
 };
 
 const findBondForInterface = (iface) => {
