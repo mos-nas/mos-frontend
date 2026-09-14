@@ -105,6 +105,7 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'MOS Settings - Notifications', description: 'Manage notification settings' },
   },
   { path: '/mosSettings/nut', component: () => import('../views/mosSettings/nut.vue'), meta: { title: 'MOS Settings - NUT', description: 'Manage NUT settings' } },
+  { path: '/mosSettings/rsync', component: () => import('../views/mosSettings/rsync.vue'), meta: { title: 'MOS Settings - Rsync', description: 'Manage Rsync settings' } },
   { path: '/profile', component: () => import('../views/profile.vue'), meta: { title: 'Profile', description: 'Manage your profile' } },
   {
     path: '/webTerminalPopup',
@@ -119,8 +120,7 @@ const routes: RouteRecordRaw[] = [
     props: true,
     meta: { title: 'Plugin', description: 'Plugin view' },
   },
-  { path: '/mfa', component: () => import('../views/mfa.vue'), meta: { hideAppBar: true, title: 'MFA', description: 'Multi-factor authentication' } },
-];
+  { path: '/mfa', component: () => import('../views/mfa.vue'), meta: { hideAppBar: true, title: 'MFA', description: 'Multi-factor authentication' } },];
 
 const router = createRouter({
   history: createWebHistory(),

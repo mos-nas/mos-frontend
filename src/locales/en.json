@@ -1770,5 +1770,9 @@
   "high load": "High Load",
   "moderate load": "Moderate Load",
   "low load": "Low Load",
-  "body": "Body"
+  "body": "Body",
+  "rsync": "Rsync",
+  "rsync config could not be saved": "Rsync config could not be saved",
+  "rsync config could not be loaded": "Rsync config could not be loaded",
+  "rsync config saved successfully": "Rsync config saved successfully"
 }
