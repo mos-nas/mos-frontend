@@ -1774,5 +1774,8 @@
   "rsync": "Rsync",
   "rsync config could not be saved": "Rsync config could not be saved",
   "rsync config could not be loaded": "Rsync config could not be loaded",
-  "rsync config saved successfully": "Rsync config saved successfully"
+  "rsync config saved successfully": "Rsync config saved successfully",
+  "enabling/disabling rsync daemon is located on the network settings page": "Enabling/disabling Rsync daemon is located on the network settings page",
+  "rsync daemon": "Rsync Daemon"
+  
 }

@@ -24,6 +24,7 @@
               <v-col cols="12" md="6">
                 <v-switch :label="$t('nut')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.nut.enabled"></v-switch>
                 <v-switch :label="$t('dnsmasq')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.dnsmasq.enabled"></v-switch>
+                <v-switch :label="$t('rsync daemon')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.rsync_daemon.enabled"></v-switch>
               </v-col>
             </v-row>
             <v-divider class="my-4"></v-divider>
@@ -31,7 +32,15 @@
             <v-row no-gutters class="pt-2 pb-2">
               <v-col cols="12" md="6">
                 <v-switch :label="$t('samba')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.samba.enabled"></v-switch>
-                <v-switch :label="$t('localmaster')" :disabled="!settingsNetwork.samba.enabled" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.samba.localmaster"></v-switch>
+                <v-switch
+                  :label="$t('localmaster')"
+                  :disabled="!settingsNetwork.samba.enabled"
+                  color="green"
+                  inset
+                  hide-details="auto"
+                  density="compact"
+                  v-model="settingsNetwork.samba.localmaster"
+                ></v-switch>
               </v-col>
               <v-col cols="12" md="6">
                 <v-switch
@@ -51,31 +60,62 @@
             <v-chip size="small" v-if="settingsNetwork.tailscale.online" color="green">{{ $t('online') }}</v-chip>
             <v-row no-gutters class="pt-2 pb-2">
               <v-col cols="12" md="6">
-                <v-switch :label="$t('tailscale')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.enabled" @change="onTailscaleEnabledChange(settingsNetwork.tailscale.enabled)"></v-switch>
+                <v-switch
+                  :label="$t('tailscale')"
+                  color="green"
+                  inset
+                  hide-details="auto"
+                  density="compact"
+                  v-model="settingsNetwork.tailscale.enabled"
+                  @change="onTailscaleEnabledChange(settingsNetwork.tailscale.enabled)"
+                ></v-switch>
               </v-col>
               <v-col cols="12" md="6">
-                <v-switch :label="$t('tailscale update check')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.update_check" :readonly="!settingsNetwork.tailscale.enabled"></v-switch>
+                <v-switch
+                  :label="$t('tailscale update check')"
+                  color="green"
+                  inset
+                  hide-details="auto"
+                  density="compact"
+                  v-model="settingsNetwork.tailscale.update_check"
+                  :readonly="!settingsNetwork.tailscale.enabled"
+                ></v-switch>
               </v-col>
             </v-row>
             <v-row no-gutters class="pt-2 pb-2 align-center tailscale-web-row">
               <v-col cols="12" md="3" class="tailscale-web-col tailscale-switch-col">
-                <v-switch :label="$t('tailscale web')" color="green" inset hide-details="auto" density="compact" v-model="settingsNetwork.tailscale.web.enabled" :readonly="!settingsNetwork.tailscale.enabled"></v-switch>
+                <v-switch
+                  :label="$t('tailscale web')"
+                  color="green"
+                  inset
+                  hide-details="auto"
+                  density="compact"
+                  v-model="settingsNetwork.tailscale.web.enabled"
+                  :readonly="!settingsNetwork.tailscale.enabled"
+                ></v-switch>
               </v-col>
               <v-col cols="12" md="4" class="tailscale-web-col tailscale-address-col">
-                <v-text-field :label="$t('tailscale web address')" color="green" inset hide-details="auto" v-model="settingsNetwork.tailscale.web.address" :disabled="!settingsNetwork.tailscale.web.enabled"></v-text-field>
+                <v-text-field
+                  :label="$t('tailscale web address')"
+                  color="green"
+                  inset
+                  hide-details="auto"
+                  v-model="settingsNetwork.tailscale.web.address"
+                  :disabled="!settingsNetwork.tailscale.web.enabled"
+                ></v-text-field>
               </v-col>
               <v-col cols="12" md="2" class="tailscale-web-col tailscale-port-col">
-                <v-text-field :label="$t('tailscale web port')" color="green" inset hide-details="auto" v-model="settingsNetwork.tailscale.web.port" :disabled="!settingsNetwork.tailscale.web.enabled"></v-text-field>
+                <v-text-field
+                  :label="$t('tailscale web port')"
+                  color="green"
+                  inset
+                  hide-details="auto"
+                  v-model="settingsNetwork.tailscale.web.port"
+                  :disabled="!settingsNetwork.tailscale.web.enabled"
+                ></v-text-field>
               </v-col>
               <v-col cols="12" md="3" class="tailscale-web-col tailscale-button-col">
-                <v-btn
-                  variant="text"
-                  size="small"
-                  class="tailscale-open-btn"
-                  style="color: green;"
-                  @click="openTailscaleWeb()"
-                  :disabled="!settingsNetwork.tailscale.web.enabled"
-                >
+                <v-btn variant="text" size="small" class="tailscale-open-btn" style="color: green" @click="openTailscaleWeb()" :disabled="!settingsNetwork.tailscale.web.enabled">
                   <v-icon size="18" class="mr-1">mdi-open-in-new</v-icon>
                   {{ $t('open tailscale web') }}
                 </v-btn>
@@ -187,7 +227,6 @@
   <v-fab @click="setNetworkSettings()" color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
     <v-icon>mdi-content-save</v-icon>
   </v-fab>
-
 </template>
 
 <script setup>
@@ -224,9 +263,9 @@ const settingsNetwork = ref({
     web: {
       enabled: false,
       address: '0.0.0.0',
-      port: 5252
+      port: 5252,
     },
-    online: false
+    online: false,
   },
   netbird: {
     enabled: false,
@@ -238,6 +277,9 @@ const settingsNetwork = ref({
     enabled: false,
   },
   dnsmasq: {
+    enabled: false,
+  },
+  rsync_daemon: {
     enabled: false,
   },
 });
@@ -276,11 +318,12 @@ const getNetworkSettings = async () => {
       tailscale: {
         ...settingsNetwork.value.tailscale,
         ...(apiData.tailscale || {}),
-        web: { ...settingsNetwork.value.tailscale.web, ...((apiData.tailscale?.web) || {}) }
+        web: { ...settingsNetwork.value.tailscale.web, ...(apiData.tailscale?.web || {}) },
       },
       netbird: { ...settingsNetwork.value.netbird, ...(apiData.netbird || {}) },
       remote_mounting: { ...settingsNetwork.value.remote_mounting, ...(apiData.remote_mounting || {}) },
       dnsmasq: { ...settingsNetwork.value.dnsmasq, ...(apiData.dnsmasq || {}) },
+      rsync_daemon: { ...settingsNetwork.value.rsync_daemon, ...(apiData.rsync_daemon || {}) },
     };
     apiSettingsNetwork.value = JSON.parse(JSON.stringify(settingsNetwork.value));
   } catch (e) {
@@ -327,9 +370,7 @@ const openWebTerminal = async (service) => {
 };
 
 const openTailscaleWeb = () => {
-  const address = settingsNetwork.value.tailscale.web.address === '0.0.0.0' 
-    ? window.location.hostname 
-    : settingsNetwork.value.tailscale.web.address;
+  const address = settingsNetwork.value.tailscale.web.address === '0.0.0.0' ? window.location.hostname : settingsNetwork.value.tailscale.web.address;
   const url = `http://${address}:${settingsNetwork.value.tailscale.web.port}`;
   window.open(url, '_blank');
 };

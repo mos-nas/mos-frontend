@@ -15,7 +15,15 @@
       <v-container fluid class="pa-0">
         <v-card fluid style="margin-bottom: 80px" class="pa-0">
           <v-card-text>
-            <v-text-field v-model="rsyncConfig.path" :label="$t('path')" placeholder="/path/to/rsync" outlined dense></v-text-field>
+            <v-alert type="info" variant="tonal" class="mt-4 mb-4" border="start">
+              <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+                <span>{{ $t('enabling/disabling rsync daemon is located on the network settings page') }}.</span>
+                <v-btn color="onPrimary" size="small" variant="outlined" prepend-icon="mdi-arrow-right" @click="$router.push('/mosSettings/networkServices')">
+                  {{ $t('network settings') }}
+                </v-btn>
+              </div>
+            </v-alert>
+
             <label class="text-body2 text-medium-emphasis">{{ $t('content') }}</label>
             <div ref="editorContainer" class="editor-wrapper" style="border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 4px; min-height: 120px; max-height: 240px; overflow-y: auto"></div>
           </v-card-text>
@@ -157,9 +165,8 @@ const saveRsyncConfig = async () => {
     }
 
     const data = await res.json();
-    rsyncConfig.value = data;
-    updateEditorContent();
     showSnackbarSuccess(t('rsync config saved successfully'));
+    return data;
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
