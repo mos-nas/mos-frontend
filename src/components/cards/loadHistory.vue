@@ -71,6 +71,8 @@ let labels = [];
 let seriesLoad = [];
 let seriesAvg5 = [];
 let seriesAvg15 = [];
+let resizeObserver = null;
+let resizeListener = null;
 
 const avgLoad5 = ref(0);
 const avgLoad15 = ref(0);
@@ -124,20 +126,29 @@ function initChart() {
     chart = null;
   }
 
+  if (resizeListener) {
+    window.removeEventListener('resize', resizeListener);
+  }
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+
   chart = markRaw(echarts.init(chartEl.value, null, { renderer: 'canvas' }));
   updateChart();
   
-  // Resize chart when window resizes
-  const handleResize = () => {
+  resizeListener = () => {
     if (chart) {
       chart.resize();
     }
   };
-  window.addEventListener('resize', handleResize);
+  window.addEventListener('resize', resizeListener);
   
-  return () => {
-    window.removeEventListener('resize', handleResize);
-  };
+  resizeObserver = new ResizeObserver(() => {
+    if (chart) {
+      chart.resize();
+    }
+  });
+  resizeObserver.observe(chartEl.value);
 }
 
 function updateChart() {
@@ -271,7 +282,6 @@ watch(
     labels.push(label);
     seriesLoad.push(newLoad);
 
-    // Calculate moving averages
     const windowSize5 = 5;
     const windowSize15 = 15;
 
@@ -291,11 +301,9 @@ watch(
 
     clampHistory();
     
-    // Always update chart, even if not yet fully initialized
     if (chart) {
       updateChart();
     } else {
-      // Try to initialize chart if not yet done
       nextTick(() => {
         if (chartEl.value && !chart) {
           initChart();
@@ -318,6 +326,14 @@ onBeforeUnmount(() => {
   if (chart) {
     chart.dispose();
     chart = null;
+  }
+  if (resizeListener) {
+    window.removeEventListener('resize', resizeListener);
+    resizeListener = null;
+  }
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
   }
 });
 </script>

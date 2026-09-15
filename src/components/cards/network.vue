@@ -101,6 +101,8 @@ let labels = [];
 let seriesRx = [];
 let seriesTx = [];
 let seriesTotal = [];
+let resizeObserver = null;
+let resizeListener = null;
 
 let lastUpdateTs = null;
 let smoothedInterval = 2000;
@@ -171,8 +173,29 @@ function initChart() {
     chart = null;
   }
 
+  if (resizeListener) {
+    window.removeEventListener('resize', resizeListener);
+  }
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+  }
+
   chart = markRaw(echarts.init(chartEl.value, null, { renderer: 'canvas' }));
   updateChart();
+
+  resizeListener = () => {
+    if (chart) {
+      chart.resize();
+    }
+  };
+  window.addEventListener('resize', resizeListener);
+  
+  resizeObserver = new ResizeObserver(() => {
+    if (chart) {
+      chart.resize();
+    }
+  });
+  resizeObserver.observe(chartEl.value);
 }
 
 function updateChart() {
@@ -364,6 +387,14 @@ onBeforeUnmount(() => {
   if (chart) {
     chart.dispose();
     chart = null;
+  }
+  if (resizeListener) {
+    window.removeEventListener('resize', resizeListener);
+    resizeListener = null;
+  }
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
   }
 });
 
