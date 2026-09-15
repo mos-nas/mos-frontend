@@ -1776,5 +1776,7 @@
   "rsync config could not be loaded": "Rsync Konfiguration konnte nicht geladen werden",
   "rsync config saved successfully": "Rsync Konfiguration erfolgreich gespeichert",
   "enabling/disabling rsync daemon is located on the network settings page": "Das Aktivieren/Deaktivieren des Rsync Daemons befindet sich auf der Seite Netzwerkeinstellungen",
-  "rsync daemon": "Rsync Daemon"
+  "rsync daemon": "Rsync Daemon",
+  "description saved successfully": "Beschreibung erfolgreich gespeichert",
+  "description could not be saved": "Beschreibung konnte nicht gespeichert werden"
 }

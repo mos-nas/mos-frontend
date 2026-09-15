@@ -36,7 +36,7 @@
               v-model="username"
               :label="$t('username')"
               required
-              :error="username === '' && step1Error"
+              :error="username === '' && step2Error"
               :error-messages="username === '' && step2Error ? [$t('this field is required')] : []"
             ></v-text-field>
             <v-text-field
@@ -49,7 +49,7 @@
             ></v-text-field>
             <v-text-field
               v-model="password2"
-              :label="$t('web password')"
+              :label="$t('confirm web password')"
               required
               type="password"
               :error="password2 === '' && step2Error"
@@ -94,7 +94,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from 'vuetify';
 import { useOverlay } from '@/composables/useOverlay';

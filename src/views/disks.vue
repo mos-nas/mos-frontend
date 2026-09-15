@@ -81,6 +81,12 @@
                         </template>
                         <v-list-item-title>{{ $t('smart infos') }}</v-list-item-title>
                       </v-list-item>
+                      <v-list-item @click="openDescriptionDialog(disk)">
+                        <template #prepend>
+                          <v-icon>mdi-card-text</v-icon>
+                        </template>
+                        <v-list-item-title>{{ $t('description') }}</v-list-item-title>
+                      </v-list-item>
                     </v-list>
                   </v-menu>
                 </td>
@@ -312,6 +318,25 @@
     </v-card>
   </v-dialog>
 
+  <!-- Description Dialog -->
+  <v-dialog v-model="descriptionDialog.value" max-width="600px" persistent>
+    <v-card :title="t('description') + ' ' + descriptionDialog.disk.device" prepend-icon="mdi-card-text">
+      <v-card-text style="overflow: auto" class="pt-2">
+          <v-text-field v-model="descriptionDialog.disk.description" :label="t('description')" hide-details="auto"></v-text-field>
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-spacer />
+        <v-btn color="onPrimary" @click="descriptionDialog.value = false">
+          {{ $t('close') }}
+        </v-btn>
+        <v-btn color="onPrimary" @click="saveDescription(descriptionDialog.disk.name)">
+          {{ $t('save') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <!-- Floating Action Button with Menu -->
   <v-menu location="top">
     <template v-slot:activator="{ props }">
@@ -404,6 +429,13 @@ const smartDialog = reactive({
   },
   loading: false,
 });
+const descriptionDialog = reactive({
+  value: false,
+  disk: null,
+  description: '',
+});
+
+
 
 onMounted(() => {
   getDisks();
@@ -413,6 +445,11 @@ onMounted(() => {
 const openFormatDialog = (disk) => {
   formatDialog.value = true;
   formatDialog.disk = disk;
+};
+const openDescriptionDialog = (disk) => {
+  descriptionDialog.value = true;
+  descriptionDialog.disk = disk;
+  descriptionDialog.description = descriptionDialog.disk.description || '';
 };
 
 const getDisks = async () => {
@@ -785,6 +822,39 @@ const payload = {
     showSnackbarSuccess(t('smart attribute acknowledged successfully'));
     smartDialog.smartInfos = await getSmartInfos(smartDialog.disk, false);
     smartDialog.smartDiskConfig = await getSmartDiskConfig(smartDialog.disk);
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
+const saveDescription = async (diskName) => {
+  let payload = {
+    description: descriptionDialog.disk.description,
+  };
+  try {
+    overlay.value = true;
+    const res = await fetch(`/api/v1/disks/${diskName}/description`, {
+      method: 'PUT',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('description could not be saved')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+
+    const data = await res.json();
+    showSnackbarSuccess(t('description saved successfully'));
+    descriptionDialog.value = false;
+    return data;
+
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
