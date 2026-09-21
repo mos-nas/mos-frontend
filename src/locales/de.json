@@ -268,6 +268,7 @@
   "directory mask": "Verzeichnismaske",
   "mask": "Maskiert",
   "hide": "Verstecken",
+  "see more": "Mehr anzeigen",
   "container-network": "Container Netzwerk",
   "check for updates": "Nach Updates suchen",
   "update check started": "Update-Prüfung gestartet",
@@ -1778,5 +1779,13 @@
   "enabling/disabling rsync daemon is located on the network settings page": "Das Aktivieren/Deaktivieren des Rsync Daemons befindet sich auf der Seite Netzwerkeinstellungen",
   "rsync daemon": "Rsync Daemon",
   "description saved successfully": "Beschreibung erfolgreich gespeichert",
-  "description could not be saved": "Beschreibung konnte nicht gespeichert werden"
+  "description could not be saved": "Beschreibung konnte nicht gespeichert werden",
+  "no data": "Keine Daten",
+  "online": "Online",
+  "on battery": "Auf Batterie",
+  "charging": "Lädt",
+  "discharging": "Entlädt",
+  "bypass": "Bypass",
+  "calibration": "Kalibrierung"
+
 }

@@ -275,98 +275,110 @@
 
             <!-- Docker Services -->
             <div class="mt-4">
-              <span class="text-subtitle-2 font-weight-medium">{{ $t('docker') }}</span>
-              <v-row v-for="(service, i) in nutSettings.stop_services.docker" :key="`docker-${i}`" class="ga-2 mb-2 mt-2">
-                <v-col cols="12" sm="6">
-                  <v-select :label="$t('docker')" v-model="nutSettings.stop_services.docker[i].name" :items="dockerServiceOptions" hide-details="auto" clearable>
-                    <template #prepend>
-                      <v-btn color="red" variant="text" icon size="small" @click="nutSettings.stop_services.docker.splice(i, 1)">
-                        <v-icon>mdi-delete</v-icon>
-                      </v-btn>
-                    </template>
-                  </v-select>
-                </v-col>
-                <v-col cols="12" sm="4">
-                  <v-switch :label="$t('enabled')" v-model="nutSettings.stop_services.docker[i].enabled" hide-details="auto" inset color="green"></v-switch>
-                </v-col>
-              </v-row>
-              <div class="d-flex align-center my-2">
-                <v-divider class="flex-grow-1"></v-divider>
-                <v-btn
-                  class="mx-4"
-                  color="green"
-                  size="small"
-                  density="comfortable"
-                  variant="tonal"
-                  icon
-                  aria-label="Add docker service"
-                  @click="nutSettings.stop_services.docker.push({ name: '', enabled: false })"
-                >
-                  <v-icon size="18">mdi-plus</v-icon>
-                </v-btn>
-                <v-divider class="flex-grow-1"></v-divider>
-              </div>
+              <v-card variant="outlined" class="mb-4">
+                <button type="button" class="compact-report-toggle" @click="showDockerServices = !showDockerServices" style="width: 100%; justify-content: space-between;">
+                  <span class="text-subtitle-2 font-weight-medium" style="color: inherit;">{{ nutSettings.stop_services.docker.filter(s => s.enabled).length }} / {{ dockerServiceNames.length }} {{ $t('docker') }} - {{ showDockerServices ? $t('hide') : $t('see more') }}</span>
+                  <v-icon :icon="showDockerServices ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="small"></v-icon>
+                </button>
+                <v-expand-transition>
+                  <div v-show="showDockerServices">
+                    <v-divider></v-divider>
+                    <div class="pa-4">
+                      <div v-if="dockerServiceNames.length === 0" class="text-center text-medium-emphasis pa-4">
+                        {{ $t('no data') }}
+                      </div>
+                      <v-row v-else class="ga-2">
+                        <v-col v-for="(containerName, i) in dockerServiceNames" :key="`docker-${i}`" cols="12" sm="6" md="4" class="d-flex align-center">
+                          <div class="d-flex align-center justify-space-between flex-grow-1 pa-2" style="border: 1px solid var(--v-border-color); border-radius: 4px;">
+                            <v-switch 
+                              :model-value="nutSettings.stop_services.docker.some(s => s.name === containerName && s.enabled)"
+                              @update:model-value="(enabled) => toggleDockerService(containerName, enabled)"
+                              hide-details 
+                              size="small"
+                              density="compact"
+                              inset
+                              color="primary"
+                            ></v-switch>
+                            <span class="text-body-2 flex-grow-1 ml-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ containerName }}</span>
+                          </div>
+                        </v-col>
+                      </v-row>
+                    </div>
+                  </div>
+                </v-expand-transition>
+              </v-card>
             </div>
 
             <!-- LXC Services -->
             <div class="mt-4">
-              <span class="text-subtitle-2 font-weight-medium">{{ $t('lxc') }}</span>
-              <v-row v-for="(service, i) in nutSettings.stop_services.lxc" :key="`lxc-${i}`" class="ga-2 mb-2 mt-2">
-                <v-col cols="12" sm="6">
-                  <v-select :label="$t('lxc')" v-model="nutSettings.stop_services.lxc[i].name" :items="lxcServiceOptions" hide-details="auto" clearable>
-                    <template #prepend>
-                      <v-btn color="red" variant="text" icon size="small" @click="nutSettings.stop_services.lxc.splice(i, 1)">
-                        <v-icon>mdi-delete</v-icon>
-                      </v-btn>
-                    </template>
-                  </v-select>
-                </v-col>
-                <v-col cols="12" sm="4">
-                  <v-switch :label="$t('enabled')" v-model="nutSettings.stop_services.lxc[i].enabled" hide-details="auto" inset color="green"></v-switch>
-                </v-col>
-              </v-row>
-              <div class="d-flex align-center my-2">
-                <v-divider class="flex-grow-1"></v-divider>
-                <v-btn
-                  class="mx-4"
-                  color="green"
-                  size="small"
-                  density="comfortable"
-                  variant="tonal"
-                  icon
-                  aria-label="Add lxc service"
-                  @click="nutSettings.stop_services.lxc.push({ name: '', enabled: false })"
-                >
-                  <v-icon size="18">mdi-plus</v-icon>
-                </v-btn>
-                <v-divider class="flex-grow-1"></v-divider>
-              </div>
+              <v-card variant="outlined" class="mb-4">
+                <button type="button" class="compact-report-toggle" @click="showLxcServices = !showLxcServices" style="width: 100%; justify-content: space-between;">
+                  <span class="text-subtitle-2 font-weight-medium" style="color: inherit;">{{ nutSettings.stop_services.lxc.filter(s => s.enabled).length }} / {{ lxcServiceNames.length }} {{ $t('lxc') }} - {{ showLxcServices ? $t('hide') : $t('see more') }}</span>
+                  <v-icon :icon="showLxcServices ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="small"></v-icon>
+                </button>
+                <v-expand-transition>
+                  <div v-show="showLxcServices">
+                    <v-divider></v-divider>
+                    <div class="pa-4">
+                      <div v-if="lxcServiceNames.length === 0" class="text-center text-medium-emphasis pa-4">
+                        {{ $t('no data') }}
+                      </div>
+                      <v-row v-else class="ga-2">
+                        <v-col v-for="(containerName, i) in lxcServiceNames" :key="`lxc-${i}`" cols="12" sm="6" md="4" class="d-flex align-center">
+                          <div class="d-flex align-center justify-space-between flex-grow-1 pa-2" style="border: 1px solid var(--v-border-color); border-radius: 4px;">
+                            <v-switch 
+                              :model-value="nutSettings.stop_services.lxc.some(s => s.name === containerName && s.enabled)"
+                              @update:model-value="(enabled) => toggleLxcService(containerName, enabled)"
+                              hide-details 
+                              size="small"
+                              density="compact"
+                              inset
+                              color="primary"
+                            ></v-switch>
+                            <span class="text-body-2 flex-grow-1 ml-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ containerName }}</span>
+                          </div>
+                        </v-col>
+                      </v-row>
+                    </div>
+                  </div>
+                </v-expand-transition>
+              </v-card>
             </div>
 
             <!-- VMs -->
             <div class="mt-4">
-              <span class="text-subtitle-2 font-weight-medium">{{ $t('vms') }}</span>
-              <v-row v-for="(vm, i) in nutSettings.stop_services.vms" :key="`vm-${i}`" class="ga-2 mb-2 mt-2">
-                <v-col cols="12" sm="6">
-                  <v-select :label="$t('vm')" v-model="nutSettings.stop_services.vms[i].name" :items="vmServiceOptions" hide-details="auto" clearable>
-                    <template #prepend>
-                      <v-btn color="red" variant="text" icon size="small" @click="nutSettings.stop_services.vms.splice(i, 1)">
-                        <v-icon>mdi-delete</v-icon>
-                      </v-btn>
-                    </template>
-                  </v-select>
-                </v-col>
-                <v-col cols="12" sm="4">
-                  <v-switch :label="$t('enabled')" v-model="nutSettings.stop_services.vms[i].enabled" hide-details="auto" inset color="green"></v-switch>
-                </v-col>
-              </v-row>
-              <div class="d-flex align-center my-2">
-                <v-divider class="flex-grow-1"></v-divider>
-                <v-btn class="mx-4" color="green" size="small" density="comfortable" variant="tonal" icon aria-label="Add vm" @click="nutSettings.stop_services.vms.push({ name: '', enabled: false })">
-                  <v-icon size="18">mdi-plus</v-icon>
-                </v-btn>
-                <v-divider class="flex-grow-1"></v-divider>
-              </div>
+              <v-card variant="outlined" class="mb-4">
+                <button type="button" class="compact-report-toggle" @click="showVmServices = !showVmServices" style="width: 100%; justify-content: space-between;">
+                  <span class="text-subtitle-2 font-weight-medium" style="color: inherit;">{{ nutSettings.stop_services.vms.filter(s => s.enabled).length }} / {{ vmServiceNames.length }} {{ $t('vms') }} - {{ showVmServices ? $t('hide') : $t('see more') }}</span>
+                  <v-icon :icon="showVmServices ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="small"></v-icon>
+                </button>
+                <v-expand-transition>
+                  <div v-show="showVmServices">
+                    <v-divider></v-divider>
+                    <div class="pa-4">
+                      <div v-if="vmServiceNames.length === 0" class="text-center text-medium-emphasis pa-4">
+                        {{ $t('no data') }}
+                      </div>
+                      <v-row v-else class="ga-2">
+                        <v-col v-for="(vmName, i) in vmServiceNames" :key="`vm-${i}`" cols="12" sm="6" md="4" class="d-flex align-center">
+                          <div class="d-flex align-center justify-space-between flex-grow-1 pa-2" style="border: 1px solid var(--v-border-color); border-radius: 4px;">
+                            <v-switch 
+                              :model-value="nutSettings.stop_services.vms.some(s => s.name === vmName && s.enabled)"
+                              @update:model-value="(enabled) => toggleVmService(vmName, enabled)"
+                              hide-details 
+                              size="small"
+                              density="compact"
+                              inset
+                              color="primary"
+                            ></v-switch>
+                            <span class="text-body-2 flex-grow-1 ml-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ vmName }}</span>
+                          </div>
+                        </v-col>
+                      </v-row>
+                    </div>
+                  </div>
+                </v-expand-transition>
+              </v-card>
             </div>
           </v-card-text>
         </v-card>
@@ -528,6 +540,9 @@ const statusLabels = {
 
 const showReportedValues = ref(false);
 const isLoadingStatus = ref(true);
+const showDockerServices = ref(false);
+const showLxcServices = ref(false);
+const showVmServices = ref(false);
 
 const statusChips = computed(() => {
   if (!nutStatus.status || isLoadingStatus.value) return [];
@@ -600,6 +615,33 @@ const renameExtraKey = (oldKey, newKey) => {
 
 const deleteExtraConfig = (key) => {
   delete nutSettings.value.server.ups.extra[key];
+};
+
+const toggleDockerService = (containerName, enabled) => {
+  const existing = nutSettings.value.stop_services.docker.find(s => s.name === containerName);
+  if (existing) {
+    existing.enabled = enabled;
+  } else if (enabled) {
+    nutSettings.value.stop_services.docker.push({ name: containerName, enabled: true });
+  }
+};
+
+const toggleLxcService = (containerName, enabled) => {
+  const existing = nutSettings.value.stop_services.lxc.find(s => s.name === containerName);
+  if (existing) {
+    existing.enabled = enabled;
+  } else if (enabled) {
+    nutSettings.value.stop_services.lxc.push({ name: containerName, enabled: true });
+  }
+};
+
+const toggleVmService = (vmName, enabled) => {
+  const existing = nutSettings.value.stop_services.vms.find(s => s.name === vmName);
+  if (existing) {
+    existing.enabled = enabled;
+  } else if (enabled) {
+    nutSettings.value.stop_services.vms.push({ name: vmName, enabled: true });
+  }
 };
 
 const getDockerServiceNames = async () => {
@@ -699,6 +741,19 @@ const getNutSettings = async () => {
 
     const data = await res.json();
     nutSettings.value = data;
+    
+    // Ensure stop_services structure is always present
+    if (!nutSettings.value.stop_services) {
+      nutSettings.value.stop_services = {
+        docker: [],
+        lxc: [],
+        vms: [],
+      };
+    } else {
+      if (!nutSettings.value.stop_services.docker) nutSettings.value.stop_services.docker = [];
+      if (!nutSettings.value.stop_services.lxc) nutSettings.value.stop_services.lxc = [];
+      if (!nutSettings.value.stop_services.vms) nutSettings.value.stop_services.vms = [];
+    }
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
@@ -806,7 +861,6 @@ onMounted(async () => {
   justify-content: space-between;
   background: transparent;
   border: 0;
-  color: rgb(var(--v-theme-success));
   min-height: 34px;
   padding: 6px 10px;
   font: inherit;
@@ -814,6 +868,7 @@ onMounted(async () => {
   font-weight: 600;
   text-align: left;
   cursor: pointer;
+  color: inherit;
 }
 
 .compact-report-content {
