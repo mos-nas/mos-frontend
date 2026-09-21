@@ -481,7 +481,7 @@
   </v-container>
 
   <!-- Format Dialog -->
-  <v-dialog v-model="formatDialog.value" max-width="400">
+  <v-dialog v-model="formatDialog.value" max-width="400" persistent>
     <v-card class="pa-0" :title="t('confirm format')" prepend-icon="mdi-broom" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         {{ $t('are you sure you want to format this disk?') }}
@@ -507,7 +507,7 @@
   </v-dialog>
 
   <!-- Delete Pool Dialog -->
-  <v-dialog v-model="deletePoolDialog.value" max-width="400">
+  <v-dialog v-model="deletePoolDialog.value" max-width="400" persistent>
     <v-card class="pa-0" :title="t('confirm delete')" prepend-icon="mdi-delete" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         {{ $t('are you sure you want to delete this pool?') }}
@@ -523,7 +523,7 @@
   </v-dialog>
 
   <!-- Create Pool Dialog -->
-  <v-dialog v-model="createPoolDialog.value" max-width="600">
+  <v-dialog v-model="createPoolDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('create pool')" prepend-icon="mdi-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <v-text-field v-model="createPoolDialog.name" :label="$t('name')" class="pt-2" density="comfortable" />
@@ -626,9 +626,9 @@
   </v-dialog>
 
   <!-- Passphrase Dialog -->
-  <v-dialog v-model="passphraseDialog.value" max-width="600">
+  <v-dialog v-model="passphraseDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('enter passphrase')" prepend-icon="mdi-key" style="max-height: 60vh; display: flex; flex-direction: column">
-      <v-card-text style="overflow: auto">
+      <v-card-text style="overflow: auto" class="pt-2">
         <v-form>
           <v-text-field v-model="passphraseDialog.passphrase" :label="$t('passphrase')" type="password" :rules="[(v) => !!v || $t('passphrase is required')]" />
         </v-form>
@@ -644,7 +644,7 @@
   </v-dialog>
 
   <!-- Add Mergerfs Device Dialog -->
-  <v-dialog v-model="addMergerfsDevicesDialog.value" max-width="600">
+  <v-dialog v-model="addMergerfsDevicesDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('add devices')" prepend-icon="mdi-harddisk-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select devices to add to pool') }}</p>
@@ -677,7 +677,7 @@
   </v-dialog>
 
   <!-- Remove MergerfsDevice Dialog -->
-  <v-dialog v-model="removeMergerfsDevicesDialog.value" max-width="600">
+  <v-dialog v-model="removeMergerfsDevicesDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('remove devices')" prepend-icon="mdi-harddisk-remove" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select devices to remove from pool') }}</p>
@@ -712,7 +712,7 @@
   </v-dialog>
 
   <!-- Replace Mergerfs Device Dialog -->
-  <v-dialog v-model="replaceMergerfsDeviceDialog.value" max-width="600">
+  <v-dialog v-model="replaceMergerfsDeviceDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('replace device')" prepend-icon="mdi-file-replace" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto" class="pt-2">
         <v-select
@@ -758,7 +758,7 @@
   </v-dialog>
 
   <!-- Sleep / Wake Dialog -->
-  <v-dialog v-model="spinDialog.value" max-width="400">
+  <v-dialog v-model="spinDialog.value" max-width="400" persistent>
     <v-card class="pa-0" :title="t('wake up / sleep')" prepend-icon="mdi-sleep" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <div class="d-flex flex-column gap-3">
@@ -779,7 +779,7 @@
   </v-dialog>
 
   <!-- Manage Mergerfs Devices Dialog -->
-  <v-dialog v-model="manageMergerfsDevicesDialog.value" max-width="700">
+  <v-dialog v-model="manageMergerfsDevicesDialog.value" max-width="700" persistent>
     <v-card class="pa-0" :title="t('manage devices')" prepend-icon="mdi-harddisk" style="max-height: 70vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto; max-height: 60vh">
         <div v-if="manageMergerfsDevicesDialog.pool && manageMergerfsDevicesDialog.pool.data_devices.length > 0">
@@ -821,7 +821,7 @@
   </v-dialog>
 
   <!-- Manage Parity Devices Dialog -->
-  <v-dialog v-model="manageParityDevicesDialog.value" max-width="700">
+  <v-dialog v-model="manageParityDevicesDialog.value" max-width="700" persistent>
     <v-card class="pa-0" :title="t('manage parity devices')" prepend-icon="mdi-harddisk" style="max-height: 70vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto; max-height: 60vh">
         <div v-if="manageParityDevicesDialog.pool">
@@ -867,7 +867,7 @@
   </v-dialog>
 
   <!-- Add Parity Devices Dialog -->
-  <v-dialog v-model="addParityDevicesDialog.value" max-width="600">
+  <v-dialog v-model="addParityDevicesDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('add parity devices')" prepend-icon="mdi-harddisk-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select devices to add as parity') }}</p>
@@ -911,7 +911,7 @@
   </v-dialog>
 
   <!-- Remove Parity Devices Dialog -->
-  <v-dialog v-model="removeParityDevicesDialog.value" max-width="600">
+  <v-dialog v-model="removeParityDevicesDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('remove parity devices')" prepend-icon="mdi-harddisk-remove" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select parity devices to remove') }}</p>
@@ -946,7 +946,7 @@
   </v-dialog>
 
   <!-- Replace Parity Device Dialog -->
-  <v-dialog v-model="replaceParityDeviceDialog.value" max-width="600">
+  <v-dialog v-model="replaceParityDeviceDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('replace parity device')" prepend-icon="mdi-file-replace" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto" class="pt-2">
         <v-form>
@@ -1013,7 +1013,7 @@
   </v-dialog>
 
   <!-- SnapRAID Operation Dialog -->
-  <v-dialog v-model="snapraidOperationDialog.value" max-width="600">
+  <v-dialog v-model="snapraidOperationDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('snapraid operations')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select the snapraid operation to be performed') }}</p>
@@ -1044,7 +1044,7 @@
   </v-dialog>
 
   <!-- NonRaid Operation Dialog -->
-  <v-dialog v-model="nonRaidOperationDialog.value" max-width="600">
+  <v-dialog v-model="nonRaidOperationDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('nonraid operations')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select the nonraid operation to be performed') }}</p>
@@ -1062,7 +1062,7 @@
   </v-dialog>
 
   <!-- Btrfs Operation Dialog -->
-  <v-dialog v-model="multiOperationDialog.value" max-width="600">
+  <v-dialog v-model="multiOperationDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('btrfs operations')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select the btrfs operation to be performed') }}</p>
@@ -1087,7 +1087,7 @@
   </v-dialog>
 
   <!-- SnapRAID Schedules Dialog -->
-  <v-dialog v-model="snapraidSchedulesDialog.value" max-width="600">
+  <v-dialog v-model="snapraidSchedulesDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('snapraid schedules')" prepend-icon="mdi-clock-outline" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <v-form>
@@ -1133,7 +1133,7 @@
   </v-dialog>
 
   <!-- NonRaid Schedules Dialog -->
-  <v-dialog v-model="nonRaidSchedulesDialog.value" max-width="600">
+  <v-dialog v-model="nonRaidSchedulesDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('nonraid schedules')" prepend-icon="mdi-clock-outline" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <v-switch v-model="nonRaidSchedulesDialog.check.enabled" :label="$t('check')" hide-details="auto" density="compact" color="green" inset />
@@ -1159,7 +1159,7 @@
   </v-dialog>
 
   <!-- Multi Schedules Dialog -->
-  <v-dialog v-model="multiSchedulesDialog.value" max-width="400">
+  <v-dialog v-model="multiSchedulesDialog.value" max-width="400" persistent>
     <v-card class="pa-0" :title="t('btrfs schedules')" prepend-icon="mdi-clock-outline" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <v-switch v-model="multiSchedulesDialog.scrub.enabled" :label="$t('scrub enabled')" hide-details="auto" density="compact" color="green" inset />
@@ -1202,7 +1202,7 @@
   </v-dialog>
 
   <!-- Add Non-Raid Devices Dialog -->
-  <v-dialog v-model="addNonRaidDeviceDialog.value" max-width="600">
+  <v-dialog v-model="addNonRaidDeviceDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('add device')" prepend-icon="mdi-harddisk-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select device to add to pool') }}</p>
@@ -1228,7 +1228,7 @@
   </v-dialog>
 
   <!-- Add Non-Raid Parity Dialog -->
-  <v-dialog v-model="addNonRaidParityDialog.value" max-width="600">
+  <v-dialog v-model="addNonRaidParityDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('add parity devices')" prepend-icon="mdi-harddisk-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select devices to add as parity') }}</p>
@@ -1252,7 +1252,7 @@
   </v-dialog>
 
   <!-- Mergerfs Policy -->
-  <v-dialog v-model="mergerfsPolicyDialog.value" max-width="600">
+  <v-dialog v-model="mergerfsPolicyDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('mergerfs policies')" prepend-icon="mdi-shape-outline" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <v-select v-model="mergerfsPolicyDialog.policies.create" :items="mergerfsPolicyDialog.availablePolicies" :label="$t('create policy')" density="comfortable" class="mt-2" />
@@ -1272,7 +1272,7 @@
   </v-dialog>
 
   <!-- Snapraid Fix Warning -->
-  <v-dialog v-model="snapraidFixWarningDialog.value" max-width="400">
+  <v-dialog v-model="snapraidFixWarningDialog.value" max-width="400" persistent>
     <v-card class="pa-0" :title="t('warning')" prepend-icon="mdi-alert" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">{{ $t('are you sure you want to perform a fix on your pool') }}?</v-card-text>
       <v-divider />
@@ -1286,7 +1286,7 @@
   </v-dialog>
 
   <!-- Usage Alerts -->
-  <v-dialog v-model="usageAlertsDialog.value" max-width="400">
+  <v-dialog v-model="usageAlertsDialog.value" max-width="400" persistent>
     <v-card class="pa-0" :title="t('usage alerts')" prepend-icon="mdi-bell-outline" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto" class="pt-2">
         <v-text-field v-model="usageAlertsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" />
@@ -1303,7 +1303,7 @@
   </v-dialog>
 
   <!-- Create Virtual Pool Dialog -->
-  <v-dialog v-model="createVpoolDialog.value" max-width="600">
+  <v-dialog v-model="createVpoolDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('create virtual pool')" prepend-icon="mdi-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <v-text-field v-model="createVpoolDialog.name" :label="$t('name')" density="comfortable" class="pt-2" />
@@ -2165,7 +2165,6 @@ const formatDisk = async () => {
     }
     showSnackbarSuccess(t('disk formatted successfully'));
 
-    clearFormatDialog();
     getPools();
     getUnassignedDisks();
     formatDialog.value = false;
@@ -2178,8 +2177,6 @@ const formatDisk = async () => {
 };
 
 const createPool = async () => {
-  createPoolDialog.value = false;
-
   if (createPoolDialog.type === 'single') {
     createPoolSingle();
   } else if (createPoolDialog.type === 'mergerfs') {
@@ -2228,8 +2225,7 @@ const createPoolMergerfs = async () => {
       throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
     }
     showSnackbarSuccess(t('pool created successfully'));
-
-    clearCreatePoolDialog();
+    createPoolDialog.value = false;
     getPools();
     getUnassignedDisks();
   } catch (e) {
@@ -2276,8 +2272,7 @@ const createPoolNonRaid = async () => {
       throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
     }
     showSnackbarSuccess(t('pool created successfully'));
-
-    clearCreatePoolDialog();
+    createPoolDialog.value = false;
     getPools();
     getUnassignedDisks();
   } catch (e) {
@@ -2321,8 +2316,7 @@ const createPoolMulti = async () => {
       throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
     }
     showSnackbarSuccess(t('pool created successfully'));
-
-    clearCreatePoolDialog();
+    createPoolDialog.value = false;
     getPools();
     getUnassignedDisks();
   } catch (e) {
@@ -2361,13 +2355,12 @@ const createPoolSingle = async () => {
       body: JSON.stringify(createPoolData),
     });
 
-    if (!res.ok) {
+    if (res.ok == false) { 
       const errorDetails = await res.json();
       throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
     }
     showSnackbarSuccess(t('pool created successfully'));
-
-    clearCreatePoolDialog();
+    createPoolDialog.value = false;
     getPools();
     getUnassignedDisks();
   } catch (e) {
@@ -2435,7 +2428,6 @@ const deletePool = async (poolId) => {
     }
     showSnackbarSuccess(t('pool deleted successfully'));
 
-    clearDeletePoolDialog();
     getPools();
     getUnassignedDisks();
     getPoolTypes();
@@ -3365,35 +3357,6 @@ const switchPoolType = async () => {
       return;
     }
   }
-};
-
-const clearCreatePoolDialog = () => {
-  createPoolDialog.value = false;
-  createPoolDialog.disk = null;
-  createPoolDialog.name = '';
-  createPoolDialog.type = 'single';
-  createPoolDialog.devices = [];
-  createPoolDialog.filesystem = '';
-  createPoolDialog.automount = true;
-  createPoolDialog.raidLevel = '';
-  createPoolDialog.comment = '';
-  createPoolDialog.mergerfsOptions = '';
-  createPoolDialog.snapraidDevice = [];
-  createPoolDialog.format = false;
-  createPoolDialog.encrypted = false;
-  createPoolDialog.create_keyfile = true;
-  createPoolDialog.passphrase = '';
-};
-const clearFormatDialog = () => {
-  formatDialog.value = false;
-  formatDialog.disk = null;
-  formatDialog.filesystem = '';
-  formatDialog.partition = true;
-  formatDialog.wipeExisting = true;
-};
-const clearDeletePoolDialog = () => {
-  deletePoolDialog.value = false;
-  deletePoolDialog.pool = null;
 };
 
 const getUsageColor = (usagePercent) => {

@@ -80,11 +80,11 @@ const vuetify = createVuetify({
     },
   },
   defaults: {
-    VTextField: { density: 'comfortable' },
-    VSelect: { density: 'comfortable' },
-    VAutocomplete: { density: 'comfortable' },
-    VCombobox: { density: 'comfortable' },
-    VTextarea: { density: 'comfortable' },
+    VTextField: { density: 'comfortable', variant: 'outlined' },
+    VSelect: { density: 'comfortable', variant: 'outlined' },
+    VAutocomplete: { density: 'comfortable', variant: 'outlined' },
+    VCombobox: { density: 'comfortable', variant: 'outlined' },
+    VTextarea: { density: 'comfortable', variant: 'outlined' },
     VCard: {
       style: {
         background: 'rgb(var(--v-theme-background))',

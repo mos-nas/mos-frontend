@@ -3,10 +3,10 @@
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
-          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px;">
-            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle;">mdi-arrow-left</v-icon>
+          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px">
+            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle">mdi-arrow-left</v-icon>
           </v-col>
-          <div class="d-flex align-center ga-3 mb-4" style="height: 40px;">
+          <div class="d-flex align-center ga-3 mb-4" style="height: 40px">
             <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
             <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ $t('logs') }}</h2>
           </div>
@@ -31,8 +31,8 @@
                   /error/i.test(line)
                     ? { background: '#ffebee', color: '#b71c1c', padding: '2px 6px', display: 'block' }
                     : /warn(?:ing)?/i.test(line)
-                    ? { background: '#fff8e1', color: '#ff6f00', padding: '2px 6px', display: 'block' }
-                    : { padding: '2px 6px', display: 'block' }
+                      ? { background: '#fff8e1', color: '#ff6f00', padding: '2px 6px', display: 'block' }
+                      : { padding: '2px 6px', display: 'block' }
                 "
               >
                 {{ line }}
@@ -48,7 +48,6 @@
   <v-fab :disabled="!selectedLog" @click="getLogFileContent(selectedLog)" color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
     <v-icon>mdi-refresh</v-icon>
   </v-fab>
-
 </template>
 
 <script setup>
