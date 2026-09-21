@@ -1742,7 +1742,7 @@
   "dead time": "Dead Time",
   "rb warn time": "RB Warn Time",
   "no comm warn time": "No Comm Warn Time",
-  "stop services on shutdown": "Stop Services on Shutdown",
+  "stop services on battery": "Stop Services on Battery",
   "docker services": "Docker Services",
   "service name": "Service Name",
   "lxc services": "LXC Services",

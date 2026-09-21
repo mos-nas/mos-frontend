@@ -271,7 +271,7 @@
 
             <!-- Stop Services Configuration -->
             <v-divider class="my-4"></v-divider>
-            <span class="text-title-medium font-weight-medium">{{ $t('stop services on shutdown') }}</span>
+            <span class="text-title-medium font-weight-medium">{{ $t('stop services on battery') }}</span>
 
             <!-- Docker Services -->
             <div class="mt-4">
