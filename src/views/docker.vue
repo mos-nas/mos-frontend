@@ -1071,7 +1071,6 @@ const getDockers = async () => {
     const result = await res.json();
     const mosResult = await mosRes.json();
 
-    // Entferne führenden / von jedem Namen und initialisiere zusätzliche Properties
     result.forEach((docker) => {
       if (docker.Names && Array.isArray(docker.Names)) {
         docker.Names = docker.Names.map((name) => (name.startsWith('/') ? name.slice(1) : name));
@@ -1080,7 +1079,6 @@ const getDockers = async () => {
       docker.webui = '';
     });
 
-    // Sortiere docker nach dem Index in mosResult
     if (Array.isArray(mosResult)) {
       result.sort((a, b) => {
         const objA = mosResult.find((item) => item.name === a.Names[0]);
@@ -1092,13 +1090,32 @@ const getDockers = async () => {
       });
     }
 
-    // Übernehme benötigte Attribute aus mosResult in result
     result.forEach((docker) => {
       const mos = mosResult.find((item) => item.name === docker.Names[0]);
       docker.autostart = mos ? mos.autostart : false;
       docker.wait = mos ? mos.wait : 0;
       docker.index = mos ? mos.index : Number.MAX_SAFE_INTEGER;
       docker.default_shell = mos ? mos.default_shell : '/bin/sh';
+
+      if (docker.NetworkSettings && docker.NetworkSettings.Networks) {
+        const networkMode = docker.HostConfig?.NetworkMode || '';
+        const networkSettings = docker.NetworkSettings.Networks[networkMode];
+        if (networkSettings && networkSettings.IPAMConfig) {
+          // Prefer IPv4, fallback to IPv6
+          if (networkSettings.IPAMConfig.IPv4Address) {
+            docker.custom_ip = networkSettings.IPAMConfig.IPv4Address;
+          } else if (networkSettings.IPAMConfig.IPv6Address) {
+            // IPv6 addresses need brackets in URLs
+            docker.custom_ip = `[${networkSettings.IPAMConfig.IPv6Address}]`;
+          } else {
+            docker.custom_ip = mos ? mos.custom_ip : '';
+          }
+        } else {
+          docker.custom_ip = mos ? mos.custom_ip : '';
+        }
+      } else {
+        docker.custom_ip = mos ? mos.custom_ip : '';
+      }
     });
 
     dockers.value = result;
@@ -1146,7 +1163,6 @@ const getDockerGroups = async () => {
 
     dockerGroups.value = newGroups.map((group) => {
       const old = dockerGroups.value.find((g) => g.id === group.id);
-      // Für Compose-Gruppen: webui und autostart aus composeStacks übernehmen
       const composeStack = group.compose ? composeStacks.value.find((s) => s.name === group.name) : null;
       const runningCount = (group.containers || []).filter((name) => {
         const d = dockers.value.find((d) => d.Names && d.Names[0] === name);
@@ -1444,7 +1460,8 @@ const checkWebui = (docker) => {
     }
     const addressMatch = webui.match(/\[ADDRESS\]/g);
     if (addressMatch) {
-      webui = webui.replace(/\[ADDRESS\]/g, window.location.hostname);
+      const address = docker.custom_ip && docker.custom_ip.trim() ? docker.custom_ip : window.location.hostname;
+      webui = webui.replace(/\[ADDRESS\]/g, address);
     }
     docker.webui = webui;
     return true;
