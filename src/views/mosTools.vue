@@ -278,7 +278,7 @@ const updateUI = async () => {
   .card {
     border-color: rgba(0, 0, 0, 0.15);
   }
-  :global(.v-theme--dark) .card {
+  :global(.v-theme--dark .card) {
     border-color: rgba(255, 255, 255, 0.28);
   }
 }

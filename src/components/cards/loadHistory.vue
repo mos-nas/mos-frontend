@@ -347,15 +347,11 @@ onBeforeUnmount(() => {
 .load-bar-container {
   width: 100%;
   height: 24px;
-  background-color: rgba(0, 0, 0, 0.06);
+  background-color: rgba(var(--v-theme-on-surface), 0.08);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
   align-items: center;
-}
-
-:global(.v-theme--dark) .load-bar-container {
-  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .load-bar {
