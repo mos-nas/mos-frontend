@@ -393,7 +393,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, reactive, computed } from 'vue';
+import { onMounted, ref, reactive, computed, inject } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import { useOverlay } from '@/composables/useOverlay';
@@ -401,6 +401,7 @@ import { useOverlay } from '@/composables/useOverlay';
 const { overlay } = useOverlay();
 const { t } = useI18n();
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
+const mosServices = inject('mosServices', ref({}));
 
 const defaultMonitor = () => ({
   upsname: '',
@@ -717,7 +718,25 @@ const getVmServiceNames = async () => {
 };
 
 const getContainerServiceNames = async () => {
-  await Promise.all([getDockerServiceNames(), getLxcServiceNames(), getVmServiceNames()]);
+  const tasks = [];
+  
+  if (mosServices.value.docker?.running) {
+    tasks.push(getDockerServiceNames());
+  } else {
+    dockerServiceNames.value = [];
+  }
+  if (mosServices.value.lxc?.enabled) {
+    tasks.push(getLxcServiceNames());
+  } else {
+    lxcServiceNames.value = [];
+  }
+  if (mosServices.value.vm?.running) {
+    tasks.push(getVmServiceNames());
+  } else {
+    vmServiceNames.value = [];
+  }
+  
+  await Promise.all(tasks);
 };
 
 const getNutSettings = async () => {
