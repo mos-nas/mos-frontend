@@ -1786,6 +1786,12 @@
   "charging": "Lädt",
   "discharging": "Entlädt",
   "bypass": "Bypass",
-  "calibration": "Kalibrierung"
+  "calibration": "Kalibrierung",
+  "cache devices": "Cache Geräte",
+  "data replicas": "Datenreplikationen",
+  "metadata replicas": "Metadaten Replikationen",
+  "background compression": "Hintergrundkompression",
+  "cache mode": "Cache Modus",
+  "erasure code": "Erasure Code"
 
 }

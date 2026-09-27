@@ -276,8 +276,10 @@
             <!-- Docker Services -->
             <div class="mt-4">
               <v-card variant="outlined" class="mb-4">
-                <button type="button" class="compact-report-toggle" @click="showDockerServices = !showDockerServices" style="width: 100%; justify-content: space-between;">
-                  <span class="text-subtitle-2 font-weight-medium" style="color: inherit;">{{ nutSettings.stop_services.docker.filter(s => s.enabled).length }} / {{ dockerServiceNames.length }} {{ $t('docker') }} - {{ showDockerServices ? $t('hide') : $t('see more') }}</span>
+                <button type="button" class="compact-report-toggle" @click="showDockerServices = !showDockerServices" style="width: 100%; justify-content: space-between">
+                  <span class="text-subtitle-2 font-weight-medium" style="color: inherit">
+                    {{ nutSettings.stop_services.docker.filter((s) => s.enabled).length }} / {{ dockerServiceNames.length }} {{ $t('docker') }} - {{ showDockerServices ? $t('hide') : $t('see more') }}
+                  </span>
                   <v-icon :icon="showDockerServices ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="small"></v-icon>
                 </button>
                 <v-expand-transition>
@@ -289,17 +291,17 @@
                       </div>
                       <v-row v-else class="ga-2">
                         <v-col v-for="(containerName, i) in dockerServiceNames" :key="`docker-${i}`" cols="12" sm="6" md="4" class="d-flex align-center">
-                          <div class="d-flex align-center justify-space-between flex-grow-1 pa-2" style="border: 1px solid var(--v-border-color); border-radius: 4px;">
-                            <v-switch 
-                              :model-value="nutSettings.stop_services.docker.some(s => s.name === containerName && s.enabled)"
+                          <div class="d-flex align-center justify-space-between flex-grow-1 pa-2" style="border: 1px solid var(--v-border-color); border-radius: 4px">
+                            <v-switch
+                              :model-value="nutSettings.stop_services.docker.some((s) => s.name === containerName && s.enabled)"
                               @update:model-value="(enabled) => toggleDockerService(containerName, enabled)"
-                              hide-details 
+                              hide-details
                               size="small"
                               density="compact"
                               inset
                               color="primary"
                             ></v-switch>
-                            <span class="text-body-2 flex-grow-1 ml-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ containerName }}</span>
+                            <span class="text-body-2 flex-grow-1 ml-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ containerName }}</span>
                           </div>
                         </v-col>
                       </v-row>
@@ -312,8 +314,10 @@
             <!-- LXC Services -->
             <div class="mt-4">
               <v-card variant="outlined" class="mb-4">
-                <button type="button" class="compact-report-toggle" @click="showLxcServices = !showLxcServices" style="width: 100%; justify-content: space-between;">
-                  <span class="text-subtitle-2 font-weight-medium" style="color: inherit;">{{ nutSettings.stop_services.lxc.filter(s => s.enabled).length }} / {{ lxcServiceNames.length }} {{ $t('lxc') }} - {{ showLxcServices ? $t('hide') : $t('see more') }}</span>
+                <button type="button" class="compact-report-toggle" @click="showLxcServices = !showLxcServices" style="width: 100%; justify-content: space-between">
+                  <span class="text-subtitle-2 font-weight-medium" style="color: inherit">
+                    {{ nutSettings.stop_services.lxc.filter((s) => s.enabled).length }} / {{ lxcServiceNames.length }} {{ $t('lxc') }} - {{ showLxcServices ? $t('hide') : $t('see more') }}
+                  </span>
                   <v-icon :icon="showLxcServices ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="small"></v-icon>
                 </button>
                 <v-expand-transition>
@@ -325,17 +329,17 @@
                       </div>
                       <v-row v-else class="ga-2">
                         <v-col v-for="(containerName, i) in lxcServiceNames" :key="`lxc-${i}`" cols="12" sm="6" md="4" class="d-flex align-center">
-                          <div class="d-flex align-center justify-space-between flex-grow-1 pa-2" style="border: 1px solid var(--v-border-color); border-radius: 4px;">
-                            <v-switch 
-                              :model-value="nutSettings.stop_services.lxc.some(s => s.name === containerName && s.enabled)"
+                          <div class="d-flex align-center justify-space-between flex-grow-1 pa-2" style="border: 1px solid var(--v-border-color); border-radius: 4px">
+                            <v-switch
+                              :model-value="nutSettings.stop_services.lxc.some((s) => s.name === containerName && s.enabled)"
                               @update:model-value="(enabled) => toggleLxcService(containerName, enabled)"
-                              hide-details 
+                              hide-details
                               size="small"
                               density="compact"
                               inset
                               color="primary"
                             ></v-switch>
-                            <span class="text-body-2 flex-grow-1 ml-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ containerName }}</span>
+                            <span class="text-body-2 flex-grow-1 ml-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ containerName }}</span>
                           </div>
                         </v-col>
                       </v-row>
@@ -348,8 +352,10 @@
             <!-- VMs -->
             <div class="mt-4">
               <v-card variant="outlined" class="mb-4">
-                <button type="button" class="compact-report-toggle" @click="showVmServices = !showVmServices" style="width: 100%; justify-content: space-between;">
-                  <span class="text-subtitle-2 font-weight-medium" style="color: inherit;">{{ nutSettings.stop_services.vms.filter(s => s.enabled).length }} / {{ vmServiceNames.length }} {{ $t('vms') }} - {{ showVmServices ? $t('hide') : $t('see more') }}</span>
+                <button type="button" class="compact-report-toggle" @click="showVmServices = !showVmServices" style="width: 100%; justify-content: space-between">
+                  <span class="text-subtitle-2 font-weight-medium" style="color: inherit">
+                    {{ nutSettings.stop_services.vms.filter((s) => s.enabled).length }} / {{ vmServiceNames.length }} {{ $t('vms') }} - {{ showVmServices ? $t('hide') : $t('see more') }}
+                  </span>
                   <v-icon :icon="showVmServices ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="small"></v-icon>
                 </button>
                 <v-expand-transition>
@@ -361,17 +367,17 @@
                       </div>
                       <v-row v-else class="ga-2">
                         <v-col v-for="(vmName, i) in vmServiceNames" :key="`vm-${i}`" cols="12" sm="6" md="4" class="d-flex align-center">
-                          <div class="d-flex align-center justify-space-between flex-grow-1 pa-2" style="border: 1px solid var(--v-border-color); border-radius: 4px;">
-                            <v-switch 
-                              :model-value="nutSettings.stop_services.vms.some(s => s.name === vmName && s.enabled)"
+                          <div class="d-flex align-center justify-space-between flex-grow-1 pa-2" style="border: 1px solid var(--v-border-color); border-radius: 4px">
+                            <v-switch
+                              :model-value="nutSettings.stop_services.vms.some((s) => s.name === vmName && s.enabled)"
                               @update:model-value="(enabled) => toggleVmService(vmName, enabled)"
-                              hide-details 
+                              hide-details
                               size="small"
                               density="compact"
                               inset
                               color="primary"
                             ></v-switch>
-                            <span class="text-body-2 flex-grow-1 ml-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ vmName }}</span>
+                            <span class="text-body-2 flex-grow-1 ml-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ vmName }}</span>
                           </div>
                         </v-col>
                       </v-row>
@@ -619,7 +625,7 @@ const deleteExtraConfig = (key) => {
 };
 
 const toggleDockerService = (containerName, enabled) => {
-  const existing = nutSettings.value.stop_services.docker.find(s => s.name === containerName);
+  const existing = nutSettings.value.stop_services.docker.find((s) => s.name === containerName);
   if (existing) {
     existing.enabled = enabled;
   } else if (enabled) {
@@ -628,7 +634,7 @@ const toggleDockerService = (containerName, enabled) => {
 };
 
 const toggleLxcService = (containerName, enabled) => {
-  const existing = nutSettings.value.stop_services.lxc.find(s => s.name === containerName);
+  const existing = nutSettings.value.stop_services.lxc.find((s) => s.name === containerName);
   if (existing) {
     existing.enabled = enabled;
   } else if (enabled) {
@@ -637,7 +643,7 @@ const toggleLxcService = (containerName, enabled) => {
 };
 
 const toggleVmService = (vmName, enabled) => {
-  const existing = nutSettings.value.stop_services.vms.find(s => s.name === vmName);
+  const existing = nutSettings.value.stop_services.vms.find((s) => s.name === vmName);
   if (existing) {
     existing.enabled = enabled;
   } else if (enabled) {
@@ -719,7 +725,7 @@ const getVmServiceNames = async () => {
 
 const getContainerServiceNames = async () => {
   const tasks = [];
-  
+
   if (mosServices.value.docker?.running) {
     tasks.push(getDockerServiceNames());
   } else {
@@ -735,7 +741,7 @@ const getContainerServiceNames = async () => {
   } else {
     vmServiceNames.value = [];
   }
-  
+
   await Promise.all(tasks);
 };
 
@@ -760,7 +766,7 @@ const getNutSettings = async () => {
 
     const data = await res.json();
     nutSettings.value = data;
-    
+
     // Ensure stop_services structure is always present
     if (!nutSettings.value.stop_services) {
       nutSettings.value.stop_services = {

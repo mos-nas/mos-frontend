@@ -583,8 +583,35 @@
           density="comfortable"
         />
         <v-select v-if="createPoolDialog.type === 'multi'" v-model="createPoolDialog.raidLevel" :items="raidLevels" :label="$t('raid level')" density="comfortable" />
-        <v-select v-model="createPoolDialog.filesystem" :items="createPoolDialog.filesystems" :label="$t('filesystem')" density="comfortable" />
+        <v-select v-if="createPoolDialog.type !== 'bcachefs'" v-model="createPoolDialog.filesystem" :items="createPoolDialog.filesystems" :label="$t('filesystem')" density="comfortable" />
         <v-text-field v-if="createPoolDialog.type === 'mergerfs'" v-model="createPoolDialog.comment" :label="$t('comment')" />
+        <div v-if="createPoolDialog.type === 'bcachefs'">
+          <v-select
+            v-model="createPoolDialog.cache_devices"
+            :items="
+              Array.isArray(unassignedDisks)
+                ? unassignedDisks
+                    .filter((disk) => !createPoolDialog.devices.includes(disk.device))
+                    .map((disk) => ({
+                      title: `${disk.device} (${disk.size_human}) (${disk.serial ? disk.serial : '—'})`,
+                      value: disk.device,
+                    }))
+                : []
+            "
+            item-title="title"
+            item-value="value"
+            :label="$t('cache devices')"
+            :multiple="true"
+            density="comfortable"
+          />
+          <v-text-field v-model.number="createPoolDialog.data_replicas" :label="$t('data replicas')" type="number" min="1" max="3" density="comfortable" />
+          <v-text-field v-model.number="createPoolDialog.metadata_replicas" :label="$t('metadata replicas')" type="number" min="1" max="3" density="comfortable" />
+          <v-select v-model="createPoolDialog.compression" :items="['none', 'lz4', 'gzip', 'zstd', 'snappy']" :label="$t('compression')" density="comfortable" />
+          <v-select v-model="createPoolDialog.background_compression" :items="['none', 'lz4', 'gzip', 'zstd', 'snappy']" :label="$t('background compression')" density="comfortable" />
+          <v-select v-model="createPoolDialog.cache_mode" :items="['writeback', 'writethrough', 'none']" :label="$t('cache mode')" density="comfortable" />
+          <v-switch v-model="createPoolDialog.erasure_code" :label="$t('erasure code')" hide-details density="compact" color="green" inset />
+        </div>
+
         <div v-if="createPoolDialog.type === 'mergerfs'">
           <v-divider></v-divider>
           <v-btn variant="text" @click="createPoolDialog.showAdvanced = !createPoolDialog.showAdvanced" class="mb-4">
@@ -1435,6 +1462,13 @@ const createPoolDialog = reactive({
   },
   skip_size_check: false,
   skip_size_check_clicks: 0,
+  cache_devices: [],
+  data_replicas: 2,
+  metadata_replicas: 2,
+  erasure_code: true,
+  compression: 'lz4',
+  background_compression: 'zstd',
+  cache_mode: 'writethrough',
 });
 const deletePoolDialog = reactive({
   value: false,
@@ -1819,6 +1853,13 @@ const openCreatePoolDialog = async (disk) => {
   createPoolDialog.parity_valid = false;
   createPoolDialog.skip_size_check = false;
   createPoolDialog.skip_size_check_clicks = 0;
+  createPoolDialog.cache_devices = [];
+  createPoolDialog.data_replicas = 2;
+  createPoolDialog.metadata_replicas = 2;
+  createPoolDialog.erasure_code = true;
+  createPoolDialog.compression = 'lz4';
+  createPoolDialog.background_compression = 'zstd';
+  createPoolDialog.cache_mode = 'writethrough';
   createPoolDialog.filesystems = await getFilesystems(createPoolDialog.type);
 };
 const openDeletePoolDialog = (pool) => {
@@ -2185,6 +2226,8 @@ const createPool = async () => {
     createPoolMulti();
   } else if (createPoolDialog.type === 'nonraid') {
     createPoolNonRaid();
+  } else if (createPoolDialog.type === 'bcachefs') {
+    createPoolBcachefs();
   }
 };
 
@@ -2283,6 +2326,57 @@ const createPoolNonRaid = async () => {
   }
 };
 
+const createPoolBcachefs = async () => {
+  const createPoolData = {
+    name: createPoolDialog.name,
+    devices: createPoolDialog.devices,
+    cache_devices: createPoolDialog.cache_devices,
+    format: createPoolDialog.format,
+    config: {
+      shared: createPoolDialog.shared,
+      encrypted: createPoolDialog.encrypted,
+      create_keyfile: createPoolDialog.encrypted ? createPoolDialog.create_keyfile : false,
+      data_replicas: createPoolDialog.data_replicas,
+      metadata_replicas: createPoolDialog.metadata_replicas,
+      erasure_code: createPoolDialog.erasure_code,
+      compression: createPoolDialog.compression,
+      background_compression: createPoolDialog.background_compression,
+      cache_mode: createPoolDialog.cache_mode,
+    },
+    options: {
+      automount: createPoolDialog.automount,
+      comment: createPoolDialog.comment,
+    },
+    passphrase: createPoolDialog.encrypted ? createPoolDialog.passphrase : null,
+  };
+  overlay.value = true;
+
+  try {
+    const res = await fetch(`/api/v1/pools/bcachefs`, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(createPoolData),
+    });
+
+    if (!res.ok) {
+      const errorDetails = await res.json();
+      throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
+    }
+    showSnackbarSuccess(t('pool created successfully'));
+    createPoolDialog.value = false;
+    getPools();
+    getUnassignedDisks();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+};
+
 const createPoolMulti = async () => {
   const createPoolData = {
     name: createPoolDialog.name,
@@ -2355,7 +2449,7 @@ const createPoolSingle = async () => {
       body: JSON.stringify(createPoolData),
     });
 
-    if (res.ok == false) { 
+    if (res.ok == false) {
       const errorDetails = await res.json();
       throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
     }
@@ -3341,10 +3435,13 @@ const switchPoolType = async () => {
   createPoolDialog.devices = [];
   createPoolDialog.snapraidDevice = [];
   createPoolDialog.parity = [];
+  createPoolDialog.cache_devices = [];
 
   createPoolDialog.filesystems = await getFilesystems(createPoolDialog.type);
   if (createPoolDialog.type === 'single' || createPoolDialog.type === 'mergerfs') {
     createPoolDialog.filesystem = 'xfs';
+  } else if (createPoolDialog.type === 'bcachefs') {
+    createPoolDialog.filesystem = 'bcachefs';
   } else {
     createPoolDialog.filesystem = 'btrfs';
   }

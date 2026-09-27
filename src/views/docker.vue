@@ -767,12 +767,12 @@
         <div style="max-height: 60vh; overflow-y: auto; padding: 16px; padding-bottom: 32px">
           <v-text-field v-model="editComposeStackDialog.name" :label="$t('stack name')" readonly></v-text-field>
           <div class="mb-4">
-            <v-label class="text-body2" style="display: block;">{{ $t('compose yaml') }}</v-label>
-            <div ref="editDialogYamlEditorContainer" style="border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 4px; overflow: hidden;"></div>
+            <v-label class="text-body2" style="display: block">{{ $t('compose yaml') }}</v-label>
+            <div ref="editDialogYamlEditorContainer" style="border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 4px; overflow: hidden"></div>
           </div>
           <div class="mb-4 mt-4">
-            <v-label class="text-body2" style="display: block;">{{ $t('environment variables') }}</v-label>
-            <div ref="editDialogEnvEditorContainer" style="border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 4px; overflow: hidden;"></div>
+            <v-label class="text-body2" style="display: block">{{ $t('environment variables') }}</v-label>
+            <div ref="editDialogEnvEditorContainer" style="border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 4px; overflow: hidden"></div>
           </div>
           <v-text-field v-model="editComposeStackDialog.icon" :label="$t('icon url')" class="mt-4"></v-text-field>
           <v-text-field v-model="editComposeStackDialog.webui" :label="$t('web ui url')"></v-text-field>
@@ -1490,11 +1490,6 @@ const openTerminalLogs = async (dockerName) => {
 };
 
 const createDockerTerminalSession = async (dockerName, shell) => {
-  const existingSessionId = await checkExistingTerminal('docker', 'exec', dockerName);
-  if (existingSessionId) {
-    return existingSessionId;
-  }
-
   try {
     const res = await fetch('/api/v1/terminal/create', {
       method: 'POST',
