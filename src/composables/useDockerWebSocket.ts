@@ -16,11 +16,7 @@ type DockerWsParams = Record<string, any>;
 
 export function useDockerWebSocket(options: DockerWsOptions = {}) {
   const { t } = useI18n();
-  const {
-    onErrorSnackbar = (text: string, errorText?: string) => console.error(text, errorText),
-    onSuccessSnackbar = (text: string) => console.log(text),
-    onCompleted,
-  } = options;
+  const { onErrorSnackbar = (text: string, errorText?: string) => console.error(text, errorText), onSuccessSnackbar = (text: string) => console.log(text), onCompleted } = options;
   const wsIsConnected = ref(false);
   const wsError = ref<string | null>(null);
   const wsScrollContainer = ref<HTMLElement | null>(null);
@@ -42,7 +38,7 @@ export function useDockerWebSocket(options: DockerWsOptions = {}) {
           el.scrollTop = el.scrollHeight;
         }
       });
-    }
+    },
   );
 
   const clearWsOperationDialog = () => {
@@ -72,7 +68,7 @@ export function useDockerWebSocket(options: DockerWsOptions = {}) {
     cleanupSocket();
   };
 
-const sendDockerWSCommand = (command: string, params?: DockerWsParams) => {
+  const sendDockerWSCommand = (command: string, params?: DockerWsParams) => {
     const authToken = localStorage.getItem('authToken');
     if (!authToken) {
       wsError.value = 'No auth token found';
@@ -85,7 +81,7 @@ const sendDockerWSCommand = (command: string, params?: DockerWsParams) => {
       return;
     }
 
-    const wsUrl = __WS_BASE_URL__ || '';
+    const wsUrl = (globalThis as any).__WS_BASE_URL__ || '';
     socket = io(wsUrl ? `${wsUrl}/docker` : '/docker', {
       path: '/api/v1/socket.io/',
       transports: ['websocket'],
@@ -93,14 +89,14 @@ const sendDockerWSCommand = (command: string, params?: DockerWsParams) => {
     });
 
     socket.on('connect', () => {
-        wsIsConnected.value = true;
-        wsError.value = null;
+      wsIsConnected.value = true;
+      wsError.value = null;
 
-        socket?.emit('docker', {
+      socket?.emit('docker', {
         token: authToken,
         operation: command,
-        params: params ?? null
-        });
+        params: params ?? null,
+      });
     });
 
     socket.on('connect_error', (err: any) => {
@@ -114,7 +110,6 @@ const sendDockerWSCommand = (command: string, params?: DockerWsParams) => {
     });
 
     const apply = (data: any) => {
-
       if (wsOperationDialog.operationId && data.operationId && data.operationId !== wsOperationDialog.operationId) {
         return;
       }

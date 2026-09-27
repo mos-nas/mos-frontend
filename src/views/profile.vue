@@ -158,7 +158,6 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-
 </template>
 
 <script setup>
@@ -167,10 +166,12 @@ import { useI18n } from 'vue-i18n';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useTheme } from 'vuetify';
 import { useOverlay } from '@/composables/useOverlay';
+import { useApi } from '@/composables/useApi';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { availableLocales, locale, t } = useI18n();
 const { overlay } = useOverlay();
+const { call } = useApi();
 const selectedLanguage = ref(locale.value);
 const languages = ref(availableLocales);
 const byteFormats = ref([
@@ -214,271 +215,137 @@ onMounted(() => {
 
 const getUser = async () => {
   try {
-    const res = await fetch(`/api/v1/auth/profile`, {
-      method: 'GET',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/auth/profile', {
+      errorLabel: t('profile could not be loaded'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('profile could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    const user = await res.json();
-    selectedByteFormat.value = user.byte_format || 'binary';
-    darkMode.value = user.darkmode ? 'dark' : 'light';
-    hideInactiveMenus.value = user.hide_inactive_menus;
-    groupMenus.value = user.group_menus;
-    mfaEnabled.value = user.mfa_enabled;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+    selectedByteFormat.value = result.byte_format || 'binary';
+    darkMode.value = result.darkmode ? 'dark' : 'light';
+    hideInactiveMenus.value = result.hide_inactive_menus;
+    groupMenus.value = result.group_menus;
+    mfaEnabled.value = result.mfa_enabled;
+  } catch {}
 };
 
 const changePrimaryColor = async (newColor) => {
   try {
-    const res = await fetch(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
+    const result = await call(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
       method: 'PUT',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ primary_color: newColor }),
+      body: { primary_color: newColor },
+      errorLabel: t('primary color could not be changed'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('primary color could not be changed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
     color.value = newColor;
     theme.themes.value[theme.global.name.value].colors.primary = newColor;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+  } catch {}
 };
 
 const changeLanguage = async () => {
   try {
-    const res = await fetch(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
+    await call(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
       method: 'PUT',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ language: selectedLanguage.value }),
+      body: { language: selectedLanguage.value },
+      errorLabel: t('language could not be changed'),
+      successLabel: t('language changed'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('language could not be changed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
     locale.value = selectedLanguage.value;
-    showSnackbarSuccess(t('language changed'));
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+  } catch {}
 };
 
 const changeByteUnit = async () => {
   try {
-    const res = await fetch(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
+    await call(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
       method: 'PUT',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ byte_format: selectedByteFormat.value }),
+      body: { byte_format: selectedByteFormat.value },
+      errorLabel: t('byte unit could not be changed'),
+      successLabel: t('byte unit changed'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('byte unit could not be changed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('byte unit changed'));
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+  } catch {}
 };
 
 const getUiSessionExpiry = async () => {
   try {
-    const res = await fetch(`/api/v1/auth/jwt-settings`, {
-      method: 'GET',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call(`/api/v1/auth/jwt-settings`, {
+      errorLabel: t('ui session expiry could not be loaded'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('ui session expiry could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    const result = await res.json();
-    expiryDays.value = result.expiryDays;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+    if (result) expiryDays.value = result.expiryDays;
+  } catch {}
 };
 
 const changeUiSessionExpiry = async () => {
-  const daysBody = { expiryDays: parseInt(expiryDays.value) };
   try {
-    const res = await fetch(`/api/v1/auth/jwt-settings`, {
+    await call(`/api/v1/auth/jwt-settings`, {
       method: 'PUT',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(daysBody),
+      body: { expiryDays: parseInt(expiryDays.value) },
+      errorLabel: t('ui session expiry could not be changed'),
+      successLabel: t('ui session expiry changed'),
     });
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('ui session expiry could not be changed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('ui session expiry changed'));
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+  } catch {}
 };
 
 const setDarkMode = async (targetTheme) => {
-  const payload = { darkmode: targetTheme === 'dark' ? true : false };
-
   try {
-    const res = await fetch(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
+    const result = await call(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
       method: 'PUT',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: { darkmode: targetTheme === 'dark' ? true : false },
+      errorLabel: t('dark mode could not be changed'),
     });
-
-    if (!res.ok) throw new Error('API-Error');
-
-    const result = await res.json();
-    theme.change(result.darkmode ? 'dark' : 'light');
-    darkMode.value = theme.global.name.value;
-    theme.themes.value[theme.global.name.value].colors.primary = result.primary_color || '#1976D2';
-  } catch (e) {
-    showSnackbarError(e.message);
-  }
+    if (result) {
+      theme.change(result.darkmode ? 'dark' : 'light');
+      darkMode.value = theme.global.name.value;
+      theme.themes.value[theme.global.name.value].colors.primary = result.primary_color || '#1976D2';
+    }
+  } catch {}
 };
 
 const setHideInactiveMenus = async (hide) => {
-  const payload = { hide_inactive_menus: hide };
-
   try {
-    const res = await fetch(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
+    await call(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
       method: 'PUT',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: { hide_inactive_menus: hide },
+      errorLabel: t('could not be changed'),
     });
-
-    if (!res.ok) throw new Error('API-Error');
-
     hideInactiveMenus.value = hide;
     localStorage.setItem('hideInactiveMenus', hide ? 'true' : 'false');
     emit('refresh-drawer');
-  } catch (e) {
-    showSnackbarError(e.message);
-  }
+  } catch {}
 };
 
 const setGroupMenus = async (group) => {
-  const payload = { group_menus: group };
-
   try {
-    const res = await fetch(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
+    await call(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
       method: 'PUT',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: { group_menus: group },
+      errorLabel: t('could not be changed'),
     });
-
-    if (!res.ok) throw new Error('API-Error');
-
     groupMenus.value = group;
     localStorage.setItem('groupMenus', group ? 'true' : 'false');
     emit('refresh-drawer');
-  } catch (e) {
-    showSnackbarError(e.message);
-  }
+  } catch {}
 };
 
 const setMfa = async (password, code) => {
-  overlay.value = true;
-  let payload;
-  if (password) {
-    payload = { password: password };
-  } else {
-    payload = { code: code };
-  }
-
   try {
-    const res = await fetch(`/api/v1/auth/mfa/setup`, {
+    const payload = password ? { password } : { code };
+    const result = await call(`/api/v1/auth/mfa/setup`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('mfa setup could not be completed'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('mfa setup could not be completed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-
-    const result = await res.json();
     return result;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const deleteMfa = async () => {
-  overlay.value = true;
   try {
-    const res = await fetch(`/api/v1/auth/mfa`, {
+    await call(`/api/v1/auth/mfa`, {
       method: 'DELETE',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ password: mfaDeleteDialog.password }),
+      body: { password: mfaDeleteDialog.password },
+      errorLabel: t('mfa could not be disabled'),
+      successLabel: t('mfa disabled'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('mfa could not be disabled')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-
     mfaEnabled.value = false;
     mfaDeleteDialog.value = false;
     mfaDeleteDialog.password = '';
-    showSnackbarSuccess(t('mfa disabled'));
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const verifyCode = async () => {

@@ -1400,14 +1400,15 @@
 
 <script setup>
 import { ref, onMounted, reactive, watch } from 'vue';
-import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
+import { showSnackbarError } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
-import { useOverlay } from '@/composables/useOverlay';
 import draggable from 'vuedraggable';
 import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
+import { useApi } from '@/composables/useApi';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
+const { call } = useApi();
 const pools = ref([]);
 const poolsLoading = ref(true);
 const unassignedDisks = ref([]);
@@ -1415,7 +1416,6 @@ const unassignedDisksLoading = ref(true);
 const vpools = ref([]);
 const vpoolsLoading = ref(true);
 const { t } = useI18n();
-const { overlay } = useOverlay();
 const cronDialogApplyCallback = ref(null);
 const cronDialog = reactive({
   value: false,
@@ -1661,7 +1661,6 @@ watch(
     }
   },
 );
-
 watch(
   () => createPoolDialog.snapraidDevice,
   (newSnapraidDevices) => {
@@ -1673,7 +1672,6 @@ watch(
     }
   },
 );
-
 watch(
   () => cronDialog.value,
   (isOpen) => {
@@ -1975,21 +1973,11 @@ const handleVpoolFsSelected = (item) => {
 
 const getPools = async () => {
   try {
-    const res = await fetch('/api/v1/pools', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/pools', {
+      errorLabel: t('pools could not be loaded'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pools could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    pools.value = await res.json();
-    pools.value.sort((a, b) => a.index - b.index);
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
+    pools.value = result.sort((a, b) => a.index - b.index);
+  } catch {
   } finally {
     poolsLoading.value = false;
   }
@@ -1997,20 +1985,11 @@ const getPools = async () => {
 
 const getVPools = async () => {
   try {
-    const res = await fetch('/api/v1/pools/vpools', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/pools/vpools', {
+      errorLabel: t('virtual pools could not be loaded'),
     });
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('virtual pools could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    vpools.value = await res.json();
-    vpools.value.sort((a, b) => a.index - b.index);
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
+    vpools.value = result.sort((a, b) => a.index - b.index);
+  } catch {
   } finally {
     vpoolsLoading.value = false;
   }
@@ -2025,160 +2004,79 @@ const onDragEndVPool = async () => {
   };
 
   try {
-    const res = await fetch('/api/v1/pools/vpools/order', {
+    await call('/api/v1/pools/vpools/order', {
       method: 'PUT',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('virtual pool order could not be saved'),
+      successLabel: t('virtual pool order saved successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('virtual pool order could not be saved')}|$| ${error.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('virtual pool order saved successfully'));
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+  } catch {}
 };
 
 const mountVPool = async (vpool) => {
-  overlay.value = true;
   try {
-    const res = await fetch(`/api/v1/pools/vpools/${vpool.id}/mount`, {
+    await call(`/api/v1/pools/vpools/${vpool.id}/mount`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('virtual pool could not be mounted'),
+      successLabel: t('virtual pool mounted successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('virtual pool could not be mounted')}|$| ${error.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('virtual pool mounted successfully'));
     getVPools();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const unmountVPool = async (vpool) => {
-  overlay.value = true;
   try {
-    const res = await fetch(`/api/v1/pools/vpools/${vpool.id}/unmount`, {
+    await call(`/api/v1/pools/vpools/${vpool.id}/unmount`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('virtual pool could not be unmounted'),
+      successLabel: t('virtual pool unmounted successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('virtual pool could not be unmounted')}|$| ${error.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('virtual pool unmounted successfully'));
     getVPools();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const deleteVPool = async (vpool) => {
-  overlay.value = true;
   try {
-    const res = await fetch(`/api/v1/pools/vpools/${vpool.id}`, {
+    await call(`/api/v1/pools/vpools/${vpool.id}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('virtual pool could not be deleted'),
+      successLabel: t('virtual pool deleted successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('virtual pool could not be deleted')}|$| ${error.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('virtual pool deleted successfully'));
     getVPools();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const getUnassignedDisks = async () => {
   try {
-    const res = await fetch('/api/v1/disks/unassigned', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/disks/unassigned', {
+      errorLabel: t('unassigned disks could not be loaded'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('unassigned disks could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    const Result = await res.json();
-    unassignedDisks.value = Result.unassignedDisks || [];
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
+    unassignedDisks.value = result.unassignedDisks || [];
+  } catch {
   } finally {
     unassignedDisksLoading.value = false;
   }
 };
 
 const getFilesystems = async (pooltype = '') => {
+  const url = pooltype ? `/api/v1/disks/availablefilesystems?pooltype=${encodeURIComponent(pooltype)}` : '/api/v1/disks/availablefilesystems';
   try {
-    const url = pooltype ? `/api/v1/disks/availablefilesystems?pooltype=${encodeURIComponent(pooltype)}` : '/api/v1/disks/availablefilesystems';
-    const res = await fetch(url, {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call(url, {
+      errorLabel: t('filesystems could not be loaded'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('filesystems could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    const result = await res.json();
     return result || [];
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
+  } catch {
     return [];
   }
 };
 
 const getPoolTypes = async () => {
   try {
-    const res = await fetch('/api/v1/pools/availablepooltypes', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/pools/availablepooltypes', {
+      errorLabel: t('pool types could not be loaded'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool types could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    const result = await res.json();
     poolTypes.value = result || [];
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+  } catch {}
 };
 
 const formatDisk = async () => {
@@ -2188,33 +2086,18 @@ const formatDisk = async () => {
     partition: formatDialog.partition,
     wipeExisting: formatDialog.wipeExisting,
   };
-  overlay.value = true;
 
   try {
-    const res = await fetch(`/api/v1/disks/format`, {
+    await call('/api/v1/disks/format', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formatDiskData),
+      body: formatDiskData,
+      errorLabel: t('disk could not be formatted'),
+      successLabel: t('disk formatted successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('disk could not be formatted')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('disk formatted successfully'));
-
     getPools();
     getUnassignedDisks();
     formatDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const createPool = async () => {
@@ -2251,32 +2134,18 @@ const createPoolMergerfs = async () => {
     passphrase: createPoolDialog.encrypted ? createPoolDialog.passphrase : null,
     skip_size_check: createPoolDialog.skip_size_check,
   };
-  overlay.value = true;
 
   try {
-    const res = await fetch(`/api/v1/pools/mergerfs`, {
+    await call('/api/v1/pools/mergerfs', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(createPoolData),
+      body: createPoolData,
+      errorLabel: t('pool could not be created'),
+      successLabel: t('pool created successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool created successfully'));
     createPoolDialog.value = false;
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const createPoolNonRaid = async () => {
@@ -2298,32 +2167,18 @@ const createPoolNonRaid = async () => {
     },
     passphrase: createPoolDialog.encrypted ? createPoolDialog.passphrase : null,
   };
-  overlay.value = true;
 
   try {
-    const res = await fetch(`/api/v1/pools/nonraid`, {
+    await call('/api/v1/pools/nonraid', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(createPoolData),
+      body: createPoolData,
+      errorLabel: t('pool could not be created'),
+      successLabel: t('pool created successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool created successfully'));
     createPoolDialog.value = false;
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const createPoolBcachefs = async () => {
@@ -2349,32 +2204,18 @@ const createPoolBcachefs = async () => {
     },
     passphrase: createPoolDialog.encrypted ? createPoolDialog.passphrase : null,
   };
-  overlay.value = true;
 
   try {
-    const res = await fetch(`/api/v1/pools/bcachefs`, {
+    await call('/api/v1/pools/bcachefs', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(createPoolData),
+      body: createPoolData,
+      errorLabel: t('pool could not be created'),
+      successLabel: t('pool created successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool created successfully'));
     createPoolDialog.value = false;
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const createPoolMulti = async () => {
@@ -2393,32 +2234,18 @@ const createPoolMulti = async () => {
     },
     passphrase: createPoolDialog.encrypted ? createPoolDialog.passphrase : null,
   };
-  overlay.value = true;
 
   try {
-    const res = await fetch(`/api/v1/pools/multi`, {
+    await call('/api/v1/pools/multi', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(createPoolData),
+      body: createPoolData,
+      errorLabel: t('pool could not be created'),
+      successLabel: t('pool created successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool created successfully'));
     createPoolDialog.value = false;
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const createPoolSingle = async () => {
@@ -2437,32 +2264,18 @@ const createPoolSingle = async () => {
     },
     passphrase: createPoolDialog.encrypted ? createPoolDialog.passphrase : null,
   };
-  overlay.value = true;
 
   try {
-    const res = await fetch(`/api/v1/pools/single`, {
+    await call('/api/v1/pools/single', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(createPoolData),
+      body: createPoolData,
+      errorLabel: t('pool could not be created'),
+      successLabel: t('pool created successfully'),
     });
-
-    if (res.ok == false) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool created successfully'));
     createPoolDialog.value = false;
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const createVPool = async () => {
@@ -2478,335 +2291,152 @@ const createVPool = async () => {
       shared: createVpoolDialog.config.shared,
     },
   };
-  overlay.value = true;
 
   try {
-    const res = await fetch(`/api/v1/pools/vpools`, {
+    await call('/api/v1/pools/vpools', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('virtual pool could not be created'),
+      successLabel: t('virtual pool created successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('virtual pool could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('virtual pool created successfully'));
     getVPools();
     createVpoolDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const deletePool = async (poolId) => {
-  overlay.value = true;
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}`, {
+    await call(`/api/v1/pools/${poolId}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('pool could not be deleted'),
+      successLabel: t('pool deleted successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be deleted')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool deleted successfully'));
-
     getPools();
     getUnassignedDisks();
     getPoolTypes();
     deletePoolDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const switchAutomount = async (pool) => {
-  overlay.value = true;
-
   try {
-    const res = await fetch(`/api/v1/pools/${pool.id}/automount`, {
+    await call(`/api/v1/pools/${pool.id}/automount`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ enabled: pool.automount }),
+      body: { enabled: pool.automount },
+      errorLabel: t('could not change automount setting'),
+      successLabel: t('automount setting changed successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('could not change automount setting')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('automount setting changed successfully'));
-
     getPools();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const switchVPoolAutomount = async (vpool) => {
-  overlay.value = true;
-
   try {
-    const res = await fetch(`/api/v1/pools/vpools/${vpool.id}/automount`, {
+    await call(`/api/v1/pools/vpools/${vpool.id}/automount`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ enabled: vpool.automount }),
+      body: { enabled: vpool.automount },
+      errorLabel: t('could not change automount setting'),
+      successLabel: t('automount setting changed successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('could not change automount setting')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('automount setting changed successfully'));
-
     getVPools();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const unmountPool = async (pool) => {
-  overlay.value = true;
-
   try {
-    const res = await fetch(`/api/v1/pools/${pool.id}/unmount`, {
+    await call(`/api/v1/pools/${pool.id}/unmount`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('pool could not be unmounted'),
+      successLabel: t('pool unmounted successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be unmounted')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('pool unmounted successfully'));
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const mountPool = async (pool) => {
-  overlay.value = true;
-
   try {
-    const res = await fetch(`/api/v1/pools/${pool.id}/mount`, {
+    await call(`/api/v1/pools/${pool.id}/mount`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('pool could not be mounted'),
+      successLabel: t('pool mounted successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be mounted')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool mounted successfully'));
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const mountPoolWithPassphrase = async (pool, passphrase) => {
-  overlay.value = true;
-
   try {
-    const res = await fetch(`/api/v1/pools/${pool.id}/mount`, {
+    await call(`/api/v1/pools/${pool.id}/mount`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ passphrase: passphrase }),
+      body: { passphrase },
+      errorLabel: t('pool could not be mounted'),
+      successLabel: t('pool mounted successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be mounted')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool mounted successfully'));
     getPools();
     getUnassignedDisks();
     passphraseDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const addMergerfsParityDevice = async (poolId, devices, format, skipSizeCheck) => {
-  overlay.value = true;
-  const addParityData = {
-    devices: devices,
-    format: format,
-    skipSizeCheck: skipSizeCheck,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/parity/add`, {
+    await call(`/api/v1/pools/${poolId}/parity/add`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(addParityData),
+      body: { devices, format, skipSizeCheck },
+      errorLabel: t('parity device could not be added'),
+      successLabel: t('parity device added successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('parity device could not be added')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('parity device added successfully'));
     getPools();
     getUnassignedDisks();
     addParityDevicesDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const removeMergerfsParityDevice = async (poolId, devices, unmount) => {
-  overlay.value = true;
-  const removeParityData = {
-    devices: devices,
-    unmount: unmount,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/parity/remove`, {
+    await call(`/api/v1/pools/${poolId}/parity/remove`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(removeParityData),
+      body: { devices, unmount },
+      errorLabel: t('parity device could not be removed'),
+      successLabel: t('parity device removed successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('parity device could not be removed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('parity device removed successfully'));
     getPools();
     getUnassignedDisks();
     removeParityDevicesDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const replaceMergerfsParityDevice = async (poolId, oldDevice, newDevice, format, skipSizeCheck) => {
-  overlay.value = true;
-  const payload = {
-    oldDevice: oldDevice,
-    newDevice: newDevice,
-    format: format,
-    skipSizeCheck: skipSizeCheck,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/parity/replace`, {
+    await call(`/api/v1/pools/${poolId}/parity/replace`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: { oldDevice, newDevice, format, skipSizeCheck },
+      errorLabel: t('parity device could not be replaced'),
+      successLabel: t('parity device replaced successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('parity device could not be replaced')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('parity device replaced successfully'));
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+    replaceParityDeviceDialog.value = false;
+  } catch {}
 };
 
 const performSnapraidOperation = async (poolId, operation) => {
-  overlay.value = true;
-  const commandData = {
-    operation: operation,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/parity`, {
+    await call(`/api/v1/pools/${poolId}/parity`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(commandData),
+      body: { operation },
+      errorLabel: t('snapraid operation could not be executed'),
+      successLabel: t('snapraid operation executed successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('snapraid operation could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('snapraid operation executed successfully'));
     getPools();
     getUnassignedDisks();
     snapraidOperationDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const performNonRaidOperation = async (poolId, operation, option) => {
-  overlay.value = true;
   if (operation != 'check') {
     option = null;
   }
@@ -2817,570 +2447,249 @@ const performNonRaidOperation = async (poolId, operation, option) => {
   };
 
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/parity`, {
+    await call(`/api/v1/pools/${poolId}/parity`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('nonraid operation could not be executed'),
+      successLabel: t('nonraid operation executed successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('nonraid operation could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('nonraid operation executed successfully'));
     getPools();
     getUnassignedDisks();
     nonRaidOperationDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const performMultiOperationScrub = async (poolId, option) => {
-  overlay.value = true;
-  const payload = {
-    operation: option,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/btrfs/scrub`, {
+    await call(`/api/v1/pools/${poolId}/btrfs/scrub`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: { operation: option },
+      errorLabel: t('btrfs scrub could not be executed'),
+      successLabel: t('btrfs scrub executed successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('btrfs scrub could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('btrfs scrub executed successfully'));
     getPools();
     getUnassignedDisks();
     multiOperationDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const performMultiOperationBalance = async (poolId, option) => {
-  overlay.value = true;
-  const payload = {
-    operation: option,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/btrfs/balance`, {
+    await call(`/api/v1/pools/${poolId}/btrfs/balance`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: { operation: option },
+      errorLabel: t('btrfs balance could not be executed'),
+      successLabel: t('btrfs balance executed successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('btrfs balance could not be executed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('btrfs balance executed successfully'));
     getPools();
     getUnassignedDisks();
     multiOperationDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const saveSnapraidSchedules = async (id, sync) => {
-  overlay.value = true;
-  const configData = {
-    sync: sync,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${id}/config`, {
+    await call(`/api/v1/pools/${id}/config`, {
       method: 'PATCH',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(configData),
+      body: { sync },
+      errorLabel: t('snapraid schedules could not be saved'),
+      successLabel: t('snapraid schedules saved successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('snapraid schedules could not be saved')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('snapraid schedules saved successfully'));
     getPools();
     getUnassignedDisks();
     snapraidSchedulesDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const saveNonRaidCheckSchedule = async (id, check) => {
-  overlay.value = true;
-  const configData = {
-    check: check,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${id}/config`, {
+    await call(`/api/v1/pools/${id}/config`, {
       method: 'PATCH',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(configData),
+      body: { check },
+      errorLabel: t('check schedule could not be saved'),
+      successLabel: t('check schedule saved successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('check schedule could not be saved')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('check schedule saved successfully'));
     getPools();
     getUnassignedDisks();
     nonRaidSchedulesDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const saveMultiSchedules = async (id, scrub, balance) => {
-  overlay.value = true;
-  const configData = {
-    scrub: scrub,
-    balance: balance,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${id}/config`, {
+    await call(`/api/v1/pools/${id}/config`, {
       method: 'PATCH',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(configData),
+      body: { scrub, balance },
+      errorLabel: t('schedules could not be saved'),
+      successLabel: t('schedules saved successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('schedules could not be saved')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('schedules saved successfully'));
     getPools();
     getUnassignedDisks();
     multiSchedulesDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const addMergerfsDevices = async (poolId, devices, format, passphrase, skipSizeCheck) => {
-  overlay.value = true;
-  const payload = {
-    devices: devices,
-    format: format,
-    passphrase: passphrase,
-    skip_size_check: skipSizeCheck,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/devices/add`, {
+    await call(`/api/v1/pools/${poolId}/devices/add`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: { devices, format, passphrase, skip_size_check: skipSizeCheck },
+      errorLabel: t('device could not be added'),
+      successLabel: t('device added successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('device could not be added')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('device added successfully'));
     getPools();
     getUnassignedDisks();
     addMergerfsDevicesDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const removeMergerfsDevice = async (poolId, devices, unmount) => {
-  overlay.value = true;
-  const removeDeviceData = {
-    devices: devices,
-    unmount: unmount,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/devices/remove`, {
+    await call(`/api/v1/pools/${poolId}/devices/remove`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(removeDeviceData),
+      body: { devices, unmount },
+      errorLabel: t('device could not be removed'),
+      successLabel: t('device removed successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('device could not be removed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('device removed successfully'));
     getPools();
     getUnassignedDisks();
     removeMergerfsDevicesDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const replaceMergerfsDevice = async (poolId, oldDevice, newDevice, format) => {
-  overlay.value = true;
-  const replaceDeviceData = {
-    oldDevice: oldDevice,
-    newDevice: newDevice,
-    format: format,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/devices/replace`, {
+    await call(`/api/v1/pools/${poolId}/devices/replace`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(replaceDeviceData),
+      body: { oldDevice, newDevice, format },
+      errorLabel: t('device could not be replaced'),
+      successLabel: t('device replaced successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('device could not be replaced')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('device replaced successfully'));
     getPools();
     getUnassignedDisks();
     replaceMergerfsDeviceDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const wakePool = async (pool) => {
-  overlay.value = true;
-  const wakePoolData = {
-    devices: [...(pool.data_devices ? pool.data_devices.map((d) => d.device) : []), ...(pool.parity_devices ? pool.parity_devices.map((d) => d.device) : [])],
-  };
+  const devices = [...(pool.data_devices ? pool.data_devices.map((d) => d.device) : []), ...(pool.parity_devices ? pool.parity_devices.map((d) => d.device) : [])];
 
   try {
-    const res = await fetch(`/api/v1/disks/wake`, {
+    await call('/api/v1/disks/wake', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(wakePoolData),
+      body: { devices },
+      errorLabel: t('pool could not be woken up'),
+      successLabel: t('pool woken up successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be woken up')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool woken up successfully'));
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const sleepPool = async (pool) => {
-  overlay.value = true;
-  const sleepPoolData = {
-    devices: [...(pool.data_devices ? pool.data_devices.map((d) => d.device) : []), ...(pool.parity_devices ? pool.parity_devices.map((d) => d.device) : [])],
-  };
+  const devices = [...(pool.data_devices ? pool.data_devices.map((d) => d.device) : []), ...(pool.parity_devices ? pool.parity_devices.map((d) => d.device) : [])];
 
   try {
-    const res = await fetch(`/api/v1/disks/sleep`, {
+    await call('/api/v1/disks/sleep', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(sleepPoolData),
+      body: { devices },
+      errorLabel: t('pool could not be put to sleep'),
+      successLabel: t('pool put to sleep successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('pool could not be put to sleep')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool put to sleep successfully'));
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const wakeDisk = async (disk) => {
-  overlay.value = true;
-  const wakeDiskData = {
-    devices: [disk.device],
-  };
-
   try {
-    const res = await fetch(`/api/v1/disks/wake`, {
+    await call('/api/v1/disks/wake', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(wakeDiskData),
+      body: { devices: [disk.device] },
+      errorLabel: t('disk could not be woken up'),
+      successLabel: t('disk woken up successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('disk could not be woken up')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('disk woken up successfully'));
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const sleepDisk = async (disk) => {
-  overlay.value = true;
-  const sleepDiskData = {
-    devices: [disk.device],
-  };
-
   try {
-    const res = await fetch(`/api/v1/disks/sleep`, {
+    await call('/api/v1/disks/sleep', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(sleepDiskData),
+      body: { devices: [disk.device] },
+      errorLabel: t('disk could not be put to sleep'),
+      successLabel: t('disk put to sleep successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('disk could not be put to sleep')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('disk put to sleep successfully'));
     getPools();
     getUnassignedDisks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const addNonRaidDevice = async (device, filesystem, passphrase, parity_valid, format) => {
-  overlay.value = true;
-  const addDeviceData = {
-    device: device,
-    filesystem: filesystem,
-    passphrase: passphrase,
-    parity_valid: parity_valid,
-    format: format,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/nonraid/adddevice`, {
+    await call('/api/v1/pools/nonraid/adddevice', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(addDeviceData),
+      body: { device, filesystem, passphrase, parity_valid, format },
+      errorLabel: t('device could not be added'),
+      successLabel: t('device added successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('device could not be added')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('device added successfully'));
     getPools();
     getUnassignedDisks();
     addNonRaidDeviceDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const addNonRaidParity = async (device) => {
-  overlay.value = true;
-  const addParityData = {
-    device: device,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/nonraid/addparity`, {
+    await call('/api/v1/pools/nonraid/addparity', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(addParityData),
+      body: { device },
+      errorLabel: t('parity device could not be added'),
+      successLabel: t('parity device added successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('parity device could not be added')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('parity device added successfully'));
     getPools();
     getUnassignedDisks();
     addNonRaidParityDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const getMergerfsPolicies = async (poolId) => {
-  overlay.value = true;
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/config`, {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call(`/api/v1/pools/${poolId}/config`, {
+      errorLabel: t('mergerfs policies could not be loaded'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('mergerfs policies could not be loaded')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    const result = await res.json();
-    return result.policies || [];
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
+    return result.policies || {};
+  } catch {
+    return {};
   }
 };
 
 const changeMergerfsPolicies = async (poolId, policies) => {
-  overlay.value = true;
-  const payload = {
-    policies: policies,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/config`, {
+    await call(`/api/v1/pools/${poolId}/config`, {
       method: 'PATCH',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: { policies },
+      errorLabel: t('mergerfs policies could not be changed'),
+      successLabel: t('mergerfs policies changed successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('mergerfs policies could not be changed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('mergerfs policies changed successfully'));
     getPools();
     mergerfsPolicyDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const saveUsageAlerts = async (poolId, usageAlert) => {
-  overlay.value = true;
-  const payload = {
-    usage_alert: usageAlert,
-  };
-
   try {
-    const res = await fetch(`/api/v1/pools/${poolId}/config`, {
+    await call(`/api/v1/pools/${poolId}/config`, {
       method: 'PATCH',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: { usage_alert: usageAlert },
+      errorLabel: t('usage alert settings could not be saved'),
+      successLabel: t('usage alert settings saved successfully'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('usage alert settings could not be saved')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('usage alert settings saved successfully'));
     getPools();
     usageAlertsDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch {}
 };
 
 const onDragEndPool = async () => {
@@ -3392,23 +2701,14 @@ const onDragEndPool = async () => {
   };
 
   try {
-    const res = await fetch('/api/v1/pools/order', {
+    await call('/api/v1/pools/order', {
       method: 'PUT',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('pool order could not be saved'),
+      successLabel: t('pool order saved successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('pool order could not be saved')}|$| ${error.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('pool order saved successfully'));
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
+  } catch {
+    // Fehler wurde bereits per Snackbar angezeigt
   }
 };
 
