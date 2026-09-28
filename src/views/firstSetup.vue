@@ -7,8 +7,13 @@
     </div>
     <v-stepper :items="[$t('root password'), $t('web login & settings')]" v-model="step" hide-actions style="width: 100%">
       <template v-slot:item.1>
+        
         <v-card :title="$t('root password')" flat>
           <v-card-text>
+            <div class="mb-4 text-body-2 text-medium-emphasis d-flex align-center">
+              <v-icon size="small" class="mr-2" color="blue">mdi-information</v-icon>
+              {{ $t('root password hint') }}
+            </div>
             <v-text-field
               v-model="rootpwd"
               :label="$t('root password')"
@@ -32,6 +37,10 @@
       <template v-slot:item.2>
         <v-card :title="$t('web login & settings')" flat>
           <v-card-text>
+            <div class="mb-4 text-body-2 text-medium-emphasis d-flex align-center">
+              <v-icon size="small" class="mr-2" color="blue">mdi-information</v-icon>
+              {{ $t('web login hint') }}
+            </div>
             <v-text-field
               v-model="username"
               :label="$t('username')"

@@ -362,6 +362,8 @@
   "first setup": "First Setup",
   "root password": "Root Password",
   "confirm root password": "Confirm Root Password",
+  "root password hint": "The root password of the server. Required for SSH logins.",
+  "web login hint": "Username and password for logging into the MOS Web UI",  
   "api password": "API Password",
   "confirm api password": "Confirm API Password",
   "failed to set root password": "Failed to set root password",
