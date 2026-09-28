@@ -55,82 +55,59 @@
                       </template>
                       <v-list-item-title>{{ $t('wake up / sleep') }}</v-list-item-title>
                     </v-list-item>
-                    <v-divider v-if="pool.type === 'mergerfs'"></v-divider>
-                    <v-list-item v-if="pool.type === 'mergerfs'" @click="openManageMergerfsDevicesDialog(pool)">
+
+                    <!-- Mergerfs Pool Options -->
+                    <template v-if="pool.type === 'mergerfs'">
+                      <v-divider></v-divider>
+                      <v-list-item @click="openManageMergerfsDevicesDialog(pool)">
+                        <template #prepend>
+                          <v-icon size="18">mdi-harddisk</v-icon>
+                        </template>
+                        <v-list-item-title>{{ $t('manage devices') }}</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item @click="openManageParityDevicesDialog(pool)">
+                        <template #prepend>
+                          <v-icon size="18">mdi-harddisk</v-icon>
+                        </template>
+                        <v-list-item-title>{{ $t('manage parity devices') }}</v-list-item-title>
+                      </v-list-item>
+                      <v-divider></v-divider>
+                      <v-list-item v-if="pool.parity_devices.length > 0" @click="openSnapraidOperationDialog(pool)">
+                        <template #prepend>
+                          <v-icon size="18">mdi-database-check</v-icon>
+                        </template>
+                        <v-list-item-title>{{ $t('snapraid operation') }}</v-list-item-title>
+                      </v-list-item>
+                    </template>
+
+                    <!-- NonRaid Pool Options -->
+                    <template v-else-if="pool.type === 'nonraid'">
+                      <v-divider v-if="pool.parity_devices.length > 0"></v-divider>
+                      <v-list-item v-if="pool.parity_devices.length > 0" @click="openNonRaidOperationDialog(pool)">
+                        <template #prepend>
+                          <v-icon size="18">mdi-database-check</v-icon>
+                        </template>
+                        <v-list-item-title>{{ $t('nonraid operation') }}</v-list-item-title>
+                      </v-list-item>
+                    </template>
+
+                    <!-- BTRFS Pool Options -->
+                    <template v-else-if="pool.type === 'btrfs'">
+                      <v-divider></v-divider>
+                      <v-list-item @click="openMultiOperationDialog(pool)">
+                        <template #prepend>
+                          <v-icon size="18">mdi-database-check</v-icon>
+                        </template>
+                        <v-list-item-title>{{ $t('btrfs operation') }}</v-list-item-title>
+                      </v-list-item>
+                    </template>
+
+                    <!-- Pool Settings (for all) -->
+                    <v-list-item @click="openPoolSettingsDialog(pool)">
                       <template #prepend>
-                        <v-icon size="18">mdi-harddisk</v-icon>
+                        <v-icon size="18">mdi-cog</v-icon>
                       </template>
-                      <v-list-item-title>{{ $t('manage devices') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item v-if="pool.type === 'mergerfs'" @click="openManageParityDevicesDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-harddisk</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('manage parity devices') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-divider v-if="pool.type === 'mergerfs'"></v-divider>
-                    <v-list-item v-if="pool.type === 'mergerfs'" @click="openMergerfsPolicyDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-shape-outline</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('change mergerfs policy') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item v-if="pool.type === 'mergerfs' && pool.parity_devices.length > 0" @click="openSnapraidOperationDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-database-check</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('snapraid operation') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item v-if="pool.type === 'mergerfs' && pool.parity_devices.length > 0" @click="openSnapraidSchedulesDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-clock-outline</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('snapraid schedules') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-divider v-if="pool.type === 'nonraid'"></v-divider>
-                    <v-list-item v-if="pool.type === 'nonraid'" @click="openAddNonRaidDeviceDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-harddisk-plus</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('add device') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item v-if="pool.type === 'nonraid'" @click="openAddNonRaidParityDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-harddisk-plus</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('add parity device') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-divider v-if="pool.type === 'nonraid'"></v-divider>
-                    <v-list-item v-if="pool.type === 'nonraid' && pool.parity_devices.length > 0" @click="openNonRaidOperationDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-harddisk-plus</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('nonraid operation') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item v-if="pool.type === 'nonraid' && pool.parity_devices.length > 0" @click="openNonRaidSchedulesDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-clock-outline</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('nonraid schedules') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-divider v-if="pool.type === 'btrfs'"></v-divider>
-                    <v-list-item v-if="pool.type === 'btrfs'" @click="openMultiOperationDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-harddisk-plus</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('btrfs operation') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item v-if="pool.type === 'btrfs'" @click="openMultiSchedulesDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-clock-outline</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('btrfs schedules') }}</v-list-item-title>
-                    </v-list-item>
-                    <v-list-item @click="openUsageAlertsDialog(pool)">
-                      <template #prepend>
-                        <v-icon size="18">mdi-bell-outline</v-icon>
-                      </template>
-                      <v-list-item-title>{{ $t('usage alerts') }}</v-list-item-title>
+                      <v-list-item-title>{{ $t('pool settings') }}</v-list-item-title>
                     </v-list-item>
                   </v-list>
                 </v-menu>
@@ -1039,195 +1016,6 @@
     </v-card>
   </v-dialog>
 
-  <!-- SnapRAID Operation Dialog -->
-  <v-dialog v-model="snapraidOperationDialog.value" max-width="600" persistent>
-    <v-card class="pa-0" :title="t('snapraid operations')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
-      <v-card-text style="overflow: auto">
-        <p class="mb-4">{{ $t('select the snapraid operation to be performed') }}</p>
-        <v-form>
-          <v-select
-            v-model="snapraidOperationDialog.operation"
-            :items="
-              snapraidOperationDialog.pool && snapraidOperationDialog.pool.status && snapraidOperationDialog.pool.status.parity_operation
-                ? ['sync', 'check', 'scrub', 'status', 'force_stop']
-                : ['sync', 'check', 'scrub', 'status']
-            "
-            :label="$t('operation')"
-            density="comfortable"
-          />
-        </v-form>
-      </v-card-text>
-      <v-divider />
-      <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="snapraidOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn
-          @click="snapraidOperationDialog.operation === 'fix' ? (snapraidFixWarningDialog.value = true) : performSnapraidOperation(snapraidOperationDialog.pool.id, snapraidOperationDialog.operation)"
-          color="onPrimary"
-        >
-          {{ $t('perform') }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- NonRaid Operation Dialog -->
-  <v-dialog v-model="nonRaidOperationDialog.value" max-width="600" persistent>
-    <v-card class="pa-0" :title="t('nonraid operations')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
-      <v-card-text style="overflow: auto">
-        <p class="mb-4">{{ $t('select the nonraid operation to be performed') }}</p>
-        <v-select v-model="nonRaidOperationDialog.operation" :items="nonRaidOperationDialog.operations" :label="$t('operation')" density="comfortable" />
-        <v-select v-model="nonRaidOperationDialog.option" :items="nonRaidOperationDialog.options" :label="$t('options')" density="comfortable" v-if="nonRaidOperationDialog.operation === 'check'" />
-      </v-card-text>
-      <v-divider />
-      <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="nonRaidOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn @click="performNonRaidOperation(nonRaidOperationDialog.pool.id, nonRaidOperationDialog.operation, nonRaidOperationDialog.option)" color="onPrimary">
-          {{ $t('perform') }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- Btrfs Operation Dialog -->
-  <v-dialog v-model="multiOperationDialog.value" max-width="600" persistent>
-    <v-card class="pa-0" :title="t('btrfs operations')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
-      <v-card-text style="overflow: auto">
-        <p class="mb-4">{{ $t('select the btrfs operation to be performed') }}</p>
-        <v-select v-model="multiOperationDialog.operation" :items="multiOperationDialog.operations" :label="$t('operation')" density="comfortable" />
-        <v-select v-model="multiOperationDialog.option" :items="multiOperationDialog.options" :label="$t('options')" density="comfortable" />
-      </v-card-text>
-      <v-divider />
-      <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="multiOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn
-          @click="
-            multiOperationDialog.operation === 'scrub'
-              ? performMultiOperationScrub(multiOperationDialog.pool.id, multiOperationDialog.option)
-              : performMultiOperationBalance(multiOperationDialog.pool.id, multiOperationDialog.option)
-          "
-          color="onPrimary"
-        >
-          {{ $t('perform') }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- SnapRAID Schedules Dialog -->
-  <v-dialog v-model="snapraidSchedulesDialog.value" max-width="600" persistent>
-    <v-card class="pa-0" :title="t('snapraid schedules')" prepend-icon="mdi-clock-outline" style="max-height: 60vh; display: flex; flex-direction: column">
-      <v-card-text style="overflow: auto">
-        <v-form>
-          <v-switch v-model="snapraidSchedulesDialog.sync.enabled" :label="$t('sync')" hide-details="auto" density="compact" color="green" inset />
-          <v-text-field
-            v-model="snapraidSchedulesDialog.sync.schedule"
-            :label="$t('sync schedule (cron)')"
-            hide-details="auto"
-            class="mt-2 mb-4"
-            append-inner-icon="mdi-calendar-clock"
-            @click:append-inner="openCronDialog(snapraidSchedulesDialog.sync.schedule, (schedule) => (snapraidSchedulesDialog.sync.schedule = schedule))"
-          />
-          <v-switch v-model="snapraidSchedulesDialog.sync.check.enabled" :label="$t('check')" hide-details="auto" density="compact" color="green" inset />
-          <v-text-field
-            v-model="snapraidSchedulesDialog.sync.check.schedule"
-            :label="$t('check schedule (cron)')"
-            hide-details="auto"
-            class="mt-2 mb-4"
-            append-inner-icon="mdi-calendar-clock"
-            @click:append-inner="openCronDialog(snapraidSchedulesDialog.sync.check.schedule, (schedule) => (snapraidSchedulesDialog.sync.check.schedule = schedule))"
-          />
-          <v-switch v-model="snapraidSchedulesDialog.sync.scrub.enabled" :label="$t('scrub')" hide-details="auto" density="compact" color="green" inset />
-          <v-text-field
-            v-model="snapraidSchedulesDialog.sync.scrub.schedule"
-            :label="$t('scrub schedule (cron)')"
-            hide-details="auto"
-            class="mt-2"
-            append-inner-icon="mdi-calendar-clock"
-            @click:append-inner="openCronDialog(snapraidSchedulesDialog.sync.scrub.schedule, (schedule) => (snapraidSchedulesDialog.sync.scrub.schedule = schedule))"
-          />
-        </v-form>
-      </v-card-text>
-      <v-divider />
-      <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="snapraidSchedulesDialog.value = false" color="onPrimary">
-          {{ $t('cancel') }}
-        </v-btn>
-        <v-btn color="onPrimary" @click="saveSnapraidSchedules(snapraidSchedulesDialog.pool.id, snapraidSchedulesDialog.sync)">
-          {{ $t('save') }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- NonRaid Schedules Dialog -->
-  <v-dialog v-model="nonRaidSchedulesDialog.value" max-width="600" persistent>
-    <v-card class="pa-0" :title="t('nonraid schedules')" prepend-icon="mdi-clock-outline" style="max-height: 60vh; display: flex; flex-direction: column">
-      <v-card-text style="overflow: auto">
-        <v-switch v-model="nonRaidSchedulesDialog.check.enabled" :label="$t('check')" hide-details="auto" density="compact" color="green" inset />
-        <v-text-field
-          v-model="nonRaidSchedulesDialog.check.schedule"
-          :label="$t('check schedule (cron)')"
-          hide-details="auto"
-          class="mt-2 mb-4"
-          append-inner-icon="mdi-calendar-clock"
-          @click:append-inner="openCronDialog(nonRaidSchedulesDialog.check.schedule, (schedule) => (nonRaidSchedulesDialog.check.schedule = schedule))"
-        />
-      </v-card-text>
-      <v-divider />
-      <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="nonRaidSchedulesDialog.value = false" color="onPrimary">
-          {{ $t('cancel') }}
-        </v-btn>
-        <v-btn color="onPrimary" @click="saveNonRaidCheckSchedule(nonRaidSchedulesDialog.pool.id, nonRaidSchedulesDialog.check)">
-          {{ $t('save') }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- Multi Schedules Dialog -->
-  <v-dialog v-model="multiSchedulesDialog.value" max-width="400" persistent>
-    <v-card class="pa-0" :title="t('btrfs schedules')" prepend-icon="mdi-clock-outline" style="max-height: 60vh; display: flex; flex-direction: column">
-      <v-card-text style="overflow: auto">
-        <v-switch v-model="multiSchedulesDialog.scrub.enabled" :label="$t('scrub enabled')" hide-details="auto" density="compact" color="green" inset />
-        <v-text-field
-          v-model="multiSchedulesDialog.scrub.schedule"
-          :label="$t('scrub schedule (cron)')"
-          hide-details="auto"
-          class="mt-2 mb-4"
-          append-inner-icon="mdi-calendar-clock"
-          @click:append-inner="openCronDialog(multiSchedulesDialog.scrub.schedule, (schedule) => (multiSchedulesDialog.scrub.schedule = schedule))"
-          v-if="multiSchedulesDialog.scrub.enabled"
-        />
-        <v-switch
-          v-if="multiSchedulesDialog.pool.type === 'btrfs' && multiSchedulesDialog.pool.data_devices.length > 1"
-          v-model="multiSchedulesDialog.balance.enabled"
-          :label="$t('balance enabled')"
-          hide-details="auto"
-          density="compact"
-          color="green"
-          inset
-        />
-        <v-text-field
-          v-model="multiSchedulesDialog.balance.schedule"
-          :label="$t('balance schedule (cron)')"
-          hide-details="auto"
-          class="mt-2 mb-4"
-          append-inner-icon="mdi-calendar-clock"
-          @click:append-inner="openCronDialog(multiSchedulesDialog.balance.schedule, (schedule) => (multiSchedulesDialog.balance.schedule = schedule))"
-          v-if="multiSchedulesDialog.balance.enabled"
-        />
-      </v-card-text>
-      <v-divider />
-      <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="multiSchedulesDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn color="onPrimary" @click="saveMultiSchedules(multiSchedulesDialog.pool.id, multiSchedulesDialog.scrub, multiSchedulesDialog.balance)">
-          {{ $t('save') }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
   <!-- Add Non-Raid Devices Dialog -->
   <v-dialog v-model="addNonRaidDeviceDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('add device')" prepend-icon="mdi-harddisk-plus" style="max-height: 60vh; display: flex; flex-direction: column">
@@ -1278,51 +1066,223 @@
     </v-card>
   </v-dialog>
 
-  <!-- Mergerfs Policy -->
-  <v-dialog v-model="mergerfsPolicyDialog.value" max-width="600" persistent>
-    <v-card class="pa-0" :title="t('mergerfs policies')" prepend-icon="mdi-shape-outline" style="max-height: 60vh; display: flex; flex-direction: column">
+  <!-- SnapRAID Operation Dialog -->
+  <v-dialog v-model="snapraidOperationDialog.value" max-width="600" persistent>
+    <v-card class="pa-0" :title="t('snapraid operation')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
-        <v-select v-model="mergerfsPolicyDialog.policies.create" :items="mergerfsPolicyDialog.availablePolicies" :label="$t('create policy')" density="comfortable" class="mt-2" />
-        <v-select v-model="mergerfsPolicyDialog.policies.search" :items="mergerfsPolicyDialog.availablePolicies" :label="$t('search policy')" density="comfortable" />
-        <a href="https://trapexit.github.io/mergerfs/latest/config/functions_categories_policies/#policy-descriptions" target="_blank" class="mt-2">
-          {{ $t('see mergerfs documentation for policy descriptions') }}
-        </a>
+        <p class="mb-4">{{ $t('select the snapraid operation to be performed') }}</p>
+        <v-select
+          v-model="snapraidOperationDialog.operation"
+          :items="
+            snapraidOperationDialog.pool && snapraidOperationDialog.pool.status && snapraidOperationDialog.pool.status.parity_operation
+              ? ['sync', 'check', 'scrub', 'status', 'force_stop']
+              : ['sync', 'check', 'scrub', 'status']
+          "
+          :label="$t('operation')"
+          density="comfortable"
+        />
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="mergerfsPolicyDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn @click="changeMergerfsPolicies(mergerfsPolicyDialog.pool.id, mergerfsPolicyDialog.policies)" color="onPrimary">
-          {{ $t('save') }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <!-- Snapraid Fix Warning -->
-  <v-dialog v-model="snapraidFixWarningDialog.value" max-width="400" persistent>
-    <v-card class="pa-0" :title="t('warning')" prepend-icon="mdi-alert" style="max-height: 60vh; display: flex; flex-direction: column">
-      <v-card-text style="overflow: auto">{{ $t('are you sure you want to perform a fix on your pool') }}?</v-card-text>
-      <v-divider />
-      <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="snapraidFixWarningDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn @click="performSnapraidOperation(snapraidFixWarningDialog.pool.id, 'fix')" color="red">
+        <v-btn @click="snapraidOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn @click="performSnapraidOperation(snapraidOperationDialog.pool.id, snapraidOperationDialog.operation)" color="onPrimary">
           {{ $t('perform') }}
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
-  <!-- Usage Alerts -->
-  <v-dialog v-model="usageAlertsDialog.value" max-width="400" persistent>
-    <v-card class="pa-0" :title="t('usage alerts')" prepend-icon="mdi-bell-outline" style="max-height: 60vh; display: flex; flex-direction: column">
-      <v-card-text style="overflow: auto" class="pt-2">
-        <v-text-field v-model="usageAlertsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" />
-        <v-text-field v-model="usageAlertsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
+  <!-- NonRaid Operation Dialog -->
+  <v-dialog v-model="nonRaidOperationDialog.value" max-width="600" persistent>
+    <v-card class="pa-0" :title="t('nonraid operation')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto">
+        <p class="mb-4">{{ $t('select the nonraid operation to be performed') }}</p>
+        <v-select v-model="nonRaidOperationDialog.operation" :items="nonRaidOperationDialog.operations" :label="$t('operation')" density="comfortable" />
+        <v-select v-if="nonRaidOperationDialog.operation === 'check'" v-model="nonRaidOperationDialog.option" :items="nonRaidOperationDialog.options" :label="$t('options')" density="comfortable" />
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="usageAlertsDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn @click="saveUsageAlerts(usageAlertsDialog.pool.id, usageAlertsDialog.usage_alert)" color="onPrimary">
+        <v-btn @click="nonRaidOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn @click="performNonRaidOperation(nonRaidOperationDialog.pool.id, nonRaidOperationDialog.operation, nonRaidOperationDialog.option)" color="onPrimary">
+          {{ $t('perform') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- BTRFS Operation Dialog -->
+  <v-dialog v-model="multiOperationDialog.value" max-width="600" persistent>
+    <v-card class="pa-0" :title="t('btrfs operation')" prepend-icon="mdi-database-check" style="max-height: 60vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto">
+        <p class="mb-4">{{ $t('select the btrfs operation to be performed') }}</p>
+        <v-select v-model="multiOperationDialog.operation" :items="multiOperationDialog.operations" :label="$t('operation')" density="comfortable" />
+        <v-select v-model="multiOperationDialog.option" :items="multiOperationDialog.options" :label="$t('options')" density="comfortable" />
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-btn @click="multiOperationDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn
+          @click="
+            multiOperationDialog.operation === 'scrub'
+              ? performMultiOperationScrub(multiOperationDialog.pool.id, multiOperationDialog.option)
+              : performMultiOperationBalance(multiOperationDialog.pool.id, multiOperationDialog.option)
+          "
+          color="onPrimary"
+        >
+          {{ $t('perform') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- BTRFS Settings Dialog -->
+  <v-dialog v-model="btrfsSettingsDialog.value" max-width="600" persistent>
+    <v-card class="pa-0" :title="t('btrfs settings')" prepend-icon="mdi-cog" style="max-height: 80vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto; flex: 1">
+        <h3 class="mb-4 text-subtitle-1">{{ $t('btrfs schedules') }}</h3>
+        <v-switch v-model="btrfsSettingsDialog.scrub.enabled" :label="$t('scrub enabled')" hide-details="auto" density="compact" color="green" inset />
+        <v-text-field
+          v-if="btrfsSettingsDialog.scrub.enabled"
+          v-model="btrfsSettingsDialog.scrub.schedule"
+          :label="$t('scrub schedule (cron)')"
+          hide-details="auto"
+          class="mt-2 mb-4"
+          append-inner-icon="mdi-calendar-clock"
+          @click:append-inner="openCronDialog(btrfsSettingsDialog.scrub.schedule, (schedule) => (btrfsSettingsDialog.scrub.schedule = schedule))"
+        />
+        <v-switch
+          v-if="btrfsSettingsDialog.pool.type === 'btrfs' && btrfsSettingsDialog.pool.data_devices.length > 1"
+          v-model="btrfsSettingsDialog.balance.enabled"
+          :label="$t('balance enabled')"
+          hide-details="auto"
+          density="compact"
+          color="green"
+          inset
+        />
+        <v-text-field
+          v-if="btrfsSettingsDialog.balance.enabled"
+          v-model="btrfsSettingsDialog.balance.schedule"
+          :label="$t('balance schedule (cron)')"
+          hide-details="auto"
+          class="mt-2 mb-6"
+          append-inner-icon="mdi-calendar-clock"
+          @click:append-inner="openCronDialog(btrfsSettingsDialog.balance.schedule, (schedule) => (btrfsSettingsDialog.balance.schedule = schedule))"
+        />
+        <v-divider class="my-6"></v-divider>
+        <h3 class="mb-4 text-subtitle-1">{{ $t('usage alerts') }}</h3>
+        <v-text-field v-model="btrfsSettingsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" />
+        <v-text-field v-model="btrfsSettingsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-btn @click="btrfsSettingsDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn
+          @click="
+            saveMultiSchedules(btrfsSettingsDialog.pool.id, btrfsSettingsDialog.scrub, btrfsSettingsDialog.balance);
+            saveUsageAlerts(btrfsSettingsDialog.pool.id, btrfsSettingsDialog.usage_alert);
+          "
+          color="onPrimary"
+        >
+          {{ $t('save') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Mergerfs Settings Dialog -->
+  <v-dialog v-model="mergerfsSettingsDialog.value" max-width="700" persistent>
+    <v-card class="pa-0" :title="t('mergerfs settings')" prepend-icon="mdi-cog" style="max-height: 70vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto; flex: 1">
+        <h3 class="mb-4 text-subtitle-1">{{ $t('snapraid schedules') }}</h3>
+        <v-switch v-model="mergerfsSettingsDialog.snapraid_sync.enabled" :label="$t('sync')" hide-details="auto" density="compact" color="green" inset />
+        <v-text-field
+          v-model="mergerfsSettingsDialog.snapraid_sync.schedule"
+          :label="$t('sync schedule (cron)')"
+          hide-details="auto"
+          class="mt-2 mb-4"
+          append-inner-icon="mdi-calendar-clock"
+          @click:append-inner="openCronDialog(mergerfsSettingsDialog.snapraid_sync.schedule, (schedule) => (mergerfsSettingsDialog.snapraid_sync.schedule = schedule))"
+        />
+        <v-switch v-model="mergerfsSettingsDialog.snapraid_sync.check.enabled" :label="$t('check')" hide-details="auto" density="compact" color="green" inset />
+        <v-text-field
+          v-model="mergerfsSettingsDialog.snapraid_sync.check.schedule"
+          :label="$t('check schedule (cron)')"
+          hide-details="auto"
+          class="mt-2 mb-4"
+          append-inner-icon="mdi-calendar-clock"
+          @click:append-inner="openCronDialog(mergerfsSettingsDialog.snapraid_sync.check.schedule, (schedule) => (mergerfsSettingsDialog.snapraid_sync.check.schedule = schedule))"
+        />
+        <v-switch v-model="mergerfsSettingsDialog.snapraid_sync.scrub.enabled" :label="$t('scrub')" hide-details="auto" density="compact" color="green" inset />
+        <v-text-field
+          v-model="mergerfsSettingsDialog.snapraid_sync.scrub.schedule"
+          :label="$t('scrub schedule (cron)')"
+          hide-details="auto"
+          class="mt-2 mb-6"
+          append-inner-icon="mdi-calendar-clock"
+          @click:append-inner="openCronDialog(mergerfsSettingsDialog.snapraid_sync.scrub.schedule, (schedule) => (mergerfsSettingsDialog.snapraid_sync.scrub.schedule = schedule))"
+        />
+        <v-divider></v-divider>
+        <h3 class="mb-4 text-subtitle-1">{{ $t('mergerfs policies') }}</h3>
+        <v-select v-model="mergerfsSettingsDialog.mergerfs_policies.create" :items="mergerfsSettingsDialog.availablePolicies" :label="$t('create policy')" density="comfortable" />
+        <v-select v-model="mergerfsSettingsDialog.mergerfs_policies.search" :items="mergerfsSettingsDialog.availablePolicies" :label="$t('search policy')" density="comfortable" />
+        <a href="https://trapexit.github.io/mergerfs/latest/config/functions_categories_policies/#policy-descriptions" target="_blank" class="text-primary text-decoration-underline">
+          {{ $t('see mergerfs documentation for policy descriptions') }}
+        </a>
+        <v-divider class="mt-4"></v-divider>
+        <h3 class="mb-4 text-subtitle-1">{{ $t('usage alerts') }}</h3>
+        <v-text-field v-model="mergerfsSettingsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" />
+        <v-text-field v-model="mergerfsSettingsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-btn @click="mergerfsSettingsDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn
+          @click="
+            saveSnapraidSchedules(mergerfsSettingsDialog.pool.id, mergerfsSettingsDialog.snapraid_sync);
+            changeMergerfsPolicies(mergerfsSettingsDialog.pool.id, mergerfsSettingsDialog.mergerfs_policies);
+            saveUsageAlerts(mergerfsSettingsDialog.pool.id, mergerfsSettingsDialog.usage_alert);
+          "
+          color="onPrimary"
+        >
+          {{ $t('save') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- NonRaid Settings Dialog -->
+  <v-dialog v-model="nonraidSettingsDialog.value" max-width="600" persistent>
+    <v-card class="pa-0" :title="t('nonraid settings')" prepend-icon="mdi-cog" style="max-height: 70vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto; flex: 1">
+        <div class="pt-4">
+          <h3 class="mb-4 text-subtitle-1">{{ $t('nonraid schedules') }}</h3>
+          <v-switch v-model="nonraidSettingsDialog.check.enabled" :label="$t('check')" hide-details="auto" density="compact" color="green" inset />
+          <v-text-field
+            v-model="nonraidSettingsDialog.check.schedule"
+            :label="$t('check schedule (cron)')"
+            hide-details="auto"
+            class="mt-2 mb-6"
+            append-inner-icon="mdi-calendar-clock"
+            @click:append-inner="openCronDialog(nonraidSettingsDialog.check.schedule, (schedule) => (nonraidSettingsDialog.check.schedule = schedule))"
+          />
+
+          <v-divider class="my-6"></v-divider>
+
+          <h3 class="mb-4 text-subtitle-1">{{ $t('usage alerts') }}</h3>
+          <v-text-field v-model="nonraidSettingsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" class="mb-4" />
+          <v-text-field v-model="nonraidSettingsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
+        </div>
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-btn @click="nonraidSettingsDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn
+          @click="
+            saveNonRaidCheckSchedule(nonraidSettingsDialog.pool.id, nonraidSettingsDialog.check);
+            saveUsageAlerts(nonraidSettingsDialog.pool.id, nonraidSettingsDialog.usage_alert);
+          "
+          color="onPrimary"
+        >
           {{ $t('save') }}
         </v-btn>
       </v-card-actions>
@@ -1495,15 +1455,6 @@ const removeParityDevicesDialog = reactive({
   devices: [],
   unmount: true,
 });
-const snapraidOperationDialog = reactive({
-  value: false,
-  pool: null,
-  operation: '',
-});
-const snapraidFixWarningDialog = reactive({
-  value: false,
-  pool: null,
-});
 const replaceParityDeviceDialog = reactive({
   value: false,
   pool: null,
@@ -1541,39 +1492,6 @@ const manageParityDevicesDialog = reactive({
   value: false,
   pool: null,
 });
-const snapraidSchedulesDialog = reactive({
-  value: false,
-  sync: {
-    enabled: false,
-    schedule: '30 0 * * *',
-    check: {
-      enabled: false,
-      schedule: '0 0 * */3 SUN',
-    },
-    scrub: {
-      enabled: false,
-      schedule: '0 4 * * WED',
-    },
-  },
-});
-const nonRaidSchedulesDialog = reactive({
-  value: false,
-  check: {
-    enabled: false,
-    schedule: '0 0 * */3 SUN',
-  },
-});
-const multiSchedulesDialog = reactive({
-  value: false,
-  scrub: {
-    enabled: false,
-    schedule: '0 4 * * WED',
-  },
-  balance: {
-    enabled: false,
-    schedule: '0 5 * * SUN',
-  },
-});
 const addNonRaidDeviceDialog = reactive({
   value: false,
   pool: null,
@@ -1588,6 +1506,27 @@ const addNonRaidParityDialog = reactive({
   value: false,
   pool: null,
   device: '',
+});
+const btrfsSettingsDialog = reactive({
+  value: false,
+  pool: null,
+  scrub: {
+    enabled: false,
+    schedule: '0 4 * * WED',
+  },
+  balance: {
+    enabled: false,
+    schedule: '0 5 * * SUN',
+  },
+  usage_alert: {
+    warning: 85,
+    alert: 90,
+  },
+});
+const snapraidOperationDialog = reactive({
+  value: false,
+  pool: null,
+  operation: '',
 });
 const nonRaidOperationDialog = reactive({
   value: false,
@@ -1605,18 +1544,38 @@ const multiOperationDialog = reactive({
   option: '',
   options: ['start', 'pause', 'resume', 'cancel'],
 });
-const mergerfsPolicyDialog = reactive({
+const mergerfsSettingsDialog = reactive({
   value: false,
   pool: null,
-  policies: {
+  snapraid_sync: {
+    enabled: false,
+    schedule: '30 0 * * *',
+    check: {
+      enabled: false,
+      schedule: '0 0 * */3 SUN',
+    },
+    scrub: {
+      enabled: false,
+      schedule: '0 4 * * WED',
+    },
+  },
+  mergerfs_policies: {
     create: 'pfrd',
     search: 'ff',
   },
   availablePolicies: ['pfrd', 'rand', 'mfs', 'ff', 'lfs', 'lup', 'lus', 'all', 'msppfrd', 'mspmfs', 'msplfs', 'msplus', 'eppfrd', 'epmfs', 'eprand', 'epff', 'eplfs', 'eplus', 'epall', 'newest'],
+  usage_alert: {
+    warning: 85,
+    alert: 90,
+  },
 });
-const usageAlertsDialog = reactive({
+const nonraidSettingsDialog = reactive({
   value: false,
   pool: null,
+  check: {
+    enabled: false,
+    schedule: '0 0 * */3 SUN',
+  },
   usage_alert: {
     warning: 85,
     alert: 90,
@@ -1771,55 +1730,6 @@ const startRemoveParityDevice = (device) => {
   removeParityDevicesDialog.devices = [device.device];
   removeParityDevicesDialog.unmount = true;
 };
-const openSnapraidOperationDialog = (pool) => {
-  snapraidOperationDialog.value = true;
-  snapraidOperationDialog.pool = pool;
-  snapraidOperationDialog.operation = '';
-};
-const openSnapraidSchedulesDialog = (pool) => {
-  snapraidSchedulesDialog.value = true;
-  snapraidSchedulesDialog.pool = pool;
-  snapraidSchedulesDialog.sync = pool.config.sync || {
-    enabled: false,
-    schedule: '30 0 * * *',
-    check: {
-      enabled: false,
-      schedule: '0 0 * */3 SUN',
-    },
-    scrub: {
-      enabled: false,
-      schedule: '0 4 * * WED',
-    },
-  };
-};
-const openMultiSchedulesDialog = (pool) => {
-  multiSchedulesDialog.value = true;
-  multiSchedulesDialog.pool = pool;
-  multiSchedulesDialog.scrub = {
-    enabled: false,
-    schedule: '0 4 * * WED',
-  };
-  multiSchedulesDialog.balance = {
-    enabled: false,
-    schedule: '0 5 * * SUN',
-  };
-  multiSchedulesDialog.scrub = pool.config.scrub || {
-    enabled: false,
-    schedule: '0 4 * * WED',
-  };
-  multiSchedulesDialog.balance = pool.config.balance || {
-    enabled: false,
-    schedule: '0 5 * * SUN',
-  };
-};
-const openNonRaidSchedulesDialog = (pool) => {
-  nonRaidSchedulesDialog.value = true;
-  nonRaidSchedulesDialog.pool = pool;
-  nonRaidSchedulesDialog.check = pool.config.check || {
-    enabled: false,
-    schedule: '0 5 * * SUN',
-  };
-};
 const openPassphraseDialog = (pool) => {
   passphraseDialog.value = true;
   passphraseDialog.pool = pool;
@@ -1872,35 +1782,10 @@ const openAddParityDevicesDialog = (pool) => {
   addParityDevicesDialog.skip_size_check = false;
   addParityDevicesDialog.skip_size_check_clicks = 0;
 };
-const openRemoveParityDevicesDialog = (pool) => {
-  removeParityDevicesDialog.value = true;
-  removeParityDevicesDialog.pool = pool;
-  removeParityDevicesDialog.devices = [];
-  removeParityDevicesDialog.unmount = true;
-};
-const openAddNonRaidDeviceDialog = async (pool) => {
-  addNonRaidDeviceDialog.value = true;
-  addNonRaidDeviceDialog.pool = pool;
-  addNonRaidDeviceDialog.device = '';
-  addNonRaidDeviceDialog.filesystem = 'xfs';
-  addNonRaidDeviceDialog.filesystems = await getFilesystems('nonraid');
-  addNonRaidDeviceDialog.passphrase = '';
-  addNonRaidDeviceDialog.parity_valid = false;
-  addNonRaidDeviceDialog.format = false;
-};
-const openAddNonRaidParityDialog = (pool) => {
-  addNonRaidParityDialog.value = true;
-  addNonRaidParityDialog.pool = pool;
-  addNonRaidParityDialog.device = '';
-};
-const openMergerfsPolicyDialog = async (pool) => {
-  mergerfsPolicyDialog.value = true;
-  mergerfsPolicyDialog.pool = pool;
-  const policies = await getMergerfsPolicies(pool.id);
-  mergerfsPolicyDialog.policies = {
-    create: policies.create ? policies.create : 'pfrd',
-    search: policies.search ? policies.search : 'ff',
-  };
+const openSnapraidOperationDialog = (pool) => {
+  snapraidOperationDialog.value = true;
+  snapraidOperationDialog.pool = pool;
+  snapraidOperationDialog.operation = '';
 };
 const openNonRaidOperationDialog = (pool) => {
   nonRaidOperationDialog.value = true;
@@ -1912,11 +1797,68 @@ const openMultiOperationDialog = (pool) => {
   multiOperationDialog.value = true;
   multiOperationDialog.pool = pool;
   multiOperationDialog.operation = '';
+  multiOperationDialog.option = '';
 };
-const openUsageAlertsDialog = (pool) => {
-  usageAlertsDialog.value = true;
-  usageAlertsDialog.pool = pool;
-  usageAlertsDialog.usage_alert = {
+const openPoolSettingsDialog = async (pool) => {
+  if (pool.type === 'mergerfs') {
+    openMergerfsSettingsDialog(pool);
+  } else if (pool.type === 'nonraid') {
+    openNonraidSettingsDialog(pool);
+  } else if (pool.type === 'btrfs') {
+    openBtrfsSettingsDialog(pool);
+  }
+};
+const openBtrfsSettingsDialog = (pool) => {
+  btrfsSettingsDialog.value = true;
+  btrfsSettingsDialog.pool = pool;
+  btrfsSettingsDialog.scrub = pool.config.scrub || {
+    enabled: false,
+    schedule: '0 4 * * WED',
+  };
+  btrfsSettingsDialog.balance = pool.config.balance || {
+    enabled: false,
+    schedule: '0 5 * * SUN',
+  };
+  btrfsSettingsDialog.usage_alert = {
+    warning: pool.config.usage_alert ? pool.config.usage_alert.warning : 85,
+    alert: pool.config.usage_alert ? pool.config.usage_alert.alert : 90,
+  };
+};
+const openMergerfsSettingsDialog = async (pool) => {
+  mergerfsSettingsDialog.value = true;
+  mergerfsSettingsDialog.pool = pool;
+  const policies = await getMergerfsPolicies(pool.id);
+  mergerfsSettingsDialog.mergerfs_policies = {
+    create: policies.create ? policies.create : 'pfrd',
+    search: policies.search ? policies.search : 'ff',
+  };
+  mergerfsSettingsDialog.snapraid_sync = pool.config.snapraid
+    ? pool.config.snapraid
+    : {
+        enabled: false,
+        schedule: '30 0 * * *',
+        check: {
+          enabled: false,
+          schedule: '0 0 * */3 SUN',
+        },
+        scrub: {
+          enabled: false,
+          schedule: '0 4 * * WED',
+        },
+      };
+  mergerfsSettingsDialog.usage_alert = {
+    warning: pool.config.usage_alert ? pool.config.usage_alert.warning : 85,
+    alert: pool.config.usage_alert ? pool.config.usage_alert.alert : 90,
+  };
+};
+const openNonraidSettingsDialog = (pool) => {
+  nonraidSettingsDialog.value = true;
+  nonraidSettingsDialog.pool = pool;
+  nonraidSettingsDialog.check = pool.config.check || {
+    enabled: false,
+    schedule: '0 5 * * SUN',
+  };
+  nonraidSettingsDialog.usage_alert = {
     warning: pool.config.usage_alert ? pool.config.usage_alert.warning : 85,
     alert: pool.config.usage_alert ? pool.config.usage_alert.alert : 90,
   };
