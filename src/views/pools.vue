@@ -65,7 +65,7 @@
                         </template>
                         <v-list-item-title>{{ $t('manage devices') }}</v-list-item-title>
                       </v-list-item>
-                      <v-list-item @click="openManageParityDevicesDialog(pool)">
+                      <v-list-item @click="openManageMergerfsParityDevicesDialog(pool)">
                         <template #prepend>
                           <v-icon size="18">mdi-harddisk</v-icon>
                         </template>
@@ -82,7 +82,20 @@
 
                     <!-- NonRaid Pool Options -->
                     <template v-else-if="pool.type === 'nonraid'">
-                      <v-divider v-if="pool.parity_devices.length > 0"></v-divider>
+                      <v-divider></v-divider>
+                      <v-list-item @click="openManageNonRaidDevicesDialog(pool)">
+                        <template #prepend>
+                          <v-icon size="18">mdi-harddisk</v-icon>
+                        </template>
+                        <v-list-item-title>{{ $t('manage devices') }}</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item @click="openManageNonRaidParityDevicesDialog(pool)">
+                        <template #prepend>
+                          <v-icon size="18">mdi-harddisk</v-icon>
+                        </template>
+                        <v-list-item-title>{{ $t('manage parity devices') }}</v-list-item-title>
+                      </v-list-item>
+                      <v-divider></v-divider>
                       <v-list-item v-if="pool.parity_devices.length > 0" @click="openNonRaidOperationDialog(pool)">
                         <template #prepend>
                           <v-icon size="18">mdi-database-check</v-icon>
@@ -102,7 +115,7 @@
                       </v-list-item>
                     </template>
 
-                    <!-- Pool Settings (for all) -->
+                    <!-- Pool Settings -->
                     <v-list-item @click="openPoolSettingsDialog(pool)">
                       <template #prepend>
                         <v-icon size="18">mdi-cog</v-icon>
@@ -657,7 +670,7 @@
             v-model="addMergerfsDevicesDialog.devices"
             :items="
               Array.isArray(unassignedDisks)
-                ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.storage.totalSpace_human || '—'}) (${disk.diskInfo.diskSerial || '—'})`, value: disk.device }))
+                ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.size_human || '—'}) (${disk.serial || '—'})`, value: disk.device }))
                 : []
             "
             item-title="title"
@@ -691,7 +704,7 @@
             :items="
               removeMergerfsDevicesDialog.pool
                 ? removeMergerfsDevicesDialog.pool.data_devices.map((device) => ({
-                    title: `${device.device} (${device.storage.totalSpace_human || '—'}) (${device.diskInfo.diskSerial || '—'})`,
+                    title: `${device.device} (${device.storage?.totalSpace_human || '—'}) (${device.diskInfo?.diskSerial || '—'})`,
                     value: device.device,
                   }))
                 : []
@@ -724,7 +737,7 @@
           :items="
             replaceMergerfsDeviceDialog.pool
               ? replaceMergerfsDeviceDialog.pool.data_devices.map((device) => ({
-                  title: `${device.device} (${device.storage.totalSpace_human || '—'}) (${device.diskInfo.diskSerial || '—'})`,
+                  title: `${device.device} (${device.storage?.totalSpace_human || '—'}) (${device.diskInfo?.diskSerial || '—'})`,
                   value: device.device,
                 }))
               : []
@@ -738,7 +751,7 @@
           v-model="replaceMergerfsDeviceDialog.newDevice"
           :items="
             Array.isArray(unassignedDisks)
-              ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.storage.sizeTotal_human || '—'}) (${disk.diskInfo.diskSerial || '—'})`, value: disk.device }))
+              ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.size_human || '—'}) (${disk.serial || '—'})`, value: disk.device }))
               : []
           "
           item-title="title"
@@ -784,7 +797,7 @@
 
   <!-- Manage Mergerfs Devices Dialog -->
   <v-dialog v-model="manageMergerfsDevicesDialog.value" max-width="700" persistent>
-    <v-card class="pa-0" :title="t('manage devices')" prepend-icon="mdi-harddisk" style="max-height: 70vh; display: flex; flex-direction: column">
+    <v-card class="pa-0" :title="t('manage mergerfs devices')" prepend-icon="mdi-harddisk" style="max-height: 70vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto; max-height: 60vh">
         <div v-if="manageMergerfsDevicesDialog.pool && manageMergerfsDevicesDialog.pool.data_devices.length > 0">
           <v-list density="compact">
@@ -795,7 +808,7 @@
               <div class="w-100">
                 <v-list-item-title class="font-weight-medium">{{ device.device }}</v-list-item-title>
                 <v-list-item-subtitle class="text-caption">
-                  {{ device.mountPoint || '—' }} • {{ device.storage.totalSpace_human || '—' }} • {{ device.diskInfo.diskSerial || '—' }}
+                  {{ device.mountPoint || '—' }} • {{ device.storage?.totalSpace_human || '—' }} • {{ device.diskInfo?.diskSerial || '—' }}
                 </v-list-item-subtitle>
               </div>
               <template #append>
@@ -825,26 +838,26 @@
   </v-dialog>
 
   <!-- Manage Parity Devices Dialog -->
-  <v-dialog v-model="manageParityDevicesDialog.value" max-width="700" persistent>
-    <v-card class="pa-0" :title="t('manage parity devices')" prepend-icon="mdi-harddisk" style="max-height: 70vh; display: flex; flex-direction: column">
+  <v-dialog v-model="manageMergerfsParityDevicesDialog.value" max-width="700" persistent>
+    <v-card class="pa-0" :title="t('manage mergerfs parity devices')" prepend-icon="mdi-harddisk" style="max-height: 70vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto; max-height: 60vh">
-        <div v-if="manageParityDevicesDialog.pool">
-          <div v-if="manageParityDevicesDialog.pool.parity_devices && manageParityDevicesDialog.pool.parity_devices.length > 0">
+        <div v-if="manageMergerfsParityDevicesDialog.pool">
+          <div v-if="manageMergerfsParityDevicesDialog.pool.parity_devices && manageMergerfsParityDevicesDialog.pool.parity_devices.length > 0">
             <v-list density="compact">
-              <v-list-item v-for="device in manageParityDevicesDialog.pool.parity_devices" :key="device.id || device.device" class="mb-2 border rounded pa-2">
+              <v-list-item v-for="device in manageMergerfsParityDevicesDialog.pool.parity_devices" :key="device.id || device.device" class="mb-2 border rounded pa-2">
                 <template #prepend>
                   <v-icon class="mr-3" :style="{ color: device.powerStatus === 'active' ? 'green' : device.powerStatus === 'standby' ? '#1976d2' : 'red' }">mdi-harddisk</v-icon>
                 </template>
                 <div class="w-100">
                   <v-list-item-title class="font-weight-medium">{{ device.device }}</v-list-item-title>
-                  <v-list-item-subtitle class="text-caption">{{ device.mountPoint }} • {{ device.storage.totalSpace_human }} • {{ device.diskInfo.diskSerial || '—' }}</v-list-item-subtitle>
+                  <v-list-item-subtitle class="text-caption">{{ device.mountPoint || '—' }} • {{ device.storage?.totalSpace_human || '—' }} • {{ device.diskInfo?.diskSerial || '—' }}</v-list-item-subtitle>
                 </div>
                 <template #append>
                   <div class="d-flex gap-1">
-                    <v-btn size="x-small" variant="text" icon @click="startReplaceParityDevice(device)" color="orange" title="Replace">
+                    <v-btn size="x-small" variant="text" icon @click="startReplaceMergerfsParityDevice(device)" color="orange" title="Replace">
                       <v-icon size="18">mdi-file-replace</v-icon>
                     </v-btn>
-                    <v-btn size="x-small" variant="text" icon @click="startRemoveParityDevice(device)" color="red" title="Remove">
+                    <v-btn size="x-small" variant="text" icon @click="startRemoveMergerfsParityDevice(device)" color="red" title="Remove">
                       <v-icon size="18">mdi-delete</v-icon>
                     </v-btn>
                   </div>
@@ -857,7 +870,7 @@
             <p class="text-caption text-medium-emphasis">{{ $t('no parity devices') }}</p>
           </div>
         </div>
-        <v-btn color="primary" variant="tonal" @click="startAddParityDevice()" class="w-100">
+        <v-btn color="primary" variant="tonal" @click="startAddMergerfsParityDevice()" class="w-100">
           <v-icon size="18" class="mr-2">mdi-plus</v-icon>
           {{ $t('add parity devices') }}
         </v-btn>
@@ -865,21 +878,87 @@
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-spacer></v-spacer>
-        <v-btn @click="manageParityDevicesDialog.value = false" color="onPrimary">{{ $t('close') }}</v-btn>
+        <v-btn @click="manageMergerfsParityDevicesDialog.value = false" color="onPrimary">{{ $t('close') }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Manage NonRaid Devices Dialog -->
+  <v-dialog v-model="manageNonRaidDevicesDialog.value" max-width="700" persistent>
+    <v-card class="pa-0" :title="t('manage nonraid devices')" prepend-icon="mdi-harddisk" style="max-height: 70vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto; max-height: 60vh">
+        <div v-if="manageNonRaidDevicesDialog.pool && manageNonRaidDevicesDialog.pool.data_devices.length > 0">
+          <v-list density="compact">
+            <v-list-item v-for="device in manageNonRaidDevicesDialog.pool.data_devices" :key="device.id" class="mb-2 border rounded pa-2">
+              <template #prepend>
+                <v-icon class="mr-3" :style="{ color: device.powerStatus === 'active' ? 'green' : device.powerStatus === 'standby' ? '#1976d2' : 'red' }">mdi-harddisk</v-icon>
+              </template>
+              <div class="w-100">
+                <v-list-item-title class="font-weight-medium">{{ device.device }}</v-list-item-title>
+                <v-list-item-subtitle class="text-caption">{{ device.mountPoint || '—' }} • {{ device.storage?.totalSpace_human || '—' }} • {{ device.diskInfo?.diskSerial || '—' }}</v-list-item-subtitle>
+              </div>
+            </v-list-item>
+          </v-list>
+        </div>
+        <v-btn color="primary" variant="tonal" @click="openAddNonRaidDeviceDialog(manageNonRaidDevicesDialog.pool)" class="w-100">
+          <v-icon size="18" class="mr-2">mdi-plus</v-icon>
+          {{ $t('add devices') }}
+        </v-btn>
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-spacer></v-spacer>
+        <v-btn @click="manageNonRaidDevicesDialog.value = false" color="onPrimary">{{ $t('close') }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Manage NonRaid Parity Devices Dialog -->
+  <v-dialog v-model="manageNonRaidParityDevicesDialog.value" max-width="700" persistent>
+    <v-card class="pa-0" :title="t('manage nonraid parity devices')" prepend-icon="mdi-harddisk" style="max-height: 70vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto; max-height: 60vh">
+        <div v-if="manageNonRaidParityDevicesDialog.pool">
+          <div v-if="manageNonRaidParityDevicesDialog.pool.parity_devices && manageNonRaidParityDevicesDialog.pool.parity_devices.length > 0">
+            <v-list density="compact">
+              <v-list-item v-for="device in manageNonRaidParityDevicesDialog.pool.parity_devices" :key="device.id || device.device" class="mb-2 border rounded pa-2">
+                <template #prepend>
+                  <v-icon class="mr-3" :style="{ color: device.powerStatus === 'active' ? 'green' : device.powerStatus === 'standby' ? '#1976d2' : 'red' }">mdi-harddisk</v-icon>
+                </template>
+                <div class="w-100">
+                  <v-list-item-title class="font-weight-medium">{{ device.device }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-caption">{{ device.mountPoint || '—' }} • {{ device.storage?.totalSpace_human || '—' }} • {{ device.diskInfo?.diskSerial || '—' }}</v-list-item-subtitle>
+                </div>
+              </v-list-item>
+            </v-list>
+            <v-divider class="my-3" />
+          </div>
+          <div v-else class="text-center py-4">
+            <p class="text-caption text-medium-emphasis">{{ $t('no parity devices') }}</p>
+          </div>
+        </div>
+        <v-btn color="primary" variant="tonal" @click="openAddNonRaidParityDialog(manageNonRaidParityDevicesDialog.pool)" class="w-100">
+          <v-icon size="18" class="mr-2">mdi-plus</v-icon>
+          {{ $t('add parity devices') }}
+        </v-btn>
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-spacer></v-spacer>
+        <v-btn @click="manageNonRaidParityDevicesDialog.value = false" color="onPrimary">{{ $t('close') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <!-- Add Parity Devices Dialog -->
-  <v-dialog v-model="addParityDevicesDialog.value" max-width="600" persistent>
+  <v-dialog v-model="addMergerfsParityDevicesDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('add parity devices')" prepend-icon="mdi-harddisk-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select devices to add as parity') }}</p>
         <v-select
-          v-model="addParityDevicesDialog.devices"
+          v-model="addMergerfsParityDevicesDialog.devices"
           :items="
             Array.isArray(unassignedDisks)
-              ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.storage.totalSpace_human}) (${disk.diskInfo.diskSerial ? disk.diskInfo.diskSerial : '—'})`, value: disk.device }))
+              ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.size_human || '—'}) (${disk.serial || '—'})`, value: disk.device }))
               : []
           "
           item-title="title"
@@ -888,24 +967,24 @@
           :multiple="true"
           density="comfortable"
         />
-        <v-switch v-model="addParityDevicesDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
-        <div @click="addParityDevicesDialog.skip_size_check_clicks < 5 ? addParityDevicesDialog.skip_size_check_clicks++ : null">
+        <v-switch v-model="addMergerfsParityDevicesDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
+        <div @click="addMergerfsParityDevicesDialog.skip_size_check_clicks < 5 ? addMergerfsParityDevicesDialog.skip_size_check_clicks++ : null">
           <v-switch
-            v-model="addParityDevicesDialog.skip_size_check"
+            v-model="addMergerfsParityDevicesDialog.skip_size_check"
             :label="$t('skip size check')"
             hide-details
             density="compact"
             color="red"
             inset
-            :disabled="addParityDevicesDialog.skip_size_check_clicks < 5"
+            :disabled="addMergerfsParityDevicesDialog.skip_size_check_clicks < 5"
           />
         </div>
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="addParityDevicesDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn @click="addMergerfsParityDevicesDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
         <v-btn
-          @click="addMergerfsParityDevice(addParityDevicesDialog.pool.id, addParityDevicesDialog.devices, addParityDevicesDialog.format, addParityDevicesDialog.skip_size_check)"
+          @click="addMergerfsParityDevice(addMergerfsParityDevicesDialog.pool.id, addMergerfsParityDevicesDialog.devices, addMergerfsParityDevicesDialog.format, addMergerfsParityDevicesDialog.skip_size_check)"
           color="onPrimary"
         >
           {{ $t('add') }}
@@ -915,17 +994,17 @@
   </v-dialog>
 
   <!-- Remove Parity Devices Dialog -->
-  <v-dialog v-model="removeParityDevicesDialog.value" max-width="600" persistent>
+  <v-dialog v-model="removeMergerfsParityDevicesDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('remove parity devices')" prepend-icon="mdi-harddisk-remove" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select parity devices to remove') }}</p>
         <v-form>
           <v-select
-            v-model="removeParityDevicesDialog.devices"
+            v-model="removeMergerfsParityDevicesDialog.devices"
             :items="
-              removeParityDevicesDialog.pool
-                ? removeParityDevicesDialog.pool.parity_devices.map((device) => ({
-                    title: `${device.device} (${device.storage.totalSpace_human}) (${device.diskInfo.diskSerial ? device.diskInfo.diskSerial : '—'})`,
+              removeMergerfsParityDevicesDialog.pool
+                ? removeMergerfsParityDevicesDialog.pool.parity_devices.map((device) => ({
+                    title: `${device.device} (${device.storage?.totalSpace_human || '—'}) (${device.diskInfo?.diskSerial || '—'})`,
                     value: device.device,
                   }))
                 : []
@@ -936,13 +1015,13 @@
             :multiple="true"
             density="comfortable"
           />
-          <v-switch v-model="removeParityDevicesDialog.unmount" :label="$t('unmount')" hide-details density="compact" color="red" inset />
+          <v-switch v-model="removeMergerfsParityDevicesDialog.unmount" :label="$t('unmount')" hide-details density="compact" color="red" inset />
         </v-form>
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="removeParityDevicesDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn @click="removeMergerfsParityDevice(removeParityDevicesDialog.pool.id, removeParityDevicesDialog.devices, removeParityDevicesDialog.unmount)" color="onPrimary">
+        <v-btn @click="removeMergerfsParityDevicesDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn @click="removeMergerfsParityDevice(removeMergerfsParityDevicesDialog.pool.id, removeMergerfsParityDevicesDialog.devices, removeMergerfsParityDevicesDialog.unmount)" color="onPrimary">
           {{ $t('remove') }}
         </v-btn>
       </v-card-actions>
@@ -950,16 +1029,16 @@
   </v-dialog>
 
   <!-- Replace Parity Device Dialog -->
-  <v-dialog v-model="replaceParityDeviceDialog.value" max-width="600" persistent>
+  <v-dialog v-model="replaceMergerfsParityDeviceDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('replace parity device')" prepend-icon="mdi-file-replace" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto" class="pt-2">
         <v-form>
           <v-select
-            v-model="replaceParityDeviceDialog.oldDevice"
+            v-model="replaceMergerfsParityDeviceDialog.oldDevice"
             :items="
-              replaceParityDeviceDialog.pool
-                ? replaceParityDeviceDialog.pool.parity_devices.map((device) => ({
-                    title: `${device.device} (${device.storage.totalSpace_human}) (${device.diskInfo.diskSerial ? device.diskInfo.diskSerial : '—'})`,
+              replaceMergerfsParityDeviceDialog.pool
+                ? replaceMergerfsParityDeviceDialog.pool.parity_devices.map((device) => ({
+                    title: `${device.device} (${device.storage?.totalSpace_human || '—'}) (${device.diskInfo?.diskSerial || '—'})`,
                     value: device.device,
                   }))
                 : []
@@ -970,10 +1049,10 @@
             density="comfortable"
           />
           <v-select
-            v-model="replaceParityDeviceDialog.newDevice"
+            v-model="replaceMergerfsParityDeviceDialog.newDevice"
             :items="
               Array.isArray(unassignedDisks)
-                ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.storage.totalSpace_human}) (${disk.diskInfo.diskSerial ? disk.diskInfo.diskSerial : '—'})`, value: disk.device }))
+                ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.size_human || '—'}) (${disk.serial || '—'})`, value: disk.device }))
                 : []
             "
             item-title="title"
@@ -981,31 +1060,31 @@
             :label="$t('new device')"
             density="comfortable"
           />
-          <v-switch v-model="replaceParityDeviceDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
-          <div @click="replaceParityDeviceDialog.skip_size_check_clicks < 5 ? replaceParityDeviceDialog.skip_size_check_clicks++ : null">
+          <v-switch v-model="replaceMergerfsParityDeviceDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
+          <div @click="replaceMergerfsParityDeviceDialog.skip_size_check_clicks < 5 ? replaceMergerfsParityDeviceDialog.skip_size_check_clicks++ : null">
             <v-switch
-              v-model="replaceParityDeviceDialog.skip_size_check"
+              v-model="replaceMergerfsParityDeviceDialog.skip_size_check"
               :label="$t('skip size check')"
               hide-details
               density="compact"
               color="red"
               inset
-              :disabled="replaceParityDeviceDialog.skip_size_check_clicks < 5"
+              :disabled="replaceMergerfsParityDeviceDialog.skip_size_check_clicks < 5"
             />
           </div>
         </v-form>
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
-        <v-btn @click="replaceParityDeviceDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn @click="replaceMergerfsParityDeviceDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
         <v-btn
           @click="
             replaceMergerfsParityDevice(
-              replaceParityDeviceDialog.pool.id,
-              replaceParityDeviceDialog.oldDevice,
-              replaceParityDeviceDialog.newDevice,
-              replaceParityDeviceDialog.format,
-              replaceParityDeviceDialog.skip_size_check,
+              replaceMergerfsParityDeviceDialog.pool.id,
+              replaceMergerfsParityDeviceDialog.oldDevice,
+              replaceMergerfsParityDeviceDialog.newDevice,
+              replaceMergerfsParityDeviceDialog.format,
+              replaceMergerfsParityDeviceDialog.skip_size_check,
             )
           "
           color="red"
@@ -1021,7 +1100,18 @@
     <v-card class="pa-0" :title="t('add device')" prepend-icon="mdi-harddisk-plus" style="max-height: 60vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto">
         <p class="mb-4">{{ $t('select device to add to pool') }}</p>
-        <v-select v-model="addNonRaidDeviceDialog.device" :items="Array.isArray(unassignedDisks) ? unassignedDisks.map((disk) => disk.device) : []" :label="$t('device')" density="comfortable" />
+        <v-select
+          v-model="addNonRaidDeviceDialog.device"
+          :items="
+            Array.isArray(unassignedDisks)
+              ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.size_human || '—'}) (${disk.serial || '—'})`, value: disk.device }))
+              : []
+          "
+          item-title="title"
+          item-value="value"
+          :label="$t('device')"
+          density="comfortable"
+        />
         <v-select v-model="addNonRaidDeviceDialog.filesystem" :items="addNonRaidDeviceDialog.filesystems" :label="$t('filesystem')" density="comfortable" />
         <v-text-field v-model="addNonRaidDeviceDialog.passphrase" :label="$t('passphrase (if encrypted)')" type="password" />
         <v-switch v-model="addNonRaidDeviceDialog.format" :label="$t('format')" density="compact" color="red" inset hide-details="auto" />
@@ -1050,7 +1140,13 @@
         <v-form>
           <v-select
             v-model="addNonRaidParityDialog.device"
-            :items="Array.isArray(unassignedDisks) ? unassignedDisks.map((disk) => `${disk.device} (${disk.size_human}) (${disk.serial ? disk.serial : '—'})`) : []"
+            :items="
+              Array.isArray(unassignedDisks)
+                ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.size_human || '—'}) (${disk.serial || '—'})`, value: disk.device }))
+                : []
+            "
+            item-title="title"
+            item-value="value"
             :label="$t('device')"
             density="comfortable"
           />
@@ -1139,50 +1235,58 @@
   <v-dialog v-model="btrfsSettingsDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('btrfs settings')" prepend-icon="mdi-cog" style="max-height: 80vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto; flex: 1">
-        <h3 class="mb-4 text-subtitle-1">{{ $t('btrfs schedules') }}</h3>
-        <v-switch v-model="btrfsSettingsDialog.scrub.enabled" :label="$t('scrub enabled')" hide-details="auto" density="compact" color="green" inset />
-        <v-text-field
-          v-if="btrfsSettingsDialog.scrub.enabled"
-          v-model="btrfsSettingsDialog.scrub.schedule"
-          :label="$t('scrub schedule (cron)')"
-          hide-details="auto"
-          class="mt-2 mb-4"
-          append-inner-icon="mdi-calendar-clock"
-          @click:append-inner="openCronDialog(btrfsSettingsDialog.scrub.schedule, (schedule) => (btrfsSettingsDialog.scrub.schedule = schedule))"
-        />
-        <v-switch
-          v-if="btrfsSettingsDialog.pool.type === 'btrfs' && btrfsSettingsDialog.pool.data_devices.length > 1"
-          v-model="btrfsSettingsDialog.balance.enabled"
-          :label="$t('balance enabled')"
-          hide-details="auto"
-          density="compact"
-          color="green"
-          inset
-        />
-        <v-text-field
-          v-if="btrfsSettingsDialog.balance.enabled"
-          v-model="btrfsSettingsDialog.balance.schedule"
-          :label="$t('balance schedule (cron)')"
-          hide-details="auto"
-          class="mt-2 mb-6"
-          append-inner-icon="mdi-calendar-clock"
-          @click:append-inner="openCronDialog(btrfsSettingsDialog.balance.schedule, (schedule) => (btrfsSettingsDialog.balance.schedule = schedule))"
-        />
-        <v-divider class="my-6"></v-divider>
-        <h3 class="mb-4 text-subtitle-1">{{ $t('usage alerts') }}</h3>
-        <v-text-field v-model="btrfsSettingsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" />
-        <v-text-field v-model="btrfsSettingsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
+        <span class="text-title-medium font-weight-medium">{{ $t('btrfs schedules') }}</span>
+        <v-row align="center" class="pt-4">
+          <v-col cols="4">
+            <div class="d-flex align-center">
+              <v-switch v-model="btrfsSettingsDialog.scrub.enabled" hide-details="auto" density="compact" color="green" inset class="mr-2" />
+              <span class="text-body-2">{{ $t('scrub enabled') }}</span>
+            </div>
+          </v-col>
+          <v-col cols="8" v-if="btrfsSettingsDialog.scrub.enabled">
+            <v-text-field
+              v-model="btrfsSettingsDialog.scrub.schedule"
+              :label="$t('scrub schedule (cron)')"
+              hide-details="auto"
+              density="compact"
+              append-inner-icon="mdi-calendar-clock"
+              @click:append-inner="openCronDialog(btrfsSettingsDialog.scrub.schedule, (schedule) => (btrfsSettingsDialog.scrub.schedule = schedule))"
+            />
+          </v-col>
+        </v-row>
+        <v-row v-if="btrfsSettingsDialog.pool.type === 'btrfs' && btrfsSettingsDialog.pool.data_devices.length > 1" align="center">
+          <v-col cols="4">
+            <div class="d-flex align-center">
+              <v-switch v-model="btrfsSettingsDialog.balance.enabled" hide-details="auto" density="compact" color="green" inset class="mr-2" />
+              <span class="text-body-2">{{ $t('balance enabled') }}</span>
+            </div>
+          </v-col>
+          <v-col cols="8" v-if="btrfsSettingsDialog.balance.enabled">
+            <v-text-field
+              v-model="btrfsSettingsDialog.balance.schedule"
+              :label="$t('balance schedule (cron)')"
+              hide-details="auto"
+              density="compact"
+              append-inner-icon="mdi-calendar-clock"
+              @click:append-inner="openCronDialog(btrfsSettingsDialog.balance.schedule, (schedule) => (btrfsSettingsDialog.balance.schedule = schedule))"
+            />
+          </v-col>
+        </v-row>
+        <v-divider class="mt-6 mb-4"></v-divider>
+        <span class="text-title-medium font-weight-medium">{{ $t('usage alerts') }}</span>
+        <v-row class="mt-4">
+          <v-col cols="12" md="6">
+            <v-text-field v-model="btrfsSettingsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="btrfsSettingsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
+          </v-col>
+        </v-row>
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="btrfsSettingsDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn
-          @click="
-            saveMultiSchedules(btrfsSettingsDialog.pool.id, btrfsSettingsDialog.scrub, btrfsSettingsDialog.balance);
-            saveUsageAlerts(btrfsSettingsDialog.pool.id, btrfsSettingsDialog.usage_alert);
-          "
-          color="onPrimary"
-        >
+        <v-btn @click="saveBtrfsSettings()" color="onPrimary">
           {{ $t('save') }}
         </v-btn>
       </v-card-actions>
@@ -1193,57 +1297,83 @@
   <v-dialog v-model="mergerfsSettingsDialog.value" max-width="700" persistent>
     <v-card class="pa-0" :title="t('mergerfs settings')" prepend-icon="mdi-cog" style="max-height: 70vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto; flex: 1">
-        <h3 class="mb-4 text-subtitle-1">{{ $t('snapraid schedules') }}</h3>
-        <v-switch v-model="mergerfsSettingsDialog.snapraid_sync.enabled" :label="$t('sync')" hide-details="auto" density="compact" color="green" inset />
-        <v-text-field
-          v-model="mergerfsSettingsDialog.snapraid_sync.schedule"
-          :label="$t('sync schedule (cron)')"
-          hide-details="auto"
-          class="mt-2 mb-4"
-          append-inner-icon="mdi-calendar-clock"
-          @click:append-inner="openCronDialog(mergerfsSettingsDialog.snapraid_sync.schedule, (schedule) => (mergerfsSettingsDialog.snapraid_sync.schedule = schedule))"
-        />
-        <v-switch v-model="mergerfsSettingsDialog.snapraid_sync.check.enabled" :label="$t('check')" hide-details="auto" density="compact" color="green" inset />
-        <v-text-field
-          v-model="mergerfsSettingsDialog.snapraid_sync.check.schedule"
-          :label="$t('check schedule (cron)')"
-          hide-details="auto"
-          class="mt-2 mb-4"
-          append-inner-icon="mdi-calendar-clock"
-          @click:append-inner="openCronDialog(mergerfsSettingsDialog.snapraid_sync.check.schedule, (schedule) => (mergerfsSettingsDialog.snapraid_sync.check.schedule = schedule))"
-        />
-        <v-switch v-model="mergerfsSettingsDialog.snapraid_sync.scrub.enabled" :label="$t('scrub')" hide-details="auto" density="compact" color="green" inset />
-        <v-text-field
-          v-model="mergerfsSettingsDialog.snapraid_sync.scrub.schedule"
-          :label="$t('scrub schedule (cron)')"
-          hide-details="auto"
-          class="mt-2 mb-6"
-          append-inner-icon="mdi-calendar-clock"
-          @click:append-inner="openCronDialog(mergerfsSettingsDialog.snapraid_sync.scrub.schedule, (schedule) => (mergerfsSettingsDialog.snapraid_sync.scrub.schedule = schedule))"
-        />
-        <v-divider></v-divider>
-        <h3 class="mb-4 text-subtitle-1">{{ $t('mergerfs policies') }}</h3>
-        <v-select v-model="mergerfsSettingsDialog.mergerfs_policies.create" :items="mergerfsSettingsDialog.availablePolicies" :label="$t('create policy')" density="comfortable" />
+        <span class="text-title-medium font-weight-medium">{{ $t('snapraid schedules') }}</span>
+        <v-row align="center" class="pt-4">
+          <v-col cols="4">
+            <div class="d-flex align-center">
+              <v-switch v-model="mergerfsSettingsDialog.snapraid_sync.enabled" hide-details="auto" density="compact" color="green" inset class="mr-2" />
+              <span class="text-body-2">{{ $t('sync') }}</span>
+            </div>
+          </v-col>
+          <v-col cols="8" v-if="mergerfsSettingsDialog.snapraid_sync.enabled">
+            <v-text-field
+              v-model="mergerfsSettingsDialog.snapraid_sync.schedule"
+              :label="$t('sync schedule (cron)')"
+              hide-details="auto"
+              density="compact"
+              append-inner-icon="mdi-calendar-clock"
+              @click:append-inner="openCronDialog(mergerfsSettingsDialog.snapraid_sync.schedule, (schedule) => (mergerfsSettingsDialog.snapraid_sync.schedule = schedule))"
+            />
+          </v-col>
+        </v-row>
+        <v-row align="center" class="mt-2">
+          <v-col cols="4">
+            <div class="d-flex align-center">
+              <v-switch v-model="mergerfsSettingsDialog.snapraid_sync.check.enabled" hide-details="auto" density="compact" color="green" inset class="mr-2" />
+              <span class="text-body-2">{{ $t('check') }}</span>
+            </div>
+          </v-col>
+          <v-col cols="8" v-if="mergerfsSettingsDialog.snapraid_sync.check.enabled">
+            <v-text-field
+              v-model="mergerfsSettingsDialog.snapraid_sync.check.schedule"
+              :label="$t('check schedule (cron)')"
+              hide-details="auto"
+              density="compact"
+              append-inner-icon="mdi-calendar-clock"
+              @click:append-inner="openCronDialog(mergerfsSettingsDialog.snapraid_sync.check.schedule, (schedule) => (mergerfsSettingsDialog.snapraid_sync.check.schedule = schedule))"
+            />
+          </v-col>
+        </v-row>
+        <v-row align="center" class="mt-2">
+          <v-col cols="4">
+            <div class="d-flex align-center">
+              <v-switch v-model="mergerfsSettingsDialog.snapraid_sync.scrub.enabled" hide-details="auto" density="compact" color="green" inset class="mr-2" />
+              <span class="text-body-2">{{ $t('scrub') }}</span>
+            </div>
+          </v-col>
+          <v-col cols="8" v-if="mergerfsSettingsDialog.snapraid_sync.scrub.enabled">
+            <v-text-field
+              v-model="mergerfsSettingsDialog.snapraid_sync.scrub.schedule"
+              :label="$t('scrub schedule (cron)')"
+              hide-details="auto"
+              density="compact"
+              append-inner-icon="mdi-calendar-clock"
+              @click:append-inner="openCronDialog(mergerfsSettingsDialog.snapraid_sync.scrub.schedule, (schedule) => (mergerfsSettingsDialog.snapraid_sync.scrub.schedule = schedule))"
+            />
+          </v-col>
+        </v-row>
+        <v-divider class="mt-6 mb-4"></v-divider>
+        <span class="text-title-medium font-weight-medium">{{ $t('mergerfs policies') }}</span>
+        <v-select v-model="mergerfsSettingsDialog.mergerfs_policies.create" :items="mergerfsSettingsDialog.availablePolicies" :label="$t('create policy')" density="comfortable" class="mt-4" />
         <v-select v-model="mergerfsSettingsDialog.mergerfs_policies.search" :items="mergerfsSettingsDialog.availablePolicies" :label="$t('search policy')" density="comfortable" />
         <a href="https://trapexit.github.io/mergerfs/latest/config/functions_categories_policies/#policy-descriptions" target="_blank" class="text-primary text-decoration-underline">
           {{ $t('see mergerfs documentation for policy descriptions') }}
         </a>
-        <v-divider class="mt-4"></v-divider>
-        <h3 class="mb-4 text-subtitle-1">{{ $t('usage alerts') }}</h3>
-        <v-text-field v-model="mergerfsSettingsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" />
-        <v-text-field v-model="mergerfsSettingsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
+        <v-divider class="mt-6 mb-4"></v-divider>
+        <span class="text-title-medium font-weight-medium">{{ $t('usage alerts') }}</span>
+        <v-row class="mt-4">
+          <v-col cols="12" md="6">
+            <v-text-field v-model="mergerfsSettingsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="mergerfsSettingsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
+          </v-col>
+        </v-row>
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="mergerfsSettingsDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn
-          @click="
-            saveSnapraidSchedules(mergerfsSettingsDialog.pool.id, mergerfsSettingsDialog.snapraid_sync);
-            changeMergerfsPolicies(mergerfsSettingsDialog.pool.id, mergerfsSettingsDialog.mergerfs_policies);
-            saveUsageAlerts(mergerfsSettingsDialog.pool.id, mergerfsSettingsDialog.usage_alert);
-          "
-          color="onPrimary"
-        >
+        <v-btn @click="saveMergerfsSettings()" color="onPrimary">
           {{ $t('save') }}
         </v-btn>
       </v-card-actions>
@@ -1254,35 +1384,42 @@
   <v-dialog v-model="nonraidSettingsDialog.value" max-width="600" persistent>
     <v-card class="pa-0" :title="t('nonraid settings')" prepend-icon="mdi-cog" style="max-height: 70vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto; flex: 1">
-        <div class="pt-4">
-          <h3 class="mb-4 text-subtitle-1">{{ $t('nonraid schedules') }}</h3>
-          <v-switch v-model="nonraidSettingsDialog.check.enabled" :label="$t('check')" hide-details="auto" density="compact" color="green" inset />
-          <v-text-field
-            v-model="nonraidSettingsDialog.check.schedule"
-            :label="$t('check schedule (cron)')"
-            hide-details="auto"
-            class="mt-2 mb-6"
-            append-inner-icon="mdi-calendar-clock"
-            @click:append-inner="openCronDialog(nonraidSettingsDialog.check.schedule, (schedule) => (nonraidSettingsDialog.check.schedule = schedule))"
-          />
+        <span class="text-title-medium font-weight-medium">{{ $t('nonraid schedules') }}</span>
+        <v-row align="center" class="pt-4">
+          <v-col cols="4">
+            <div class="d-flex align-center">
+              <v-switch v-model="nonraidSettingsDialog.check.enabled" hide-details="auto" density="compact" color="green" inset class="mr-2" />
+              <span class="text-body-2">{{ $t('check') }}</span>
+            </div>
+          </v-col>
+          <v-col cols="8" v-if="nonraidSettingsDialog.check.enabled">
+            <v-text-field
+              v-model="nonraidSettingsDialog.check.schedule"
+              :label="$t('check schedule (cron)')"
+              hide-details="auto"
+              density="compact"
+              append-inner-icon="mdi-calendar-clock"
+              @click:append-inner="openCronDialog(nonraidSettingsDialog.check.schedule, (schedule) => (nonraidSettingsDialog.check.schedule = schedule))"
+            />
+          </v-col>
+        </v-row>
 
-          <v-divider class="my-6"></v-divider>
+        <v-divider class="mt-6 mb-4"></v-divider>
 
-          <h3 class="mb-4 text-subtitle-1">{{ $t('usage alerts') }}</h3>
-          <v-text-field v-model="nonraidSettingsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" class="mb-4" />
-          <v-text-field v-model="nonraidSettingsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
-        </div>
+        <span class="text-title-medium font-weight-medium">{{ $t('usage alerts') }}</span>
+        <v-row class="mt-4">
+          <v-col cols="12" md="6">
+            <v-text-field v-model="nonraidSettingsDialog.usage_alert.warning" :label="$t('warning')" type="number" suffix="%" />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="nonraidSettingsDialog.usage_alert.alert" :label="$t('alert')" type="number" suffix="%" hide-details="auto" />
+          </v-col>
+        </v-row>
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="nonraidSettingsDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
-        <v-btn
-          @click="
-            saveNonRaidCheckSchedule(nonraidSettingsDialog.pool.id, nonraidSettingsDialog.check);
-            saveUsageAlerts(nonraidSettingsDialog.pool.id, nonraidSettingsDialog.usage_alert);
-          "
-          color="onPrimary"
-        >
+        <v-btn @click="saveNonraidSettings()" color="onPrimary">
           {{ $t('save') }}
         </v-btn>
       </v-card-actions>
@@ -1359,7 +1496,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, watch } from 'vue';
+import { ref, onMounted, reactive, watch, nextTick } from 'vue';
 import { showSnackbarError } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
@@ -1441,7 +1578,7 @@ const passphraseDialog = reactive({
   pool: null,
   passphrase: '',
 });
-const addParityDevicesDialog = reactive({
+const addMergerfsParityDevicesDialog = reactive({
   value: false,
   pool: null,
   devices: [],
@@ -1449,13 +1586,13 @@ const addParityDevicesDialog = reactive({
   skip_size_check: false,
   skip_size_check_clicks: 0,
 });
-const removeParityDevicesDialog = reactive({
+const removeMergerfsParityDevicesDialog = reactive({
   value: false,
   pool: null,
   devices: [],
   unmount: true,
 });
-const replaceParityDeviceDialog = reactive({
+const replaceMergerfsParityDeviceDialog = reactive({
   value: false,
   pool: null,
   oldDevice: null,
@@ -1488,7 +1625,15 @@ const manageMergerfsDevicesDialog = reactive({
   value: false,
   pool: null,
 });
-const manageParityDevicesDialog = reactive({
+const manageMergerfsParityDevicesDialog = reactive({
+  value: false,
+  pool: null,
+});
+const manageNonRaidDevicesDialog = reactive({
+  value: false,
+  pool: null,
+});
+const manageNonRaidParityDevicesDialog = reactive({
   value: false,
   pool: null,
 });
@@ -1696,39 +1841,47 @@ const openManageMergerfsDevicesDialog = (pool) => {
   manageMergerfsDevicesDialog.value = true;
   manageMergerfsDevicesDialog.pool = pool;
 };
-const openReplaceParityDeviceDialog = (pool) => {
-  replaceParityDeviceDialog.value = true;
-  replaceParityDeviceDialog.pool = pool;
-  replaceParityDeviceDialog.oldDevice = null;
-  replaceParityDeviceDialog.newDevice = null;
-  replaceParityDeviceDialog.format = false;
-  replaceParityDeviceDialog.skip_size_check = false;
-  replaceParityDeviceDialog.skip_size_check_clicks = 0;
+const openManageMergerfsParityDevicesDialog = (pool) => {
+  manageMergerfsParityDevicesDialog.value = true;
+  manageMergerfsParityDevicesDialog.pool = pool;
 };
-const openManageParityDevicesDialog = (pool) => {
-  manageParityDevicesDialog.value = true;
-  manageParityDevicesDialog.pool = pool;
+const openManageNonRaidDevicesDialog = (pool) => {
+  manageNonRaidDevicesDialog.value = true;
+  manageNonRaidDevicesDialog.pool = pool;
 };
-const startAddParityDevice = () => {
-  manageParityDevicesDialog.value = false;
-  openAddParityDevicesDialog(manageParityDevicesDialog.pool);
+const openManageNonRaidParityDevicesDialog = (pool) => {
+  manageNonRaidParityDevicesDialog.value = true;
+  manageNonRaidParityDevicesDialog.pool = pool;
 };
-const startReplaceParityDevice = (device) => {
-  manageParityDevicesDialog.value = false;
-  replaceParityDeviceDialog.value = true;
-  replaceParityDeviceDialog.pool = manageParityDevicesDialog.pool;
-  replaceParityDeviceDialog.oldDevice = device.device;
-  replaceParityDeviceDialog.newDevice = null;
-  replaceParityDeviceDialog.format = false;
-  replaceParityDeviceDialog.skip_size_check = false;
-  replaceParityDeviceDialog.skip_size_check_clicks = 0;
+const startAddMergerfsParityDevice = () => {
+  manageMergerfsParityDevicesDialog.value = false;
+  const pool = manageMergerfsParityDevicesDialog.pool;
+  nextTick(() => {
+    openAddMergerfsParityDevicesDialog(pool);
+  });
 };
-const startRemoveParityDevice = (device) => {
-  manageParityDevicesDialog.value = false;
-  removeParityDevicesDialog.value = true;
-  removeParityDevicesDialog.pool = manageParityDevicesDialog.pool;
-  removeParityDevicesDialog.devices = [device.device];
-  removeParityDevicesDialog.unmount = true;
+const startReplaceMergerfsParityDevice = (device) => {
+  manageMergerfsParityDevicesDialog.value = false;
+  const pool = manageMergerfsParityDevicesDialog.pool;
+  nextTick(() => {
+    replaceMergerfsParityDeviceDialog.value = true;
+    replaceMergerfsParityDeviceDialog.pool = pool;
+    replaceMergerfsParityDeviceDialog.oldDevice = device.device;
+    replaceMergerfsParityDeviceDialog.newDevice = null;
+    replaceMergerfsParityDeviceDialog.format = false;
+    replaceMergerfsParityDeviceDialog.skip_size_check = false;
+    replaceMergerfsParityDeviceDialog.skip_size_check_clicks = 0;
+  });
+};
+const startRemoveMergerfsParityDevice = (device) => {
+  manageMergerfsParityDevicesDialog.value = false;
+  const pool = manageMergerfsParityDevicesDialog.pool;
+  nextTick(() => {
+    removeMergerfsParityDevicesDialog.value = true;
+    removeMergerfsParityDevicesDialog.pool = pool;
+    removeMergerfsParityDevicesDialog.devices = [device.device];
+    removeMergerfsParityDevicesDialog.unmount = true;
+  });
 };
 const openPassphraseDialog = (pool) => {
   passphraseDialog.value = true;
@@ -1774,13 +1927,13 @@ const openDeletePoolDialog = (pool) => {
   deletePoolDialog.value = true;
   deletePoolDialog.pool = pool;
 };
-const openAddParityDevicesDialog = (pool) => {
-  addParityDevicesDialog.value = true;
-  addParityDevicesDialog.pool = pool;
-  addParityDevicesDialog.devices = [];
-  addParityDevicesDialog.format = false;
-  addParityDevicesDialog.skip_size_check = false;
-  addParityDevicesDialog.skip_size_check_clicks = 0;
+const openAddMergerfsParityDevicesDialog = (pool) => {
+  addMergerfsParityDevicesDialog.value = true;
+  addMergerfsParityDevicesDialog.pool = pool;
+  addMergerfsParityDevicesDialog.devices = [];
+  addMergerfsParityDevicesDialog.format = false;
+  addMergerfsParityDevicesDialog.skip_size_check = false;
+  addMergerfsParityDevicesDialog.skip_size_check_clicks = 0;
 };
 const openSnapraidOperationDialog = (pool) => {
   snapraidOperationDialog.value = true;
@@ -1792,6 +1945,21 @@ const openNonRaidOperationDialog = (pool) => {
   nonRaidOperationDialog.pool = pool;
   nonRaidOperationDialog.operation = '';
   nonRaidOperationDialog.option = 'NOCORRECT';
+};
+const openAddNonRaidDeviceDialog = async (pool) => {
+  addNonRaidDeviceDialog.value = true;
+  addNonRaidDeviceDialog.pool = pool;
+  addNonRaidDeviceDialog.device = '';
+  addNonRaidDeviceDialog.filesystem = 'xfs';
+  addNonRaidDeviceDialog.filesystems = await getFilesystems('nonraid');
+  addNonRaidDeviceDialog.passphrase = '';
+  addNonRaidDeviceDialog.parity_valid = false;
+  addNonRaidDeviceDialog.format = false;
+};
+const openAddNonRaidParityDialog = (pool) => {
+  addNonRaidParityDialog.value = true;
+  addNonRaidParityDialog.pool = pool;
+  addNonRaidParityDialog.device = '';
 };
 const openMultiOperationDialog = (pool) => {
   multiOperationDialog.value = true;
@@ -1919,8 +2087,7 @@ const getPools = async () => {
       errorLabel: t('pools could not be loaded'),
     });
     pools.value = result.sort((a, b) => a.index - b.index);
-  } catch {
-  } finally {
+  } catch {} finally {
     poolsLoading.value = false;
   }
 };
@@ -1931,8 +2098,7 @@ const getVPools = async () => {
       errorLabel: t('virtual pools could not be loaded'),
     });
     vpools.value = result.sort((a, b) => a.index - b.index);
-  } catch {
-  } finally {
+  } catch {} finally {
     vpoolsLoading.value = false;
   }
 };
@@ -1994,8 +2160,7 @@ const getUnassignedDisks = async () => {
       errorLabel: t('unassigned disks could not be loaded'),
     });
     unassignedDisks.value = result.unassignedDisks || [];
-  } catch {
-  } finally {
+  } catch {} finally {
     unassignedDisksLoading.value = false;
   }
 };
@@ -2322,6 +2487,15 @@ const mountPoolWithPassphrase = async (pool, passphrase) => {
   } catch {}
 };
 
+const syncManagedPoolViews = (poolId) => {
+  const updated = pools.value.find((p) => p.id === poolId);
+  if (!updated) return;
+  if (manageMergerfsDevicesDialog.pool?.id === poolId) manageMergerfsDevicesDialog.pool = updated;
+  if (manageMergerfsParityDevicesDialog.pool?.id === poolId) manageMergerfsParityDevicesDialog.pool = updated;
+  if (manageNonRaidDevicesDialog.pool?.id === poolId) manageNonRaidDevicesDialog.pool = updated;
+  if (manageNonRaidParityDevicesDialog.pool?.id === poolId) manageNonRaidParityDevicesDialog.pool = updated;
+};
+
 const addMergerfsParityDevice = async (poolId, devices, format, skipSizeCheck) => {
   try {
     await call(`/api/v1/pools/${poolId}/parity/add`, {
@@ -2330,9 +2504,10 @@ const addMergerfsParityDevice = async (poolId, devices, format, skipSizeCheck) =
       errorLabel: t('parity device could not be added'),
       successLabel: t('parity device added successfully'),
     });
-    getPools();
+    await getPools();
+    syncManagedPoolViews(poolId);
     getUnassignedDisks();
-    addParityDevicesDialog.value = false;
+    addMergerfsParityDevicesDialog.value = false;
   } catch {}
 };
 
@@ -2344,9 +2519,10 @@ const removeMergerfsParityDevice = async (poolId, devices, unmount) => {
       errorLabel: t('parity device could not be removed'),
       successLabel: t('parity device removed successfully'),
     });
-    getPools();
+    await getPools();
+    syncManagedPoolViews(poolId);
     getUnassignedDisks();
-    removeParityDevicesDialog.value = false;
+    removeMergerfsParityDevicesDialog.value = false;
   } catch {}
 };
 
@@ -2358,9 +2534,10 @@ const replaceMergerfsParityDevice = async (poolId, oldDevice, newDevice, format,
       errorLabel: t('parity device could not be replaced'),
       successLabel: t('parity device replaced successfully'),
     });
-    getPools();
+    await getPools();
+    syncManagedPoolViews(poolId);
     getUnassignedDisks();
-    replaceParityDeviceDialog.value = false;
+    replaceMergerfsParityDeviceDialog.value = false;
   } catch {}
 };
 
@@ -2429,45 +2606,53 @@ const performMultiOperationBalance = async (poolId, option) => {
   } catch {}
 };
 
-const saveSnapraidSchedules = async (id, sync) => {
+const saveBtrfsSettings = async () => {
   try {
-    await call(`/api/v1/pools/${id}/config`, {
+    await call(`/api/v1/pools/${btrfsSettingsDialog.pool.id}/config`, {
       method: 'PATCH',
-      body: { sync },
-      errorLabel: t('snapraid schedules could not be saved'),
-      successLabel: t('snapraid schedules saved successfully'),
+      body: {
+        scrub: btrfsSettingsDialog.scrub,
+        balance: btrfsSettingsDialog.balance,
+        usage_alert: btrfsSettingsDialog.usage_alert,
+      },
+      errorLabel: t('btrfs settings could not be saved'),
+      successLabel: t('btrfs settings saved successfully'),
     });
     getPools();
-    getUnassignedDisks();
-    snapraidSchedulesDialog.value = false;
+    btrfsSettingsDialog.value = false;
   } catch {}
 };
 
-const saveNonRaidCheckSchedule = async (id, check) => {
+const saveMergerfsSettings = async () => {
   try {
-    await call(`/api/v1/pools/${id}/config`, {
+    await call(`/api/v1/pools/${mergerfsSettingsDialog.pool.id}/config`, {
       method: 'PATCH',
-      body: { check },
-      errorLabel: t('check schedule could not be saved'),
-      successLabel: t('check schedule saved successfully'),
+      body: {
+        snapraid: mergerfsSettingsDialog.snapraid_sync,
+        policies: mergerfsSettingsDialog.mergerfs_policies,
+        usage_alert: mergerfsSettingsDialog.usage_alert,
+      },
+      errorLabel: t('mergerfs settings could not be saved'),
+      successLabel: t('mergerfs settings saved successfully'),
     });
     getPools();
-    getUnassignedDisks();
-    nonRaidSchedulesDialog.value = false;
+    mergerfsSettingsDialog.value = false;
   } catch {}
 };
 
-const saveMultiSchedules = async (id, scrub, balance) => {
+const saveNonraidSettings = async () => {
   try {
-    await call(`/api/v1/pools/${id}/config`, {
+    await call(`/api/v1/pools/${nonraidSettingsDialog.pool.id}/config`, {
       method: 'PATCH',
-      body: { scrub, balance },
-      errorLabel: t('schedules could not be saved'),
-      successLabel: t('schedules saved successfully'),
+      body: {
+        check: nonraidSettingsDialog.check,
+        usage_alert: nonraidSettingsDialog.usage_alert,
+      },
+      errorLabel: t('nonraid settings could not be saved'),
+      successLabel: t('nonraid settings saved successfully'),
     });
     getPools();
-    getUnassignedDisks();
-    multiSchedulesDialog.value = false;
+    nonraidSettingsDialog.value = false;
   } catch {}
 };
 
@@ -2479,7 +2664,8 @@ const addMergerfsDevices = async (poolId, devices, format, passphrase, skipSizeC
       errorLabel: t('device could not be added'),
       successLabel: t('device added successfully'),
     });
-    getPools();
+    await getPools();
+    syncManagedPoolViews(poolId);
     getUnassignedDisks();
     addMergerfsDevicesDialog.value = false;
   } catch {}
@@ -2493,7 +2679,8 @@ const removeMergerfsDevice = async (poolId, devices, unmount) => {
       errorLabel: t('device could not be removed'),
       successLabel: t('device removed successfully'),
     });
-    getPools();
+    await getPools();
+    syncManagedPoolViews(poolId);
     getUnassignedDisks();
     removeMergerfsDevicesDialog.value = false;
   } catch {}
@@ -2507,7 +2694,8 @@ const replaceMergerfsDevice = async (poolId, oldDevice, newDevice, format) => {
       errorLabel: t('device could not be replaced'),
       successLabel: t('device replaced successfully'),
     });
-    getPools();
+    await getPools();
+    syncManagedPoolViews(poolId);
     getUnassignedDisks();
     replaceMergerfsDeviceDialog.value = false;
   } catch {}
@@ -2577,13 +2765,15 @@ const addNonRaidDevice = async (device, filesystem, passphrase, parity_valid, fo
       errorLabel: t('device could not be added'),
       successLabel: t('device added successfully'),
     });
-    getPools();
+    const poolId = manageNonRaidDevicesDialog.pool?.id;
+    await getPools();
+    syncManagedPoolViews(poolId);
     getUnassignedDisks();
     addNonRaidDeviceDialog.value = false;
   } catch {}
 };
 
-const addNonRaidParity = async (device) => {
+const addNonRaidParity = async (poolId, device) => {
   try {
     await call('/api/v1/pools/nonraid/addparity', {
       method: 'POST',
@@ -2591,7 +2781,8 @@ const addNonRaidParity = async (device) => {
       errorLabel: t('parity device could not be added'),
       successLabel: t('parity device added successfully'),
     });
-    getPools();
+    await getPools();
+    syncManagedPoolViews(poolId);
     getUnassignedDisks();
     addNonRaidParityDialog.value = false;
   } catch {}
@@ -2606,32 +2797,6 @@ const getMergerfsPolicies = async (poolId) => {
   } catch {
     return {};
   }
-};
-
-const changeMergerfsPolicies = async (poolId, policies) => {
-  try {
-    await call(`/api/v1/pools/${poolId}/config`, {
-      method: 'PATCH',
-      body: { policies },
-      errorLabel: t('mergerfs policies could not be changed'),
-      successLabel: t('mergerfs policies changed successfully'),
-    });
-    getPools();
-    mergerfsPolicyDialog.value = false;
-  } catch {}
-};
-
-const saveUsageAlerts = async (poolId, usageAlert) => {
-  try {
-    await call(`/api/v1/pools/${poolId}/config`, {
-      method: 'PATCH',
-      body: { usage_alert: usageAlert },
-      errorLabel: t('usage alert settings could not be saved'),
-      successLabel: t('usage alert settings saved successfully'),
-    });
-    getPools();
-    usageAlertsDialog.value = false;
-  } catch {}
 };
 
 const onDragEndPool = async () => {
@@ -2649,9 +2814,7 @@ const onDragEndPool = async () => {
       errorLabel: t('pool order could not be saved'),
       successLabel: t('pool order saved successfully'),
     });
-  } catch {
-    // Fehler wurde bereits per Snackbar angezeigt
-  }
+  } catch {}
 };
 
 const getDiskIcon = (type) => {
