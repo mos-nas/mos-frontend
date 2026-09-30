@@ -1808,6 +1808,7 @@
   "metadata replicas": "Metadaten Replikationen",
   "background compression": "Hintergrundkompression",
   "cache mode": "Cache Modus",
-  "erasure code": "Erasure Code"
-
+  "erasure code": "Erasure Code",
+  "moveonenospc": "Bei vollem Speicher verschieben",
+  "minfreespace": "Minimaler freier Speicher"
 }

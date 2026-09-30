@@ -1808,5 +1808,7 @@
   "metadata replicas": "Metadata Replicas",
   "background compression": "Background Compression",
   "cache mode": "Cache Mode",
-  "erasure code": "Erasure Code"
+  "erasure code": "Erasure Code",
+  "moveonenospc": "Move on No Space",
+  "minfreespace": "Minimal Free Space"
 }

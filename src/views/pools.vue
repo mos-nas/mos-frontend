@@ -574,6 +574,7 @@
         />
         <v-select v-if="createPoolDialog.type === 'multi'" v-model="createPoolDialog.raidLevel" :items="raidLevels" :label="$t('raid level')" density="comfortable" />
         <v-select v-if="createPoolDialog.type !== 'bcachefs'" v-model="createPoolDialog.filesystem" :items="createPoolDialog.filesystems" :label="$t('filesystem')" density="comfortable" />
+        <v-text-field v-if="createPoolDialog.type === 'mergerfs' || createPoolDialog.type === 'nonraid'" v-model="createPoolDialog.minfreespace" :label="$t('minfreespace')" />
         <v-text-field v-if="createPoolDialog.type === 'mergerfs'" v-model="createPoolDialog.comment" :label="$t('comment')" />
         <div v-if="createPoolDialog.type === 'bcachefs'">
           <v-select
@@ -625,6 +626,7 @@
             </div>
           </v-slide-y-transition>
         </div>
+        <v-switch v-if="createPoolDialog.type === 'mergerfs' || createPoolDialog.type === 'nonraid'" v-model="createPoolDialog.moveonenospc" :label="$t('moveonenospc')" hide-details density="compact" color="green" inset />
         <v-switch v-model="createPoolDialog.automount" :label="$t('automount')" hide-details density="compact" color="green" inset />
         <v-switch v-model="createPoolDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
         <v-switch v-model="createPoolDialog.shared" :label="$t('shared')" hide-details density="compact" color="green" inset />
@@ -1566,6 +1568,8 @@ const createPoolDialog = reactive({
   compression: 'lz4',
   background_compression: 'zstd',
   cache_mode: 'writethrough',
+  minfreespace: "20G",
+  moveonenospc: true,  
 });
 const deletePoolDialog = reactive({
   value: false,
@@ -2232,6 +2236,8 @@ const createPoolMergerfs = async () => {
       comment: createPoolDialog.comment,
       mergerfsOptions: createPoolDialog.mergerfsOptions,
       snapraid: { device: createPoolDialog.snapraidDevice },
+      minfreespace: createPoolDialog.minfreespace,
+      moveonenospc: createPoolDialog.moveonenospc,
     },
     config: {
       shared: createPoolDialog.shared,
@@ -2266,6 +2272,8 @@ const createPoolNonRaid = async () => {
       automount: createPoolDialog.automount,
       comment: createPoolDialog.comment,
       policies: createPoolDialog.policies,
+      minfreespace: createPoolDialog.minfreespace,
+      moveonenospc: createPoolDialog.moveonenospc,
     },
     config: {
       shared: createPoolDialog.shared,
