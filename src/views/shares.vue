@@ -203,18 +203,18 @@
             )
           "
         />
-        <v-text-field v-model="createNfsDialog.source" :label="$t('source')" required />
+        <v-text-field v-model.trim="createNfsDialog.source" :label="$t('source')" placeholder="192.168.1.0/24" :rules="[nfsSourceRule]" required />
         <v-text-field v-model="createNfsDialog.anonuid" :label="$t('anonymous uid')" type="number" />
         <v-text-field v-model="createNfsDialog.anongid" :label="$t('anonymous gid')" type="number" />
-        <v-select v-model="createNfsDialog.write_operations" :items="['sync', 'async']" :label="$t('write operations')" clearable/>
-        <v-select v-model="createNfsDialog.mapping" :items="['no_root_squash', 'all_squash', 'root_squash']" :label="$t('mapping')" clearable/>
+        <v-select v-model="createNfsDialog.write_operations" :items="['sync', 'async']" :label="$t('write operations')"/>
+        <v-select v-model="createNfsDialog.mapping" :items="['no_root_squash', 'all_squash', 'root_squash']" :label="$t('mapping')"/>
         <v-switch v-model="createNfsDialog.read_only" :label="$t('read only')" inset hide-details density="compact" class="ml-4" color="green" />
         <v-switch v-model="createNfsDialog.secure" :label="$t('secure')" inset hide-details density="compact" class="ml-4" color="green" />
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-btn color="onPrimary" @click="createNfsDialog.value = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="onPrimary" @click="createShareNfs()">
+        <v-btn color="onPrimary" :disabled="nfsSourceRule(createNfsDialog.source) !== true" @click="createShareNfs()">
           {{ $t('create') }}
         </v-btn>
       </v-card-actions>
@@ -294,11 +294,11 @@
       <v-card-text style="max-height: 60vh; display: flex; flex-direction: column; overflow: auto" class="pt-2">
         <v-text-field v-model="editNfsDialog.name" :label="$t('share name')" readonly />
         <v-text-field v-model="editNfsDialog.path" :label="$t('path')" readonly />
-        <v-text-field v-model="editNfsDialog.source" :label="$t('source')" required />
+        <v-text-field v-model.trim="editNfsDialog.source" :label="$t('source')" placeholder="192.168.1.0/24" :rules="[nfsSourceRule]" required />
         <v-text-field v-model="editNfsDialog.anonuid" :label="$t('anonymous uid')" type="number" />
         <v-text-field v-model="editNfsDialog.anongid" :label="$t('anonymous gid')" type="number" />
-        <v-select v-model="editNfsDialog.write_operations" :items="['sync', 'async']" :label="$t('write operations')" clearable />
-        <v-select v-model="editNfsDialog.mapping" :items="['no_root_squash', 'all_squash', 'root_squash']" :label="$t('mapping')" clearable />
+        <v-select v-model="editNfsDialog.write_operations" :items="['sync', 'async']" :label="$t('write operations')" />
+        <v-select v-model="editNfsDialog.mapping" :items="['no_root_squash', 'all_squash', 'root_squash']" :label="$t('mapping')" />
         <v-switch v-model="editNfsDialog.read_only" :label="$t('read only')" inset hide-details density="compact" class="ml-4" color="green" />
         <v-switch v-model="editNfsDialog.secure" :label="$t('secure')" inset hide-details density="compact" class="ml-4" color="green" />
       </v-card-text>
@@ -306,7 +306,7 @@
       <v-card-actions style="flex-shrink: 0">
         <v-spacer />
         <v-btn color="onPrimary" @click="editNfsDialog.value = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="onPrimary" @click="updateShareNfs(editNfsDialog)">
+        <v-btn color="onPrimary" :disabled="nfsSourceRule(editNfsDialog.source) !== true" @click="updateShareNfs(editNfsDialog)">
           {{ $t('save') }}
         </v-btn>
       </v-card-actions>
@@ -388,6 +388,8 @@ const fsDialogCallback = ref(null);
 const fsDialogInitialPath = ref('/');
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
+// An empty or multi-word source produces an invalid /etc/exports line and stops the NFS server
+const nfsSourceRule = (v) => (typeof v === 'string' && /^\S+$/.test(v.trim())) || t('nfs source is required');
 const { overlay } = useOverlay();
 const shares = ref([
   {
@@ -431,8 +433,8 @@ const createNfsDialog = reactive({
   read_only: false,
   anonuid: null,
   anongid: null,
-  write_operations: '',
-  mapping: '',
+  write_operations: 'sync',
+  mapping: 'root_squash',
   secure: false,
 });
 const editSmbDialog = reactive({
@@ -948,8 +950,8 @@ const openEditNfsDialog = (share) => {
   editNfsDialog.read_only = share.read_only;
   editNfsDialog.anonuid = share.anonuid;
   editNfsDialog.anongid = share.anongid;
-  editNfsDialog.write_operations = share.write_operations;
-  editNfsDialog.mapping = share.mapping;
+  editNfsDialog.write_operations = share.write_operations || 'sync';
+  editNfsDialog.mapping = share.mapping || 'root_squash';
   editNfsDialog.secure = share.secure;
   editNfsDialog.pool = share.pool;
 };
@@ -1028,8 +1030,8 @@ const clearCreateNfsDialog = () => {
   createNfsDialog.read_only = false;
   createNfsDialog.anonuid = null;
   createNfsDialog.anongid = null;
-  createNfsDialog.write_operations = '';
-  createNfsDialog.mapping = '';
+  createNfsDialog.write_operations = 'sync';
+  createNfsDialog.mapping = 'root_squash';
   createNfsDialog.secure = false;
 };
 </script>

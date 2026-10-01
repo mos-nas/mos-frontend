@@ -1810,5 +1810,6 @@
   "cache mode": "Cache Modus",
   "erasure code": "Erasure Code",
   "moveonenospc": "Bei vollem Speicher verschieben",
-  "minfreespace": "Minimaler freier Speicher"
+  "minfreespace": "Minimaler freier Speicher",
+  "nfs source is required": "Quelle ist erforderlich (z. B. 192.168.1.0/24 oder *)"
 }
