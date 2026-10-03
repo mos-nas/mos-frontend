@@ -506,7 +506,7 @@ const updateDateTime = () => {
 
 const getSystemSettings = async () => {
   try {
-    const res = await fetch('/api/v1/mos/settings/system', {
+    const res = await fetch('/api/v1/mos/settings/system?include=tun', {
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('authToken'),
       },

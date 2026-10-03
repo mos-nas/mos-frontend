@@ -294,13 +294,12 @@ onMounted(() => {
 
 const getLxcBackups = async () => {
   try {
-    backups.value =
-      (await call) <
-        any >
-        (`/api/v1/lxc/containers/${props.lxc}/backups`,
-        {
-          errorLabel: t('lxc backups could not be loaded'),
-        }) || [];
+    backups.value = await call(
+      `/api/v1/lxc/containers/${props.lxc}/backups`,
+      {
+        errorLabel: t('lxc backups could not be loaded'),
+      }
+    ) || [];
   } catch (error) {
   } finally {
     backupsLoading.value = false;
@@ -368,13 +367,12 @@ const getLXCService = async () => {
 
 const getLxcSnapshots = async () => {
   try {
-    snapshots.value =
-      (await call) <
-        any >
-        (`/api/v1/lxc/containers/${props.lxc}/snapshots`,
-        {
-          errorLabel: t('lxc snapshots could not be loaded'),
-        }) || [];
+    snapshots.value = await call(
+      `/api/v1/lxc/containers/${props.lxc}/snapshots`,
+      {
+        errorLabel: t('lxc snapshots could not be loaded'),
+      }
+    ) || [];
   } catch (e) {
   } finally {
     snapshotsLoading.value = false;

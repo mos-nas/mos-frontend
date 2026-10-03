@@ -640,20 +640,19 @@ const getIfaceIpDnsString = (iface, type) => {
   });
 };
 
-onMounted(() => {
+onMounted(async () => {
   getNetworkSettings();
 });
 
 const getNetworkSettings = async () => {
   try {
     networkLoading.value = true;
-    const data =
-      (await call) <
-      any >
-      ('/api/v1/mos/settings/network/interfaces?include=tun',
+    const data = await call(
+      '/api/v1/mos/settings/network/interfaces',
       {
         errorLabel: t('network settings could not be loaded'),
-      });
+      }
+    );
 
     if (!data) return;
 
