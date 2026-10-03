@@ -288,6 +288,7 @@
   "pool could not be deleted": "Pool could not be deleted",
   "pool deleted successfully": "Pool deleted successfully",
   "are you sure you want to delete this pool?": "Are you sure you want to delete this pool?",
+  "are you sure you want to remove this parity device?": "Are you sure you want to remove this parity device?",
   "lxc container order could not be saved": "LXC Container order could not be saved",
   "lxc container order saved successfully": "LXC Container order saved successfully",
   "snapraid device": "SnapRAID Device",

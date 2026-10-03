@@ -288,6 +288,7 @@
   "pool could not be deleted": "Pool konnte nicht gelöscht werden",
   "pool deleted successfully": "Pool erfolgreich gelöscht",
   "are you sure you want to delete this pool?": "Bist du sicher, dass du diesen Pool löschen möchtest?",
+  "are you sure you want to remove this parity device?": "Bist du sicher, dass du dieses Parity-Gerät entfernen möchtest?",
   "lxc container order could not be saved": "LXC Container Reihenfolge konnte nicht gespeichert werden",
   "lxc container order saved successfully": "LXC Container Reihenfolge erfolgreich gespeichert",
   "snapraid device": "SnapRAID Gerät",

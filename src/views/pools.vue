@@ -776,6 +776,52 @@
     </v-card>
   </v-dialog>
 
+  <!-- Replace NonRaid Device Dialog -->
+  <v-dialog v-model="replaceNonRaidDeviceDialog.value" max-width="600" persistent>
+    <v-card class="pa-0" :title="t('replace device')" prepend-icon="mdi-file-replace" style="max-height: 60vh; display: flex; flex-direction: column">
+      <v-card-text style="overflow: auto" class="pt-2">
+        <v-select
+          v-model="replaceNonRaidDeviceDialog.oldDevice"
+          :items="
+            replaceNonRaidDeviceDialog.pool
+              ? replaceNonRaidDeviceDialog.pool.data_devices.map((device) => ({
+                  title: `${device.device} (${device.storage?.totalSpace_human || '—'}) (${device.diskInfo?.diskSerial || '—'})`,
+                  value: device.device,
+                }))
+              : []
+          "
+          item-title="title"
+          item-value="value"
+          :label="$t('old device')"
+          density="comfortable"
+        />
+        <v-select
+          v-model="replaceNonRaidDeviceDialog.newDevice"
+          :items="
+            Array.isArray(unassignedDisks)
+              ? unassignedDisks.map((disk) => ({ title: `${disk.device} (${disk.size_human || '—'}) (${disk.serial || '—'})`, value: disk.device }))
+              : []
+          "
+          item-title="title"
+          item-value="value"
+          :label="$t('new device')"
+          density="comfortable"
+        />
+        <v-switch v-model="replaceNonRaidDeviceDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
+      </v-card-text>
+      <v-divider />
+      <v-card-actions style="flex-shrink: 0">
+        <v-btn @click="replaceNonRaidDeviceDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
+        <v-btn
+          @click="replaceNonRaidDevice(replaceNonRaidDeviceDialog.pool.id, replaceNonRaidDeviceDialog.oldDevice, replaceNonRaidDeviceDialog.newDevice, replaceNonRaidDeviceDialog.format)"
+          color="red"
+        >
+          {{ $t('replace') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <!-- Sleep / Wake Dialog -->
   <v-dialog v-model="spinDialog.value" max-width="400" persistent>
     <v-card class="pa-0" :title="t('wake up / sleep')" prepend-icon="mdi-sleep" style="max-height: 60vh; display: flex; flex-direction: column">
@@ -899,6 +945,13 @@
                 <v-list-item-title class="font-weight-medium">{{ device.device }}</v-list-item-title>
                 <v-list-item-subtitle class="text-caption">{{ device.mountPoint || '—' }} • {{ device.storage?.totalSpace_human || '—' }} • {{ device.diskInfo?.diskSerial || '—' }}</v-list-item-subtitle>
               </div>
+              <template #append>
+                <div class="d-flex gap-1">
+                  <v-btn size="x-small" variant="text" icon @click="openReplaceNonRaidDeviceDialog(manageNonRaidDevicesDialog.pool, device.device)" color="orange" title="Replace">
+                    <v-icon size="18">mdi-file-replace</v-icon>
+                  </v-btn>
+                </div>
+              </template>
             </v-list-item>
           </v-list>
         </div>
@@ -1641,6 +1694,13 @@ const manageNonRaidParityDevicesDialog = reactive({
   value: false,
   pool: null,
 });
+const replaceNonRaidDeviceDialog = reactive({
+  value: false,
+  pool: null,
+  oldDevice: null,
+  newDevice: null,
+  format: false,
+});
 const addNonRaidDeviceDialog = reactive({
   value: false,
   pool: null,
@@ -1826,6 +1886,13 @@ const openReplaceMergerfsDeviceDialog = (pool, oldDevice = null) => {
   replaceMergerfsDeviceDialog.oldDevice = oldDevice;
   replaceMergerfsDeviceDialog.newDevice = null;
   replaceMergerfsDeviceDialog.format = false;
+};
+const openReplaceNonRaidDeviceDialog = (pool, oldDevice = null) => {
+  replaceNonRaidDeviceDialog.value = true;
+  replaceNonRaidDeviceDialog.pool = pool;
+  replaceNonRaidDeviceDialog.oldDevice = oldDevice;
+  replaceNonRaidDeviceDialog.newDevice = null;
+  replaceNonRaidDeviceDialog.format = false;
 };
 const openSpinDialog = (pool) => {
   spinDialog.value = true;
@@ -2706,6 +2773,20 @@ const replaceMergerfsDevice = async (poolId, oldDevice, newDevice, format) => {
     syncManagedPoolViews(poolId);
     getUnassignedDisks();
     replaceMergerfsDeviceDialog.value = false;
+  } catch {}
+};
+
+const replaceNonRaidDevice = async (poolId, oldDevice, newDevice, format) => {
+  try {
+    await call(`/api/v1/pools/nonraid/replacedevice`, {
+      method: 'POST',
+      body: { old_device: oldDevice, new_device: newDevice, format },
+      errorLabel: t('device could not be replaced'),
+      successLabel: t('device replaced successfully'),
+    });
+    await getPools();
+    getUnassignedDisks();
+    replaceNonRaidDeviceDialog.value = false;
   } catch {}
 };
 
