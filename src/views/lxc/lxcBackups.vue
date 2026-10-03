@@ -3,10 +3,10 @@
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
-          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px;">
-            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle;">mdi-arrow-left</v-icon>
+          <v-col cols="auto" class="d-flex align-center justify-center" style="height: 40px">
+            <v-icon @click="$router.back()" class="mr-2" style="vertical-align: middle">mdi-arrow-left</v-icon>
           </v-col>
-          <div class="d-flex align-center ga-3 mb-4" style="height: 40px;">
+          <div class="d-flex align-center ga-3 mb-4" style="height: 40px">
             <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
             <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ props.lxc }}</h2>
           </div>
@@ -154,7 +154,11 @@
   <!-- Create Snapshot Dialog -->
   <v-dialog v-model="createSnapshotDialog.value" max-width="600px">
     <v-card class="pa-0" :title="$t('create snapshot')" prepend-icon="mdi-camera-plus">
-      <v-card-text class="py-0 pt-2 pb-4" style="max-height: 60vh; overflow-y: auto">{{ $t('are you sure you want to create a new snapshot') }}? <br /> {{ $t('container will be restarted') }}</v-card-text>
+      <v-card-text class="py-0 pt-2 pb-4" style="max-height: 60vh; overflow-y: auto">
+        {{ $t('are you sure you want to create a new snapshot') }}?
+        <br />
+        {{ $t('container will be restarted') }}
+      </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
@@ -230,15 +234,13 @@
       </v-list-item>
     </v-list>
   </v-menu>
-
 </template>
 
 <script setup>
 import { ref, onMounted, reactive, h } from 'vue';
-import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { useOverlay } from '@/composables/useOverlay';
+import { useApi } from '@/composables/useApi';
 
 const props = defineProps({
   lxc: String,
@@ -247,7 +249,7 @@ const props = defineProps({
 const router = useRouter();
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
-const { overlay } = useOverlay();
+const { call } = useApi();
 const backups = ref([]);
 const backupsLoading = ref(true);
 const snapshots = ref([]);
@@ -292,25 +294,16 @@ onMounted(() => {
 
 const getLxcBackups = async () => {
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/lxc/containers/${props.lxc}/backups`, {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('lxc backups could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    backups.value = await res.json();
+    backups.value =
+      (await call) <
+        any >
+        (`/api/v1/lxc/containers/${props.lxc}/backups`,
+        {
+          errorLabel: t('lxc backups could not be loaded'),
+        }) || [];
   } catch (error) {
-    const [userMessage, apiErrorMessage] = error.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     backupsLoading.value = false;
-    overlay.value = false;
   }
 };
 
@@ -322,56 +315,27 @@ const createBackup = async (use_snapshot, compression, threads) => {
   };
 
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/lxc/containers/${props.lxc}/backups`, {
+    await call(`/api/v1/lxc/containers/${props.lxc}/backups`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('backup could not be created'),
+      successLabel: t('backup creation started successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('backup could not be created')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('backup creation started successfully'));
     getLxcBackups();
     createBackupDialog.value = false;
-  } catch (error) {
-    const [userMessage, apiErrorMessage] = error.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (error) {}
 };
 
 const deleteBackup = async (backup) => {
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/lxc/containers/${props.lxc}/backups/${backup.filename}`, {
+    await call(`/api/v1/lxc/containers/${props.lxc}/backups/${backup.filename}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('backup could not be deleted'),
+      successLabel: t('backup deleted successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('backup could not be deleted')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('backup deleted successfully'));
     getLxcBackups();
     deleteBackupDialog.value = false;
-  } catch (error) {
-    const [userMessage, apiErrorMessage] = error.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (error) {}
 };
 
 const restoreBackup = async (backup, newName) => {
@@ -381,70 +345,37 @@ const restoreBackup = async (backup, newName) => {
   };
 
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/lxc/containers/${props.lxc}/backups/restore`, {
+    await call(`/api/v1/lxc/containers/${props.lxc}/backups/restore`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('backup could not be restored'),
+      successLabel: t('backup restore started successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('backup could not be restored')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('backup restore started successfully'));
     getLxcBackups();
     restoreBackupDialog.value = false;
-  } catch (error) {
-    const [userMessage, apiErrorMessage] = error.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (error) {}
 };
 
 const getLXCService = async () => {
   try {
-    const res = await fetch('/api/v1/mos/settings/lxc', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    return await call('/api/v1/mos/settings/lxc', {
+      errorLabel: t('lxc service could not be loaded'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('lxc service could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    const lxcSettings = await res.json();
-    return lxcSettings;
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
+    return null;
   }
 };
 
 const getLxcSnapshots = async () => {
   try {
-    const res = await fetch(`/api/v1/lxc/containers/${props.lxc}/snapshots`, {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('lxc snapshots could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    snapshots.value = await res.json();
+    snapshots.value =
+      (await call) <
+        any >
+        (`/api/v1/lxc/containers/${props.lxc}/snapshots`,
+        {
+          errorLabel: t('lxc snapshots could not be loaded'),
+        }) || [];
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     snapshotsLoading.value = false;
   }
@@ -452,80 +383,38 @@ const getLxcSnapshots = async () => {
 
 const createSnapshot = async () => {
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/lxc/containers/${props.lxc}/snapshots`, {
+    await call(`/api/v1/lxc/containers/${props.lxc}/snapshots`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('snapshot could not be created'),
+      successLabel: t('snapshot created successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('snapshot could not be created')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('snapshot created successfully'));
     getLxcSnapshots();
     createSnapshotDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const deleteSnapshot = async (snapshot) => {
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/lxc/containers/${props.lxc}/snapshots/${snapshot.name}`, {
+    await call(`/api/v1/lxc/containers/${props.lxc}/snapshots/${snapshot.name}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('snapshot could not be deleted'),
+      successLabel: t('snapshot deleted successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('snapshot could not be deleted')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('snapshot deleted successfully'));
     getLxcSnapshots();
     deleteSnapshotDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const restoreSnapshot = async (snapshot) => {
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/lxc/containers/${props.lxc}/snapshots/${snapshot.name}/restore`, {
+    await call(`/api/v1/lxc/containers/${props.lxc}/snapshots/${snapshot.name}/restore`, {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('snapshot could not be restored'),
+      successLabel: t('snapshot restore started successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('snapshot could not be restored')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('snapshot restore started successfully'));
     getLxcSnapshots();
     restoreSnapshotDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const cloneSnapshot = async (snapshot, newName) => {
@@ -534,37 +423,20 @@ const cloneSnapshot = async (snapshot, newName) => {
   };
 
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/lxc/containers/${props.lxc}/snapshots/${snapshot.name}/clone`, {
+    await call(`/api/v1/lxc/containers/${props.lxc}/snapshots/${snapshot.name}/clone`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('snapshot could not be cloned'),
+      successLabel: t('snapshot cloned successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('snapshot could not be cloned')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('snapshot cloned successfully'));
     getLxcSnapshots();
     cloneSnapshotDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const openCreateBackupDialog = async () => {
   createBackupDialog.value = true;
-  overlay.value = true;
   const lxcSettings = await getLXCService();
-  overlay.value = false;
   if (lxcSettings !== undefined && lxcSettings !== null) {
     createBackupDialog.use_snapshot = lxcSettings.use_snapshot;
     createBackupDialog.compression = lxcSettings.compression;

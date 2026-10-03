@@ -12,7 +12,8 @@
           </div>
         </v-row>
       </v-container>
-      <v-container fluid class="pa-0" style="margin-bottom: 80px">
+      <v-skeleton-loader v-if="networkLoading" type="card" :loading="networkLoading" class="mb-4" style="margin-bottom: 20px" />
+      <v-container v-else fluid class="pa-0" style="margin-bottom: 80px">
         <v-card v-for="(iface, idx) in settingsNetwork.interfaces" :key="idx" class="mb-6 pa-0">
           <v-card-title class="d-flex align-center py-3 pb-1" style="position: relative">
             {{ $t('interface') }}: {{ iface.name || $t('new interface') }}
@@ -575,14 +576,15 @@
 
 <script setup>
 import { onMounted, ref, computed, reactive, watch, onBeforeUnmount } from 'vue';
-import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
+import { showSnackbarError } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
-import { useOverlay } from '@/composables/useOverlay';
+import { useApi } from '@/composables/useApi';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const settingsNetwork = ref({ interfaces: [] });
 const saveNetworkSettingsDialog = reactive({ value: false });
-const { overlay } = useOverlay();
+const networkLoading = ref(true);
+const { call } = useApi();
 const { t } = useI18n();
 const settingsNetworkCountdown = reactive({
   value: false,
@@ -644,18 +646,18 @@ onMounted(() => {
 
 const getNetworkSettings = async () => {
   try {
-    const res = await fetch('/api/v1/mos/settings/network/interfaces', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-    });
+    networkLoading.value = true;
+    const data =
+      (await call) <
+      any >
+      ('/api/v1/mos/settings/network/interfaces?include=tun',
+      {
+        errorLabel: t('network settings could not be loaded'),
+      });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('network settings could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
+    if (!data) return;
 
-    settingsNetwork.value = await res.json();
+    settingsNetwork.value = data;
     settingsNetwork.value.interfaces.forEach((iface) => {
       if (iface.type === 'bonded') {
         iface.ipv4 = [];
@@ -693,8 +695,8 @@ const getNetworkSettings = async () => {
       opensettingsNetworkCountdownDialog(settingsNetwork.value);
     }
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    networkLoading.value = false;
   }
 };
 
@@ -798,7 +800,6 @@ const normalizeIpv6ArrayForPayload = (ipv6Array) => {
     ];
   }
 
-  // static
   return [
     {
       dhcp: false,
@@ -812,7 +813,6 @@ const normalizeIpv6ArrayForPayload = (ipv6Array) => {
 const setNetworkSettings = async () => {
   try {
     if (!validateBondInterfaces()) return;
-    overlay.value = true;
     const payload = settingsNetwork.value.interfaces.map((iface) => {
       const baseIface =
         iface.type === 'bond'
@@ -846,77 +846,38 @@ const setNetworkSettings = async () => {
       return baseIface;
     });
 
-    const res = await fetch('/api/v1/mos/settings/network/interfaces', {
+    await call('/api/v1/mos/settings/network/interfaces', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('network settings could not be changed'),
+      successLabel: t('network settings changed successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('network settings could not be changed')}|$| ${error.error || t('unknown error')}`);
-    }
     await getNetworkSettings();
-    showSnackbarSuccess(t('network settings changed successfully'));
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const acceptChanges = async () => {
   settingsNetworkCountdown.value = false;
   try {
-    overlay.value = true;
-    const res = await fetch('/api/v1/mos/settings/network/apply', {
+    await call('/api/v1/mos/settings/network/apply', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('network settings could not be accepted'),
+      successLabel: t('network settings accepted successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('network settings could not be accepted')}|$| ${error.error || t('unknown error')}`);
-    }
     await getNetworkSettings();
-    showSnackbarSuccess(t('network settings accepted successfully'));
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const revertChanges = async () => {
   settingsNetworkCountdown.value = false;
   try {
-    overlay.value = true;
-    const res = await fetch('/api/v1/mos/settings/network/revert', {
+    await call('/api/v1/mos/settings/network/revert', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('network settings could not be reverted'),
+      successLabel: t('network settings reverted successfully'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('network settings could not be reverted')}|$| ${error.error || t('unknown error')}`);
-    }
     await getNetworkSettings();
-    showSnackbarSuccess(t('network settings reverted successfully'));
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const changeInterfaceType = (iface) => {
@@ -1076,11 +1037,8 @@ const findBridgeForInterface = (iface) => {
 
 const getAvailableBondedInterfacesForBond = (bond) => {
   const physicalInterfaces = settingsNetwork.value.interfaces.filter((i) => i.type === 'ethernet' && i.mac && i.mac !== '' && i.mac !== null && i.mac !== undefined).map((i) => i.name);
-
   const assignedInOtherBonds = settingsNetwork.value.interfaces.filter((i) => i.type === 'bond' && i.name !== bond.name && Array.isArray(i.interfaces)).flatMap((i) => i.interfaces);
-
   const assignedInBridges = settingsNetwork.value.interfaces.filter((i) => i.type === 'bridge' && Array.isArray(i.interfaces)).flatMap((i) => i.interfaces);
-
   return physicalInterfaces.filter((name) => !assignedInOtherBonds.includes(name) && !assignedInBridges.includes(name));
 };
 
