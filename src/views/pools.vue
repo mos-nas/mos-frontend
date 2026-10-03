@@ -33,7 +33,7 @@
                   <v-list density="compact">
                     <v-list-item v-if="!pool.status.mounted" @click="pool.config && pool.config.encrypted ? openPassphraseDialog(pool) : mountPool(pool)">
                       <template #prepend>
-                        <v-icon size="18">mdi-connection</v-icon>
+                        <v-icon size="18">mdi-power-plug</v-icon>
                       </template>
                       <v-list-item-title>{{ $t('mount pool') }}</v-list-item-title>
                     </v-list-item>
