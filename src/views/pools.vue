@@ -20,6 +20,16 @@
                 <v-icon v-if="pool.config.encrypted" size="16" class="ml-1" color="grey" aria-label="locked">mdi-lock</v-icon>
                 <span v-if="pool.mountPoint" class="text-caption text-medium-emphasis ml-2 d-none d-sm-inline text-truncate" style="max-width: 200px">{{ pool.mountPoint }}</span>
                 <v-spacer />
+                <v-tooltip location="top">
+                  <template #activator="{ props }">
+                    <v-chip v-if="pool.type == 'nonraid' && pool.status.parity_valid != null" size="x-small" class="mr-1" variant="tonal" :color="pool.status.parity_valid ? 'green' : 'red'" v-bind="props">
+                      <v-icon v-if="pool.status.parity_valid" size="16" class="mr-1">mdi-check</v-icon>
+                      <v-icon v-else size="16" class="mr-1">mdi-close</v-icon>
+                      <span class="d-none d-sm-inline">{{ pool.status.parity_valid == true ? $t('valid') : $t('invalid') }}</span>
+                    </v-chip>
+                  </template>
+                  {{ $t('parity status') }}
+                </v-tooltip>
                 <v-chip v-if="pool.type" size="x-small" class="mr-1" variant="tonal">{{ pool.type }}</v-chip>
                 <v-chip v-if="pool.status.mounted" size="x-small" color="green" variant="tonal">{{ $t('mounted') }}</v-chip>
                 <v-chip v-else size="x-small" color="grey" variant="tonal">{{ $t('unmounted') }}</v-chip>
@@ -806,14 +816,24 @@
           item-value="value"
           :label="$t('new device')"
           density="comfortable"
+          hide-details="auto"
         />
-        <v-switch v-model="replaceNonRaidDeviceDialog.format" :label="$t('format')" hide-details density="compact" color="red" inset />
+        <v-switch v-model="replaceNonRaidDeviceDialog.format" :label="$t('format')" hide-details color="red" inset />
+        <v-text-field v-model="replaceNonRaidDeviceDialog.passphrase" :label="$t('passphrase (if encrypted)')" type="password" />
       </v-card-text>
       <v-divider />
       <v-card-actions style="flex-shrink: 0">
         <v-btn @click="replaceNonRaidDeviceDialog.value = false" color="onPrimary">{{ $t('cancel') }}</v-btn>
         <v-btn
-          @click="replaceNonRaidDevice(replaceNonRaidDeviceDialog.pool.id, replaceNonRaidDeviceDialog.oldDevice, replaceNonRaidDeviceDialog.newDevice, replaceNonRaidDeviceDialog.format)"
+          @click="
+            replaceNonRaidDevice(
+              replaceNonRaidDeviceDialog.pool,
+              replaceNonRaidDeviceDialog.oldDevice,
+              replaceNonRaidDeviceDialog.newDevice,
+              replaceNonRaidDeviceDialog.format,
+              replaceNonRaidDeviceDialog.passphrase,
+            )
+          "
           color="red"
         >
           {{ $t('replace') }}
@@ -935,6 +955,9 @@
   <v-dialog v-model="manageNonRaidDevicesDialog.value" max-width="700" persistent>
     <v-card class="pa-0" :title="t('manage nonraid devices')" prepend-icon="mdi-harddisk" style="max-height: 70vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto; max-height: 60vh">
+        <v-alert v-if="manageNonRaidDevicesDialog.pool?.status?.mounted" type="info" variant="tonal" density="compact" class="mb-4 text-caption">
+          {{ $t('pool must be unmounted to make changes') }}
+        </v-alert>
         <div v-if="manageNonRaidDevicesDialog.pool && manageNonRaidDevicesDialog.pool.data_devices.length > 0">
           <v-list density="compact">
             <v-list-item v-for="device in manageNonRaidDevicesDialog.pool.data_devices" :key="device.id" class="mb-2 border rounded pa-2">
@@ -972,6 +995,9 @@
   <v-dialog v-model="manageNonRaidParityDevicesDialog.value" max-width="700" persistent>
     <v-card class="pa-0" :title="t('manage nonraid parity devices')" prepend-icon="mdi-harddisk" style="max-height: 70vh; display: flex; flex-direction: column">
       <v-card-text style="overflow: auto; max-height: 60vh">
+        <v-alert v-if="manageNonRaidParityDevicesDialog.pool?.status?.mounted" type="info" variant="tonal" density="compact" class="mb-4 text-caption">
+          {{ $t('pool must be unmounted to make changes') }}
+        </v-alert>
         <div v-if="manageNonRaidParityDevicesDialog.pool">
           <div v-if="manageNonRaidParityDevicesDialog.pool.parity_devices && manageNonRaidParityDevicesDialog.pool.parity_devices.length > 0">
             <v-list density="compact">
@@ -1700,6 +1726,7 @@ const replaceNonRaidDeviceDialog = reactive({
   oldDevice: null,
   newDevice: null,
   format: false,
+  passphrase: '',
 });
 const addNonRaidDeviceDialog = reactive({
   value: false,
@@ -1741,7 +1768,7 @@ const nonRaidOperationDialog = reactive({
   value: false,
   pool: null,
   operation: '',
-  operations: ['check', 'start', 'pause', 'resume', 'cancel'],
+  operations: ['check', 'pause', 'resume', 'cancel'],
   option: 'NOCORRECT',
   options: ['CORRECT', 'NOCORRECT'],
 });
@@ -1893,6 +1920,7 @@ const openReplaceNonRaidDeviceDialog = (pool, oldDevice = null) => {
   replaceNonRaidDeviceDialog.oldDevice = oldDevice;
   replaceNonRaidDeviceDialog.newDevice = null;
   replaceNonRaidDeviceDialog.format = false;
+  replaceNonRaidDeviceDialog.passphrase = '';
 };
 const openSpinDialog = (pool) => {
   spinDialog.value = true;
@@ -2776,11 +2804,23 @@ const replaceMergerfsDevice = async (poolId, oldDevice, newDevice, format) => {
   } catch {}
 };
 
-const replaceNonRaidDevice = async (poolId, oldDevice, newDevice, format) => {
+const replaceNonRaidDevice = async (pool, oldDevice, newDevice, format, passphrase) => {
+  const selectedDevice = pool?.data_devices?.find((device) => device.device === oldDevice);
+
   try {
-    await call(`/api/v1/pools/nonraid/replacedevice`, {
+    if (!selectedDevice || selectedDevice.slot == null) {
+      throw new Error('Could not determine replacement slot');
+    }
+
+    const body = {
+      replacements: [{ slot: String(selectedDevice.slot), newDevice }],
+      format,
+      passphrase,
+    };
+
+    await call(`/api/v1/pools/nonraid/replace`, {
       method: 'POST',
-      body: { old_device: oldDevice, new_device: newDevice, format },
+      body,
       errorLabel: t('device could not be replaced'),
       successLabel: t('device replaced successfully'),
     });

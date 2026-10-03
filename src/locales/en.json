@@ -609,6 +609,8 @@
   "parity device could not be removed": "Parity device could not be removed",
   "parity device removed successfully": "Parity device removed successfully",
   "select parity devices to remove": "Select parity devices to remove",
+  "parity status": "Parity status",
+  "pool must be unmounted to make changes": "Pool must be unmounted to make changes",
   "mount": "Mount",
   "unmount": "Unmount",
   "remove": "Remove",
