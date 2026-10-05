@@ -849,7 +849,7 @@ const updateOS = async () => {
     }
 
     updateOsDialog.value = false;
-    showSnackbarSuccess(t('update initiated successfully'));
+    showSnackbarSuccess(t('update initiated successfully'), t('you will get a notification once it is complete and the system can be rebooted'));
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
