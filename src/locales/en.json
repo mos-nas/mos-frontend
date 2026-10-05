@@ -1814,5 +1814,9 @@
   "erasure code": "Erasure Code",
   "moveonenospc": "Move on No Space",
   "minfreespace": "Minimal Free Space",
-  "you will get a notification once it is complete and the system can be rebooted": "You will get a notification once it is complete and the system can be rebooted"
+  "you will get a notification once it is complete and the system can be rebooted": "You will get a notification once it is complete and the system can be rebooted",
+  "calculate": "Calculate",
+  "calculate directory size": "Calculate Directory Size",
+  "directory size calculated": "Directory Size Calculated",
+  "error calculating directory size": "Error Calculating Directory Size"
 }

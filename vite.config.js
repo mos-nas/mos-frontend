@@ -10,10 +10,10 @@ const WS_TARGET = 'ws://mos-test.home';
 
 export default defineConfig({
   define: {
-    '__API_BASE_URL__': JSON.stringify(process.env.VITE_API_BASE_URL || (process.env.NODE_ENV === 'development' ? API_TARGET : '')),
-    '__WS_BASE_URL__': JSON.stringify(process.env.VITE_WS_BASE_URL || (process.env.NODE_ENV === 'development' ? WS_TARGET : '')),
-    '__BUNDLED_DEV__': true,
-    '__SERVER_FORWARD_CONSOLE__': false,
+    __API_BASE_URL__: JSON.stringify(process.env.VITE_API_BASE_URL || (process.env.NODE_ENV === 'development' ? API_TARGET : '')),
+    __WS_BASE_URL__: JSON.stringify(process.env.VITE_WS_BASE_URL || (process.env.NODE_ENV === 'development' ? WS_TARGET : '')),
+    __BUNDLED_DEV__: true,
+    __SERVER_FORWARD_CONSOLE__: false,
   },
   plugins: [
     vue(),
@@ -31,32 +31,27 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MiB
       },
       manifest: {
+        id: '/',
         name: 'MOS',
         short_name: 'MOS',
         description: 'MOS - Modular Operation System',
+        display: 'standalone',
+        start_url: '/',
+        scope: '/',
         theme_color: '#ffffff',
+        background_color: '#ffffff',
         icons: [
           {
             src: '/icons/icon_light_small.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any',
           },
           {
             src: '/icons/icon_light_large.png',
             sizes: '512x512',
             type: 'image/png',
-          },
-          {
-            src: '/icons/icon_dark_small.png',
-            sizes: '192x192',
-            type: 'image/png',
-            media: '(prefers-color-scheme: dark)',
-          },
-          {
-            src: '/icons/icon_dark_large.png',
-            sizes: '512x512',
-            type: 'image/png',
-            media: '(prefers-color-scheme: dark)',
+            purpose: 'any',
           },
         ],
       },

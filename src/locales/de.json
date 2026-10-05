@@ -1814,5 +1814,9 @@
   "erasure code": "Erasure Code",
   "moveonenospc": "Bei vollem Speicher verschieben",
   "minfreespace": "Minimaler freier Speicher",
-  "you will get a notification once it is complete and the system can be rebooted": "Du erhältst eine Benachrichtigung, sobald der Vorgang abgeschlossen ist und das System neu gestartet werden kann"
+  "you will get a notification once it is complete and the system can be rebooted": "Du erhältst eine Benachrichtigung, sobald der Vorgang abgeschlossen ist und das System neu gestartet werden kann",
+  "calculate": "Berechnen",
+  "calculate directory size": "Ordnergröße berechnen",
+  "directory size calculated": "Ordnergröße berechnet",
+  "error calculating directory size": "Fehler beim Berechnen der Ordnergröße"
 }

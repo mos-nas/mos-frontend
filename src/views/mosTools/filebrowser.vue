@@ -33,7 +33,7 @@
                 <tr style="cursor: pointer; background-color: rgba(0, 0, 0, 0.04)">
                   <th style="width: 20%">{{ t('name') }}</th>
                   <th style="width: 20%">{{ t('path') }}</th>
-                  <th style="width: 10%; min-width: 100px">{{ t('size') }}</th>
+                  <th class="size-column">{{ t('size') }}</th>
                   <th style="width: 10%; min-width: 100px">{{ t('owner') }}</th>
                   <th style="min-width: 30px">{{ t('permissions') }}</th>
                 </tr>
@@ -66,7 +66,20 @@
                     <span class="text-caption">{{ item.displayPath || item.path }}</span>
                   </td>
                   <td>
-                    <span class="text-caption">{{ item.type === 'directory' ? '-' : item.size_human}}</span>
+                    <div class="d-flex align-center justify-space-between ga-1">
+                      <span class="text-caption">{{ item.type === 'directory' ? item.calculated_size_human || '-' : item.size_human }}</span>
+                      <v-btn
+                        v-if="item.type === 'directory'"
+                        variant="text"
+                        icon
+                        size="x-small"
+                        :loading="item.calculating"
+                        @click.stop="calculateDirectorySize(item)"
+                        title="Calculate directory size"
+                      >
+                        <v-icon size="16">mdi-calculator</v-icon>
+                      </v-btn>
+                    </div>
                   </td>
                   <td>
                     <span class="text-caption">{{ item.permissions.owner }}:{{ item.permissions.group }}</span>
@@ -129,7 +142,7 @@
                   <v-icon size="20">mdi-upload</v-icon>
                 </v-btn>
               </template>
-            </v-tooltip>               
+            </v-tooltip>
             <v-divider vertical class="mx-1 align-self-center" style="height: 24px" />
             <v-tooltip :text="$t('copy')" location="top">
               <template #activator="{ props }">
@@ -161,7 +174,7 @@
               </template>
             </v-tooltip>
             <v-spacer />
-              <v-checkbox v-model="includeHiddenFiles" :label="$t('hidden files')" :disabled="loading" hide-details="auto" density="compact" @update:modelValue="loadPath(currentPath)" />
+            <v-checkbox v-model="includeHiddenFiles" :label="$t('hidden files')" :disabled="loading" hide-details="auto" density="compact" @update:modelValue="loadPath(currentPath)" />
           </v-card-actions>
 
           <input ref="uploadInput" class="d-none" type="file" @change="onUploadPicked" />
@@ -375,11 +388,7 @@
   </v-dialog>
 
   <!-- Kontextmenü für Datei/Ordner -->
-  <v-menu
-    v-model="contextMenu.visible"
-    :target="[contextMenu.x, contextMenu.y]"
-    :close-on-content-click="true"
-  >
+  <v-menu v-model="contextMenu.visible" :target="[contextMenu.x, contextMenu.y]" :close-on-content-click="true">
     <v-list>
       <v-list-item v-if="contextMenu.item" density="compact" style="background: rgba(var(--v-theme-primary), 0.08); pointer-events: none">
         <template #prepend>
@@ -403,6 +412,10 @@
       <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="downloadFile(contextMenu.item.path)" density="compact">
         <template #prepend><v-icon>mdi-download</v-icon></template>
         <v-list-item-title>{{ $t('download') }}</v-list-item-title>
+      </v-list-item>
+      <v-list-item v-if="contextMenu.item && contextMenu.item.type === 'directory'" @click="calculateDirectorySize(contextMenu.item)" density="compact">
+        <template #prepend><v-icon>mdi-calculator</v-icon></template>
+        <v-list-item-title>{{ $t('calculate directory size') }}</v-list-item-title>
       </v-list-item>
       <v-divider />
       <v-list-item @click="openOperationDialog(contextMenu.item, 'copy')" density="compact">
@@ -439,6 +452,7 @@
 import { ref, computed, watch, onMounted, reactive, onBeforeUnmount, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useOverlay } from '@/composables/useOverlay';
+import { useApi } from '@/composables/useApi';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import FileEditDialog from '@/components/fileEditDialog.vue';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
@@ -449,8 +463,9 @@ const modelValue = ref(true);
 const selectType = ref('all');
 const roots = ref('');
 const { t } = useI18n();
+const { call } = useApi();
 const loading = ref(false);
-const currentPath = ref('/');
+const currentPath = ref('/mnt');
 const items = ref([]);
 const canGoUp = ref(false);
 const parentPath = ref(null);
@@ -554,8 +569,7 @@ const handleFsSelected = (item) => {
 const loadPath = async (path = '/') => {
   loading.value = true;
   try {
-    const baseUrl = __API_BASE_URL__ || window.location.origin;
-    const url = new URL('/api/v1/mos/fsnavigator', baseUrl);
+    const url = new URL('/api/v1/mos/fsnavigator', window.location.origin);
     if (path && path !== '/') {
       url.searchParams.set('path', path);
     }
@@ -570,27 +584,15 @@ const loadPath = async (path = '/') => {
       url.searchParams.set('roots', roots.value);
     }
 
-    const res = await fetch(url.toString(), {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const data = await call(url.pathname + url.search, {
+      errorLabel: t('filesystem could not be loaded'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('filesystem could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    const data = await res.json();
 
     currentPath.value = data.currentPath || path || '/';
     canGoUp.value = !!data.canGoUp;
     parentPath.value = data.parentPath;
     items.value = Array.isArray(data.items) ? data.items : [];
     activeItem.value = null;
-  } catch (e) {
-    const [mainMessage, detailMessage] = e.message.split('|$|');
-    showSnackbarError(t(mainMessage.trim()), detailMessage ? detailMessage.trim() : '');
   } finally {
     loading.value = false;
   }
@@ -599,29 +601,16 @@ const loadPath = async (path = '/') => {
 const deleteFile = async (path, force = false, recursive = false) => {
   const payload = { path: path, force: force, recursive: recursive };
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/mos/delete`, {
+    await call('/api/v1/mos/delete', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('file could not be deleted'),
+      successLabel: t('successfully deleted'),
     });
-
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('file could not be deleted')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('successfully deleted'));
     reload();
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     clearDeleteDialog();
-    overlay.value = false;
   }
 };
 
@@ -637,27 +626,16 @@ const createFolder = async (path, folderName, user = '500', group = '500', permi
   const payload = { path: path + '/' + folderName, user: user, group: group, permissions: permissions };
 
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/mos/createfolder`, {
+    await call('/api/v1/mos/createfolder', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('folder could not be created'),
+      successLabel: t('successfully created folder'),
     });
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('folder could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('successfully created folder'));
     reload();
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     createFolderDialog.value = false;
-    overlay.value = false;
   }
 };
 
@@ -673,27 +651,16 @@ const createFile = async (path, fileName, content = '', user = '500', group = '5
   const payload = { path: path + '/' + fileName, content: content, user: user, group: group, permissions: permissions };
 
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/mos/createfile`, {
+    await call('/api/v1/mos/createfile', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('file could not be created'),
+      successLabel: t('successfully created file'),
     });
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('file could not be created')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('successfully created file'));
     reload();
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     createFileDialog.value = false;
-    overlay.value = false;
   }
 };
 
@@ -705,27 +672,16 @@ const setChmod = async (path, permissions = '777', recursive = false) => {
   const payload = { path: path, permissions: permissions, recursive: recursive };
 
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/mos/chmod`, {
+    await call('/api/v1/mos/chmod', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('permissions could not be set'),
+      successLabel: t('permissions successfully set'),
     });
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('permissions could not be set')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('permissions successfully set'));
     reload();
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     setChmodDialog.value = false;
-    overlay.value = false;
   }
 };
 
@@ -737,27 +693,16 @@ const setChown = async (path, user = '500', group = '500', recursive = false) =>
   const payload = { path: path, user: user, group: group, recursive: recursive };
 
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/mos/chown`, {
+    await call('/api/v1/mos/chown', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('ownership could not be set'),
+      successLabel: t('ownership successfully set'),
     });
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('ownership could not be set')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('ownership successfully set'));
     reload();
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     setChownDialog.value = false;
-    overlay.value = false;
   }
 };
 
@@ -779,30 +724,19 @@ const startFileOperation = async (operation, source, destination, onConflict = '
   };
 
   try {
-    const res = await fetch(`/api/v1/mos/fileoperations`, {
+    const result = await call('/api/v1/mos/fileoperations', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('process could not be started'),
     });
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('process could not be started')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    const result = await res.json();
-    if (result.instantMove === true) {
+
+    if (result?.instantMove === true) {
       showSnackbarSuccess(t('file operation completed successfully'));
-      reload();
-      return;
     } else {
       showSnackbarSuccess(`${t('process successfully started')}. ${t('it may take a while')}`);
     }
     reload();
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     operationDialog.value = false;
   }
@@ -810,22 +744,11 @@ const startFileOperation = async (operation, source, destination, onConflict = '
 
 const getRunningOperations = async () => {
   try {
-    const res = await fetch(`/api/v1/mos/runningfsoperations`, {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const data = await call('/api/v1/mos/runningfsoperations', {
+      errorLabel: t('could not fetch running operations'),
     });
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('could not fetch running operations')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    const data = await res.json();
-    runningProcesses.value = data.count;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-    return [];
-  }
+    runningProcesses.value = data?.count || 0;
+  } catch (e) {}
 };
 
 const renameFile = async (item, newName) => {
@@ -836,28 +759,17 @@ const renameFile = async (item, newName) => {
   const payload = { destination: item.path, new_name: newName };
 
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/mos/rename`, {
+    await call('/api/v1/mos/rename', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('file could not be renamed'),
+      successLabel: t('successfully renamed'),
     });
-    if (!res.ok) {
-      const errorDetails = await res.json();
-      throw new Error(`${t('file could not be renamed')}|$| ${errorDetails.error || t('unknown error')}`);
-    }
-    showSnackbarSuccess(t('successfully renamed'));
     reload();
     renameFileDialog.value = false;
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     editFileDialogVisible.value = false;
-    overlay.value = false;
   }
 };
 
@@ -1074,14 +986,33 @@ const openAllOperationsDialog = () => {
   allOperationsDialogVisible.value = true;
 };
 
+const calculateDirectorySize = async (item) => {
+  if (item.type !== 'directory') return;
+
+  try {
+    item.calculating = true;
+    const data = await call('/api/v1/mos/fsnavigator/calc', {
+      method: 'POST',
+      body: { path: item.path },
+      errorLabel: t('error calculating directory size'),
+      successLabel: t('directory size calculated'),
+    });
+
+    if (data) {
+      item.calculated_size_human = data.size_human;
+    }
+  } finally {
+    item.calculating = false;
+  }
+};
+
 const openContextMenu = (e, item) => {
   e.preventDefault();
   contextMenu.x = e.clientX;
   contextMenu.y = e.clientY;
   contextMenu.item = item;
   contextMenu.visible = true;
-}
-
+};
 </script>
 
 <style scoped>
@@ -1093,5 +1024,15 @@ const openContextMenu = (e, item) => {
   flex-wrap: wrap;
   align-items: center;
   gap: 4px;
+}
+.size-column {
+  width: 10%;
+  min-width: 100px;
+}
+@media (max-width: 768px) {
+  .size-column {
+    width: 15%;
+    min-width: 120px;
+  }
 }
 </style>
