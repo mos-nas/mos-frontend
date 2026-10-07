@@ -1,5 +1,53 @@
 <template>
   <v-container fluid class="d-flex justify-center">
+    <!-- Bookmarks Sidebar -->
+    <v-navigation-drawer v-model="bookmarksSidePanel.open" location="right" temporary width="350" :scrim="false">
+      <template #prepend>
+        <v-toolbar density="compact" class="bg-transparent">
+          <v-toolbar-title class="text-subtitle-2">{{ $t('bookmarks') }}</v-toolbar-title>
+          <v-btn icon size="small" @click="bookmarksSidePanel.open = false" class="ml-auto">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-toolbar>
+        <v-divider />
+      </template>
+
+      <v-card-text class="pa-2" style="overflow: auto; max-height: calc(100vh - 120px)">
+        <v-alert v-if="bookmarksSidePanel.bookmarks.length === 0" type="info" variant="tonal" density="compact" class="mb-2">
+          {{ $t('no bookmarks found') }}
+        </v-alert>
+        <div v-else>
+          <draggable
+            v-model="bookmarksSidePanel.bookmarks"
+            tag="v-list"
+            :component-data="{ density: 'compact', class: 'pa-0' }"
+            item-key="path"
+            class="bg-transparent"
+            @end="onBookmarksReordered"
+            handle=".drag-handle"
+          >
+            <template #item="{ element: bookmark }">
+              <v-list-item :key="bookmark.path" class="cursor-pointer pa-1" @click="navigateToBookmark(bookmark)">
+                <template #prepend>
+                  <div class="d-flex align-center gap-1">
+                    <v-icon class="drag-handle cursor-grab" color="primary" size="18" style="opacity: 0.6">mdi-drag-vertical</v-icon>
+                    <v-icon color="primary" size="18">mdi-bookmark</v-icon>
+                  </div>
+                </template>
+                <v-list-item-title class="text-subtitle-2">{{ bookmark.name }}</v-list-item-title>
+                <v-list-item-subtitle class="text-caption" style="word-break: break-all">{{ bookmark.path }}</v-list-item-subtitle>
+                <template #append>
+                  <v-btn icon size="x-small" color="error" variant="text" @click.stop="deleteBookmark(bookmark.path)" :loading="bookmarksSidePanel.loading">
+                    <v-icon size="18">mdi-trash-can</v-icon>
+                  </v-btn>
+                </template>
+              </v-list-item>
+            </template>
+          </draggable>
+        </div>
+      </v-card-text>
+    </v-navigation-drawer>
+
     <v-container style="width: 100%; max-width: 1920px" class="pa-0">
       <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
         <v-row>
@@ -20,6 +68,21 @@
                 {{ currentPath || '/' }}
               </v-chip>
               <v-spacer />
+              <!-- Bookmarks Quick Access -->
+              <div v-if="bookmarksSidePanel.bookmarks.length > 0" class="d-none d-md-flex align-center" style="overflow-x: auto; padding: 0 8px; margin-right: 8px; gap: 4px">
+                <v-chip
+                  v-for="bookmark in bookmarksSidePanel.bookmarks"
+                  :key="bookmark.path"
+                  size="small"
+                  color="primary"
+                  variant="tonal"
+                  @click="navigateToBookmark(bookmark)"
+                  class="cursor-pointer flex-shrink-0"
+                >
+                  <v-icon start size="14">mdi-bookmark</v-icon>
+                  {{ bookmark.path }}
+                </v-chip>
+              </div>
               <v-progress-circular v-if="loading" indeterminate size="20" color="primary" />
               <v-btn variant="flat" @click="openAllOperationsDialog()" color="primary" :disabled="loading" size="small">
                 <span class="text-caption">{{ runningProcesses }} {{ $t('operations') }}</span>
@@ -76,6 +139,7 @@
                         :loading="item.calculating"
                         @click.stop="calculateDirectorySize(item)"
                         title="Calculate directory size"
+                        :color="activeItem && activeItem.path === item.path ? 'accent' : 'primary'"
                       >
                         <v-icon size="16">mdi-calculator</v-icon>
                       </v-btn>
@@ -170,6 +234,13 @@
               <template #activator="{ props }">
                 <v-btn v-bind="props" variant="text" color="primary" icon :disabled="!activeItem" @click="openChOwnDialog(activeItem)">
                   <v-icon size="20">mdi-account-key</v-icon>
+                </v-btn>
+              </template>
+            </v-tooltip>
+            <v-tooltip :text="$t('bookmarks')" location="top">
+              <template #activator="{ props }">
+                <v-btn v-bind="props" variant="text" color="primary" icon @click="openBookmarksDialog()">
+                  <v-icon size="20">mdi-bookmark-outline</v-icon>
                 </v-btn>
               </template>
             </v-tooltip>
@@ -417,6 +488,10 @@
         <template #prepend><v-icon>mdi-calculator</v-icon></template>
         <v-list-item-title>{{ $t('calculate directory size') }}</v-list-item-title>
       </v-list-item>
+      <v-list-item v-if="contextMenu.item && contextMenu.item.type === 'directory'" @click="addDirectoryAsBookmark(contextMenu.item)" density="compact">
+        <template #prepend><v-icon>mdi-bookmark-plus</v-icon></template>
+        <v-list-item-title>{{ $t('add as bookmark') }}</v-list-item-title>
+      </v-list-item>
       <v-divider />
       <v-list-item @click="openOperationDialog(contextMenu.item, 'copy')" density="compact">
         <template #prepend><v-icon>mdi-content-copy</v-icon></template>
@@ -457,6 +532,7 @@ import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import FileEditDialog from '@/components/fileEditDialog.vue';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 import fsOperationsDialog from '@/components/fsOperationsDialog.vue';
+import draggable from 'vuedraggable';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const modelValue = ref(true);
@@ -540,11 +616,18 @@ const contextMenu = reactive({
   y: 0,
   item: null,
 });
+const bookmarksSidePanel = reactive({
+  open: false,
+  bookmarks: [],
+  newBookmarkName: '',
+  loading: false,
+});
 let pollInterval = null;
 
 onMounted(() => {
   loadPath(currentPath.value);
   getRunningOperations();
+  loadBookmarks();
   pollInterval = setInterval(() => {
     getRunningOperations();
   }, 3000);
@@ -1012,6 +1095,117 @@ const openContextMenu = (e, item) => {
   contextMenu.y = e.clientY;
   contextMenu.item = item;
   contextMenu.visible = true;
+};
+
+const loadBookmarks = async () => {
+  try {
+    const data = await call('/api/v1/mos/fsnavigator/bookmarks', {
+      errorLabel: t('bookmarks could not be loaded'),
+    });
+    bookmarksSidePanel.bookmarks = data || [];
+  } catch (e) {
+    bookmarksSidePanel.bookmarks = [];
+  }
+};
+
+const openBookmarksDialog = () => {
+  loadBookmarks();
+  bookmarksSidePanel.open = true;
+};
+
+const navigateToBookmark = (bookmark) => {
+  loadPath(bookmark.path);
+  bookmarksSidePanel.open = false;
+};
+
+const addCurrentPathAsBookmark = async () => {
+  if (!bookmarksSidePanel.newBookmarkName.trim()) {
+    showSnackbarError(t('bookmark name cannot be empty'));
+    return;
+  }
+
+  bookmarksSidePanel.loading = true;
+  try {
+    await call('/api/v1/mos/fsnavigator/bookmarks', {
+      method: 'PUT',
+      body: {
+        name: bookmarksSidePanel.newBookmarkName.trim(),
+        path: currentPath.value,
+      },
+      successLabel: t('bookmark created successfully'),
+      errorLabel: t('bookmark could not be created'),
+    });
+
+    bookmarksSidePanel.newBookmarkName = '';
+    await loadBookmarks();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = String(e?.message || e).split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    bookmarksSidePanel.loading = false;
+  }
+};
+
+const deleteBookmark = async (path) => {
+  bookmarksSidePanel.loading = true;
+  try {
+    await call('/api/v1/mos/fsnavigator/bookmarks', {
+      method: 'DELETE',
+      body: { path },
+      successLabel: t('bookmark deleted successfully'),
+      errorLabel: t('bookmark could not be deleted'),
+    });
+
+    await loadBookmarks();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = String(e?.message || e).split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    bookmarksSidePanel.loading = false;
+  }
+};
+
+const onBookmarksReordered = async () => {
+  try {
+    await call('/api/v1/mos/fsnavigator/bookmarks', {
+      method: 'POST',
+      body: bookmarksSidePanel.bookmarks,
+      successLabel: t('bookmarks saved successfully'),
+      errorLabel: t('bookmarks could not be saved'),
+    });
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = String(e?.message || e).split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+    // Reload bookmarks if save failed
+    await loadBookmarks();
+  }
+};
+
+const addDirectoryAsBookmark = async (item) => {
+  if (!item || item.type !== 'directory') return;
+
+  // Extract only the folder name from the path
+  const bookmarkName = item.path.split('/').filter(Boolean).pop() || 'Bookmark';
+  bookmarksSidePanel.loading = true;
+
+  try {
+    await call('/api/v1/mos/fsnavigator/bookmarks', {
+      method: 'PUT',
+      body: {
+        name: bookmarkName,
+        path: item.path,
+      },
+      successLabel: t('bookmark created successfully'),
+      errorLabel: t('bookmark could not be created'),
+    });
+
+    await loadBookmarks();
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = String(e?.message || e).split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    bookmarksSidePanel.loading = false;
+  }
 };
 </script>
 
