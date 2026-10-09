@@ -1176,7 +1176,6 @@ const onBookmarksReordered = async () => {
   } catch (e) {
     const [userMessage, apiErrorMessage] = String(e?.message || e).split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);
-    // Reload bookmarks if save failed
     await loadBookmarks();
   }
 };
@@ -1184,7 +1183,6 @@ const onBookmarksReordered = async () => {
 const addDirectoryAsBookmark = async (item) => {
   if (!item || item.type !== 'directory') return;
 
-  // Extract only the folder name from the path
   const bookmarkName = item.path.split('/').filter(Boolean).pop() || 'Bookmark';
   bookmarksSidePanel.loading = true;
 

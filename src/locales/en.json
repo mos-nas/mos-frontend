@@ -1830,5 +1830,7 @@
   "bookmark could not be deleted": "Bookmark could not be deleted",
   "add as bookmark": "Add as Bookmark",
   "bookmarks saved successfully": "Bookmarks saved successfully",
-  "bookmarks could not be saved": "Bookmarks could not be saved"
+  "bookmarks could not be saved": "Bookmarks could not be saved",
+  "set backup label on old device": "Set backup label on old device",
+  "old device gets label mos_backup": "Old device gets label MOS_BACKUP"
 }

@@ -1830,5 +1830,7 @@
   "bookmark could not be deleted": "Lesezeichen konnte nicht gelöscht werden",
   "add as bookmark": "Als Lesezeichen hinzufügen",
   "bookmarks saved successfully": "Lesezeichen erfolgreich gespeichert",
-  "bookmarks could not be saved": "Lesezeichen konnten nicht gespeichert werden"
+  "bookmarks could not be saved": "Lesezeichen konnten nicht gespeichert werden",
+  "set backup label on old device": "Backup Label auf altem Gerät setzen",
+  "old device gets label mos_backup": "Altes Gerät erhält das Label MOS_BACKUP"
 }

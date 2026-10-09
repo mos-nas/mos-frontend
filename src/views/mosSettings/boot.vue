@@ -19,7 +19,7 @@
             <p class="text-body-2 text-medium-emphasis mt-1 mb-3">{{ $t('transfer usb data to disk device') }}</p>
             <v-row no-gutters>
               <v-col cols="12" md="4" lg="3">
-                <v-btn color="primary" rounded size="large" block prepend-icon="mdi-harddisk-plus" @click="openInstallToDiskDialog()">
+                <v-btn color="primary" rounded size="large" block prepend-icon="mdi-harddisk-plus" variant="tonal" @click="openInstallToDiskDialog()">
                   {{ $t('install to disk') }}
                 </v-btn>
               </v-col>
@@ -33,7 +33,7 @@
             <p class="text-body-2 text-medium-emphasis mt-1 mb-3">{{ $t('edit grub.cfg') }}</p>
             <v-row no-gutters>
               <v-col cols="12" md="4" lg="3">
-                <v-btn color="primary" rounded size="large" block prepend-icon="mdi-file-document-edit-outline" @click="openFileEditor('/boot/grub/grub.cfg')">
+                <v-btn color="primary" rounded size="large" block prepend-icon="mdi-file-document-edit-outline" variant="tonal" @click="openFileEditor('/boot/grub/grub.cfg')">
                   {{ $t('edit grub.cfg') }}
                 </v-btn>
               </v-col>
@@ -66,6 +66,14 @@
         />
         <v-select v-model="installToDiskDialog.filesystem" :items="['ext4', 'btrfs', 'xfs', 'vfat']" :label="$t('filesystem')" required outlined density="comfortable"></v-select>
         <v-switch v-model="installToDiskDialog.extra_partition" :label="$t('extra partition')" inset color="green" density="compact" hide-details="auto"></v-switch>
+        <div class="d-flex align-center">
+          <v-switch v-model="installToDiskDialog.backup_label" :label="$t('set backup label on old device')" inset color="green" density="compact" hide-details="auto"></v-switch>
+          <v-tooltip :text="$t('old device gets label mos_backup')" open-on-click :open-on-hover="false">
+            <template #activator="{ props }">
+              <v-icon size="small" icon="mdi-information-outline" color="blue" class="ml-2" v-bind="props"></v-icon>
+            </template>
+          </v-tooltip>
+        </div>
         <v-switch v-model="installToDiskDialog.restore" :label="$t('restore from file (mos backup)')" inset color="green" density="compact" hide-details="auto"></v-switch>
         <v-select
           v-if="bootBackupFiles.length > 0 && bootBackupFiles[0] !== '' && installToDiskDialog.restore"
@@ -114,6 +122,7 @@ const installToDiskDialog = reactive({
   extra_partition: false,
   restore: false,
   tar_file: '',
+  backup_label: false,
 });
 const bootBackupFiles = ref([]);
 const fsDialog = ref(false);
@@ -125,6 +134,11 @@ onMounted(() => {
 
 const openInstallToDiskDialog = async () => {
   installToDiskDialog.value = true;
+  installToDiskDialog.backup_label = false;
+  installToDiskDialog.tar_file = '';
+  installToDiskDialog.restore = false;
+  installToDiskDialog.filesystem = '';
+  installToDiskDialog.extra_partition = false;
   overlay.value = true;
   await getBootBackupFiles();
   overlay.value = false;
@@ -154,6 +168,7 @@ const installToDisk = async () => {
     filesystem: installToDiskDialog.filesystem,
     extra_partition: installToDiskDialog.extra_partition,
     tar_file: installToDiskDialog.tar_file,
+    backup_label: installToDiskDialog.backup_label,
   };
 
   try {
