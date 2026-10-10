@@ -129,8 +129,9 @@
                     <span class="text-caption">{{ item.displayPath || item.path }}</span>
                   </td>
                   <td>
-                    <div class="d-flex align-center justify-space-between ga-1">
-                      <span class="text-caption">{{ item.type === 'directory' ? item.calculated_size_human || '-' : item.size_human }}</span>
+                    <div class="d-flex align-center ga-1">
+                      <span v-if="item.calculated_size_human" class="text-caption">{{ item.calculated_size_human }}</span>
+                      <span v-else-if="item.type !== 'directory'" class="text-caption">{{ item.size_human }}</span>
                       <v-btn
                         v-if="item.type === 'directory'"
                         variant="text"
