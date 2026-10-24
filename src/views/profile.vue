@@ -26,6 +26,7 @@
               :label="$t('language')"
               required
               @update:modelValue="changeLanguage()"
+              density="compact"
             />
             <v-select
               v-model="selectedByteFormat"
@@ -35,8 +36,9 @@
               :label="$t('byte unit')"
               required
               @update:modelValue="changeByteUnit()"
+              density="compact"
             />
-            <v-text-field v-model="expiryDays" :label="$t('ui session expiry time (days)')" append-icon="mdi-content-save" type="number" min="1" max="365" @click:append="changeUiSessionExpiry()" />
+            <v-text-field v-model="expiryDays" :label="$t('ui session expiry time (days)')" append-icon="mdi-content-save" type="number" min="1" max="365" @click:append="changeUiSessionExpiry()" density="compact" />
             <span class="text-title-medium font-weight-medium">{{ $t('mfa') }}</span>
             <br />
             <v-btn color="green" variant="outlined" @click="mfaEnabled ? (mfaDeleteDialog.value = true) : (mfaDialog.value = true)" class="mt-2">
@@ -45,6 +47,20 @@
             <br />
             <br />
             <span class="text-title-medium font-weight-medium pt-4">{{ $t('ui') }}</span>
+            <v-select
+              v-model="menuLayout"
+              :items="[
+                { value: 'vertical', title: $t('vertical menu') },
+                { value: 'horizontal', title: $t('horizontal menu') },
+              ]"
+              :item-title="(opt) => opt.title"
+              :item-value="(opt) => opt.value"
+              :label="$t('menu layout')"
+              @update:modelValue="setMenuLayout($event)"
+              density="compact"
+              hide-details="auto"
+              class="pt-2"
+            />
             <v-switch
               v-model="hideInactiveMenus"
               :label="$t('hide inactive menus')"
@@ -58,6 +74,7 @@
               color="green"
             />
             <v-switch v-model="groupMenus" :label="$t('group menus')" :true-value="true" :false-value="false" @update:modelValue="setGroupMenus($event)" inset density="compact" color="green" />
+
             <span class="text-title-medium font-weight-medium">{{ $t('color scheme') }}</span>
             <v-color-picker v-model="color" show-swatches hide-canvas hide-sliders hide-inputs @update:modelValue="changePrimaryColor" />
           </v-card-text>
@@ -174,11 +191,13 @@ import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useTheme } from 'vuetify';
 import { useOverlay } from '@/composables/useOverlay';
 import { useApi } from '@/composables/useApi';
+import { useServerInfo } from '@/composables/useServerInfo';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { availableLocales, locale, t } = useI18n();
 const { overlay } = useOverlay();
 const { call } = useApi();
+const { menuLayout } = useServerInfo();
 const selectedLanguage = ref(locale.value);
 const languages = ref(availableLocales);
 const byteFormats = ref([
@@ -235,6 +254,7 @@ const getUser = async () => {
     }
     hideInactiveMenus.value = result.hide_inactive_menus;
     groupMenus.value = result.group_menus;
+    menuLayout.value = result.menu_layout || 'vertical';
     mfaEnabled.value = result.mfa_enabled;
   } catch {}
 };
@@ -321,7 +341,7 @@ const setHideInactiveMenus = async (hide) => {
     await call(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
       method: 'PUT',
       body: { hide_inactive_menus: hide },
-      errorLabel: t('could not be changed'),
+      errorLabel: t('ui session expiry could not be changed'),
     });
     hideInactiveMenus.value = hide;
     localStorage.setItem('hideInactiveMenus', hide ? 'true' : 'false');
@@ -334,10 +354,23 @@ const setGroupMenus = async (group) => {
     await call(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
       method: 'PUT',
       body: { group_menus: group },
-      errorLabel: t('could not be changed'),
+      errorLabel: t('ui session expiry could not be changed'),
     });
     groupMenus.value = group;
     localStorage.setItem('groupMenus', group ? 'true' : 'false');
+    emit('refresh-drawer');
+  } catch {}
+};
+
+const setMenuLayout = async (layout) => {
+  try {
+    await call(`/api/v1/auth/users/${localStorage.getItem('userid')}`, {
+      method: 'PUT',
+      body: { menu_layout: layout },
+      errorLabel: t('ui session expiry could not be changed'),
+    });
+    menuLayout.value = layout;
+    localStorage.setItem('menuLayout', layout);
     emit('refresh-drawer');
   } catch {}
 };

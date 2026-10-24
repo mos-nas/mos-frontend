@@ -7,6 +7,7 @@ const hostname = ref('');
 const mosVersion = ref('');
 const hideInactiveMenus = ref(localStorage.getItem('hideInactiveMenus') === 'true');
 const groupMenus = ref(localStorage.getItem('groupMenus') === 'true');
+const menuLayout = ref(localStorage.getItem('menuLayout') || 'vertical');
 
 export function useServerInfo() {
   const { authHeaders } = useAuth();
@@ -14,6 +15,7 @@ export function useServerInfo() {
   const loadMenuPreferences = () => {
     hideInactiveMenus.value = localStorage.getItem('hideInactiveMenus') === 'true';
     groupMenus.value = localStorage.getItem('groupMenus') === 'true';
+    menuLayout.value = localStorage.getItem('menuLayout') || 'vertical';
   };
 
   const loadServices = async () => {
@@ -44,7 +46,8 @@ export function useServerInfo() {
     mosVersion.value = '';
     hideInactiveMenus.value = false;
     groupMenus.value = false;
+    menuLayout.value = 'vertical';
   };
 
-  return { mosServices, hostname, mosVersion, hideInactiveMenus, groupMenus, loadMenuPreferences, loadServices, loadHostInfo, reset };
+  return { mosServices, hostname, mosVersion, hideInactiveMenus, groupMenus, menuLayout, loadMenuPreferences, loadServices, loadHostInfo, reset };
 }

@@ -1,8 +1,9 @@
 <template>
   <v-app-bar :color="appBarColor" app>
-    <v-app-bar-nav-icon variant="text" @click.stop="toggleDrawer"></v-app-bar-nav-icon>
+    <v-app-bar-nav-icon v-if="menuLayout === 'vertical'" variant="text" @click.stop="toggleDrawer"></v-app-bar-nav-icon>
     <v-img :src="logoSrc" alt="MOS Logo" max-width="50" width="50" height="40" class="ml-3 mr-3" contain />
     <v-toolbar-title>{{ hostname || '' }}</v-toolbar-title>
+    <v-spacer v-if="menuLayout === 'horizontal'" />
     <v-badge :model-value="notificationsBadge" color="green" dot floating bordered location="bottom end" offset-x="18" offset-y="18">
       <v-btn icon variant="text" :aria-label="$t('notifications')" to="/notifications">
         <v-icon>mdi-bell</v-icon>
@@ -11,8 +12,60 @@
     <v-btn icon variant="text" to="/profile">
       <v-icon>mdi-account-circle</v-icon>
     </v-btn>
+
+    <!-- Horizontal Menu in extension slot -->
+    <template v-if="menuLayout === 'horizontal'" v-slot:extension>
+      <v-tabs v-model="activeTab" align-tabs="start" color="white" slider-size="4" show-arrows>
+        <v-tab value="dashboard" to="/dashboard">
+          <v-icon start>mdi-view-dashboard</v-icon>
+          {{ $t('dashboard') }}
+        </v-tab>
+        <v-tab value="disks" to="/disks">
+          <v-icon start>mdi-harddisk</v-icon>
+          {{ $t('disks') }}
+        </v-tab>
+        <v-tab value="pools" to="/pools">
+          <v-icon start>mdi-view-array</v-icon>
+          {{ $t('pools') }}
+        </v-tab>
+        <v-tab value="shares" to="/shares">
+          <v-icon start>mdi-share</v-icon>
+          {{ $t('shares') }}
+        </v-tab>
+        <v-tab value="docker" to="/docker">
+          <v-icon start>mdi-docker</v-icon>
+          {{ $t('docker') }}
+        </v-tab>
+        <v-tab value="lxc" to="/lxc">
+          <v-icon start>mdi-package-variant</v-icon>
+          {{ $t('lxc') }}
+        </v-tab>
+        <v-tab value="vm" to="/vm">
+          <v-icon start>mdi-monitor-account</v-icon>
+          {{ $t('vm') }}
+        </v-tab>
+        <v-tab value="plugins" to="/plugins">
+          <v-icon start>mdi-puzzle</v-icon>
+          {{ $t('plugins') }}
+        </v-tab>
+        <v-tab value="webterminal" to="/mosTools/webterminal">
+          <v-icon start>mdi-console</v-icon>
+          {{ $t('terminal') }}
+        </v-tab>
+        <v-tab value="filebrowser" to="/mosTools/filebrowser">
+          <v-icon start>mdi-folder</v-icon>
+          {{ $t('filebrowser') }}
+        </v-tab>
+        <v-tab value="settings" to="/mosSettings">
+          <v-icon start>mdi-cog</v-icon>
+          {{ $t('settings') }}
+        </v-tab>
+      </v-tabs>
+    </template>
   </v-app-bar>
-  <v-navigation-drawer v-model="drawer" :temporary="!display.mdAndUp.value">
+
+  <!-- Vertical Navigation Drawer -->
+  <v-navigation-drawer v-if="menuLayout === 'vertical'" v-model="drawer" :temporary="!display.mdAndUp.value">
     <v-list>
       <v-list-item to="/dashboard" prepend-icon="mdi-view-dashboard">
         <v-list-item-title>{{ $t('dashboard') }}</v-list-item-title>
@@ -147,12 +200,32 @@ const theme = useVuetifyTheme();
 const { logout, fetchProfile } = useAuth();
 const { applySystemDefaults, applyUser } = useAppearance();
 const { notificationsBadge, refreshBadge, connect, disconnect, subscribePush, unsubscribePush, reset: resetNotifications } = useNotifications();
-const { mosServices, hostname, mosVersion, hideInactiveMenus, groupMenus, loadMenuPreferences, loadServices, loadHostInfo, reset: resetServerInfo } = useServerInfo();
+const { mosServices, hostname, mosVersion, hideInactiveMenus, groupMenus, menuLayout, loadMenuPreferences, loadServices, loadHostInfo, reset: resetServerInfo } = useServerInfo();
 
 const drawer = ref(false);
 const logoutDialog = ref(false);
 const appBarColor = 'primary';
 const isWideScreen = computed(() => display.mdAndUp.value);
+const activeTab = computed(() => {
+  const path = router.currentRoute.value.path;
+  const pathMap = {
+    '/': 'dashboard',
+    '/dashboard': 'dashboard',
+    '/disks': 'disks',
+    '/pools': 'pools',
+    '/shares': 'shares',
+    '/remoteMounting': 'remoteMounting',
+    '/mosHub': 'hub',
+    '/docker': 'docker',
+    '/lxc': 'lxc',
+    '/vm': 'vm',
+    '/plugins': 'plugins',
+    '/mosTools/webterminal': 'webterminal',
+    '/mosTools/filebrowser': 'filebrowser',
+    '/mosSettings': 'settings',
+  };
+  return pathMap[path] || null;
+});
 
 provide('mosServices', mosServices);
 
@@ -205,6 +278,14 @@ onMounted(async () => {
   getDrawerState();
 });
 
+watch(
+  menuLayout,
+  (newVal) => {
+    // Menu layout changed
+  },
+  { immediate: true },
+);
+
 onUnmounted(() => {
   disconnect();
 });
@@ -238,5 +319,35 @@ onUnmounted(() => {
 
 .supporter-badge__label {
   flex: 0 0 auto;
+}
+
+/* Tabs in app-bar extension - white text with white underline */
+.v-app-bar ::v-deep(.v-tabs) {
+  background-color: transparent;
+}
+
+.v-app-bar ::v-deep(.v-tab) {
+  text-transform: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0 12px;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.v-app-bar ::v-deep(.v-tab.v-tab--selected) {
+  color: #ffffff !important;
+}
+
+.v-app-bar ::v-deep(.v-tab--selected) {
+  color: #ffffff !important;
+}
+
+/* Make the slider/underline white */
+.v-app-bar ::v-deep(.v-tabs-bar__slider) {
+  background-color: #ffffff !important;
+}
+
+.v-app-bar ::v-deep(.v-slide-group__slider) {
+  background-color: #ffffff !important;
 }
 </style>
