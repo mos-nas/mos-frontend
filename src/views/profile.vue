@@ -13,9 +13,9 @@
             <div class="d-flex align-center gap-3 mb-4">
               <span class="text-title-medium font-weight-medium flex-shrink-0 mr-4">{{ $t('theme') }}</span>
               <v-btn-toggle v-model="darkMode" @update:modelValue="setDarkMode($event)" mandatory color="green" density="compact" divided variant="outlined">
-                <v-btn :value="null">{{ $t('auto mode') }}</v-btn>
-                <v-btn value="light">{{ $t('light mode') }}</v-btn>
-                <v-btn value="dark">{{ $t('dark mode') }}</v-btn>
+                <v-btn :value="null">{{ $t('auto') }}</v-btn>
+                <v-btn value="light">{{ $t('light') }}</v-btn>
+                <v-btn value="dark">{{ $t('dark') }}</v-btn>
               </v-btn-toggle>
             </div>
             <v-select
@@ -38,7 +38,16 @@
               @update:modelValue="changeByteUnit()"
               density="compact"
             />
-            <v-text-field v-model="expiryDays" :label="$t('ui session expiry time (days)')" append-icon="mdi-content-save" type="number" min="1" max="365" @click:append="changeUiSessionExpiry()" density="compact" />
+            <v-text-field
+              v-model="expiryDays"
+              :label="$t('ui session expiry time (days)')"
+              append-icon="mdi-content-save"
+              type="number"
+              min="1"
+              max="365"
+              @click:append="changeUiSessionExpiry()"
+              density="compact"
+            />
             <span class="text-title-medium font-weight-medium">{{ $t('mfa') }}</span>
             <br />
             <v-btn color="green" variant="outlined" @click="mfaEnabled ? (mfaDeleteDialog.value = true) : (mfaDialog.value = true)" class="mt-2">

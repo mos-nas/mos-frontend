@@ -85,9 +85,9 @@
             <div class="d-flex align-center gap-3 mb-4">
               <span class="text-title-medium font-weight-medium flex-shrink-0 mr-4">{{ $t('theme') }}</span>
               <v-btn-toggle v-model="darkMode" @update:modelValue="setDarkMode($event)" mandatory color="green" density="compact" divided variant="outlined">
-                <v-btn :value="null">{{ $t('auto mode') }}</v-btn>
-                <v-btn value="light">{{ $t('light mode') }}</v-btn>
-                <v-btn value="dark">{{ $t('dark mode') }}</v-btn>
+                <v-btn :value="null">{{ $t('auto') }}</v-btn>
+                <v-btn value="light">{{ $t('light') }}</v-btn>
+                <v-btn value="dark">{{ $t('dark') }}</v-btn>
               </v-btn-toggle>
             </div>
             <span class="text-title-medium font-weight-medium">{{ $t('uicolor') }}</span>

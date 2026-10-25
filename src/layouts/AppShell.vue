@@ -15,52 +15,213 @@
 
     <!-- Horizontal Menu in extension slot -->
     <template v-if="menuLayout === 'horizontal'" v-slot:extension>
-      <v-tabs v-model="activeTab" align-tabs="start" color="white" slider-size="4" show-arrows>
-        <v-tab value="dashboard" to="/dashboard">
-          <v-icon start>mdi-view-dashboard</v-icon>
-          {{ $t('dashboard') }}
-        </v-tab>
-        <v-tab value="disks" to="/disks">
-          <v-icon start>mdi-harddisk</v-icon>
-          {{ $t('disks') }}
-        </v-tab>
-        <v-tab value="pools" to="/pools">
-          <v-icon start>mdi-view-array</v-icon>
-          {{ $t('pools') }}
-        </v-tab>
-        <v-tab value="shares" to="/shares">
-          <v-icon start>mdi-share</v-icon>
-          {{ $t('shares') }}
-        </v-tab>
-        <v-tab value="docker" to="/docker">
-          <v-icon start>mdi-docker</v-icon>
-          {{ $t('docker') }}
-        </v-tab>
-        <v-tab value="lxc" to="/lxc">
-          <v-icon start>mdi-package-variant</v-icon>
-          {{ $t('lxc') }}
-        </v-tab>
-        <v-tab value="vm" to="/vm">
-          <v-icon start>mdi-monitor-account</v-icon>
-          {{ $t('vm') }}
-        </v-tab>
-        <v-tab value="plugins" to="/plugins">
-          <v-icon start>mdi-puzzle</v-icon>
-          {{ $t('plugins') }}
-        </v-tab>
-        <v-tab value="webterminal" to="/mosTools/webterminal">
-          <v-icon start>mdi-console</v-icon>
-          {{ $t('terminal') }}
-        </v-tab>
-        <v-tab value="filebrowser" to="/mosTools/filebrowser">
-          <v-icon start>mdi-folder</v-icon>
-          {{ $t('filebrowser') }}
-        </v-tab>
-        <v-tab value="settings" to="/mosSettings">
-          <v-icon start>mdi-cog</v-icon>
-          {{ $t('settings') }}
-        </v-tab>
-      </v-tabs>
+      <div class="horizontal-menu-container">
+        <div class="horizontal-menu-left">
+          <!-- Dashboard -->
+          <v-btn variant="text" :active="activeTab === 'dashboard'" to="/dashboard" class="horizontal-menu-item">
+            <v-icon start>mdi-view-dashboard</v-icon>
+            {{ $t('dashboard') }}
+          </v-btn>
+
+          <!-- Storage Group or Individual Items -->
+          <v-menu v-if="groupMenus" location="bottom">
+            <template #activator="{ props }">
+              <v-btn v-bind="props" variant="text" :active="['disks', 'pools'].includes(activeTab)" class="horizontal-menu-item">
+                <v-icon start>mdi-database</v-icon>
+                {{ $t('storage') }}
+                <v-icon end size="small">mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item to="/disks" prepend-icon="mdi-harddisk" :title="$t('disks')" />
+              <v-list-item to="/pools" prepend-icon="mdi-view-array" :title="$t('pools')" />
+            </v-list>
+          </v-menu>
+          <template v-else>
+            <v-btn variant="text" :active="activeTab === 'disks'" to="/disks" class="horizontal-menu-item">
+              <v-icon start>mdi-harddisk</v-icon>
+              {{ $t('disks') }}
+            </v-btn>
+            <v-btn variant="text" :active="activeTab === 'pools'" to="/pools" class="horizontal-menu-item">
+              <v-icon start>mdi-view-array</v-icon>
+              {{ $t('pools') }}
+            </v-btn>
+          </template>
+
+          <!-- Network Access Group or Individual Items -->
+          <v-menu v-if="groupMenus" location="bottom">
+            <template #activator="{ props }">
+              <v-btn v-bind="props" variant="text" :active="['shares', 'remoteMounting', 'hub'].includes(activeTab)" class="horizontal-menu-item">
+                <v-icon start>mdi-server</v-icon>
+                {{ $t('network access') }}
+                <v-icon end size="small">mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item to="/shares" prepend-icon="mdi-share" :title="$t('shares')" />
+              <v-list-item
+                v-if="!hideInactiveMenus || mosServices.remote_mounting?.enabled"
+                :disabled="!mosServices.remote_mounting?.enabled"
+                to="/remoteMounting"
+                prepend-icon="mdi-cloud-sync"
+                :title="$t('remote mounting')"
+              />
+              <v-list-item v-if="mosServices.hub?.enabled" to="/mosHub" prepend-icon="mdi-hub" :title="$t('mos hub')" />
+            </v-list>
+          </v-menu>
+          <template v-else>
+            <v-btn variant="text" :active="activeTab === 'shares'" to="/shares" class="horizontal-menu-item">
+              <v-icon start>mdi-share</v-icon>
+              {{ $t('shares') }}
+            </v-btn>
+            <v-btn
+              v-if="!hideInactiveMenus || mosServices.remote_mounting?.enabled"
+              :disabled="!mosServices.remote_mounting?.enabled"
+              variant="text"
+              :active="activeTab === 'remoteMounting'"
+              to="/remoteMounting"
+              class="horizontal-menu-item"
+            >
+              <v-icon start>mdi-cloud-sync</v-icon>
+              {{ $t('remote mounting') }}
+            </v-btn>
+            <v-btn v-if="mosServices.hub?.enabled" variant="text" :active="activeTab === 'hub'" to="/mosHub" class="horizontal-menu-item">
+              <v-icon start>mdi-hub</v-icon>
+              {{ $t('mos hub') }}
+            </v-btn>
+          </template>
+
+          <!-- Virtualization Group or Individual Items -->
+          <v-menu v-if="groupMenus" location="bottom">
+            <template #activator="{ props }">
+              <v-btn v-bind="props" variant="text" :active="['docker', 'lxc', 'vm'].includes(activeTab)" class="horizontal-menu-item">
+                <v-icon start>mdi-server-network</v-icon>
+                {{ $t('virtualization') }}
+                <v-icon end size="small">mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item v-if="!hideInactiveMenus || mosServices.docker?.running" :disabled="!mosServices.docker?.running" to="/docker" prepend-icon="mdi-docker" :title="$t('docker')" />
+              <v-list-item v-if="!hideInactiveMenus || mosServices.lxc?.enabled" :disabled="!mosServices.lxc?.enabled" to="/lxc" prepend-icon="mdi-package-variant" :title="$t('lxc')" />
+              <v-list-item v-if="!hideInactiveMenus || mosServices.vm?.running" :disabled="!mosServices.vm?.running" to="/vm" prepend-icon="mdi-monitor-account" :title="$t('vm')" />
+            </v-list>
+          </v-menu>
+          <template v-else>
+            <v-btn
+              v-if="!hideInactiveMenus || mosServices.docker?.running"
+              :disabled="!mosServices.docker?.running"
+              variant="text"
+              :active="activeTab === 'docker'"
+              to="/docker"
+              class="horizontal-menu-item"
+            >
+              <v-icon start>mdi-docker</v-icon>
+              {{ $t('docker') }}
+            </v-btn>
+            <v-btn v-if="!hideInactiveMenus || mosServices.lxc?.enabled" :disabled="!mosServices.lxc?.enabled" variant="text" :active="activeTab === 'lxc'" to="/lxc" class="horizontal-menu-item">
+              <v-icon start>mdi-package-variant</v-icon>
+              {{ $t('lxc') }}
+            </v-btn>
+            <v-btn v-if="!hideInactiveMenus || mosServices.vm?.running" :disabled="!mosServices.vm?.running" variant="text" :active="activeTab === 'vm'" to="/vm" class="horizontal-menu-item">
+              <v-icon start>mdi-monitor-account</v-icon>
+              {{ $t('vm') }}
+            </v-btn>
+          </template>
+
+          <!-- Plugins -->
+          <v-btn variant="text" :active="activeTab === 'plugins'" to="/plugins" class="horizontal-menu-item">
+            <v-icon start>mdi-puzzle</v-icon>
+            {{ $t('plugins') }}
+          </v-btn>
+
+          <!-- MOS Tools Group or Individual Items -->
+          <v-menu v-if="groupMenus" location="bottom">
+            <template #activator="{ props }">
+              <v-btn v-bind="props" variant="text" :active="['webterminal', 'filebrowser'].includes(activeTab)" class="horizontal-menu-item">
+                <v-icon start>mdi-tools</v-icon>
+                {{ $t('mos tools') }}
+                <v-icon end size="small">mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item to="/mosTools/webterminal" prepend-icon="mdi-console" :title="$t('terminal')" />
+              <v-list-item to="/mosTools/filebrowser" prepend-icon="mdi-folder" :title="$t('filebrowser')" />
+            </v-list>
+          </v-menu>
+          <template v-else>
+            <v-btn variant="text" :active="activeTab === 'webterminal'" to="/mosTools/webterminal" class="horizontal-menu-item">
+              <v-icon start>mdi-console</v-icon>
+              {{ $t('terminal') }}
+            </v-btn>
+            <v-btn variant="text" :active="activeTab === 'filebrowser'" to="/mosTools/filebrowser" class="horizontal-menu-item">
+              <v-icon start>mdi-folder</v-icon>
+              {{ $t('filebrowser') }}
+            </v-btn>
+          </template>
+
+          <!-- Settings -->
+          <v-btn variant="text" :active="activeTab === 'settings'" to="/mosSettings" class="horizontal-menu-item">
+            <v-icon start>mdi-cog</v-icon>
+            {{ $t('settings') }}
+          </v-btn>
+        </div>
+
+        <!-- Right-aligned items -->
+        <div class="horizontal-menu-right">
+          <!-- Info button -->
+          <v-btn icon variant="text" size="x-small" :title="$t('about')" class="info-btn">
+            <v-icon>mdi-information</v-icon>
+
+            <v-menu activator="parent" location="bottom">
+              <v-card min-width="200">
+                <v-card-text class="pa-3">
+                  <!-- Version -->
+                  <div v-if="mosVersion" class="text-caption text-disabled mb-2">{{ $t('mos') }}: {{ mosVersion }}</div>
+
+                  <!-- Tailscale/Netbird -->
+                  <div v-if="mosServices.tailscale?.enabled || mosServices.netbird?.enabled" class="mb-2">
+                    <v-chip
+                      v-if="mosServices.tailscale?.enabled"
+                      size="x-small"
+                      :color="mosServices.tailscale?.online ? 'success' : 'error'"
+                      :prepend-icon="mosServices.tailscale?.online ? 'mdi-lock-outline' : 'mdi-lock-off-outline'"
+                      variant="tonal"
+                      class="mr-1"
+                    >
+                      Tailscale
+                    </v-chip>
+                    <v-chip
+                      v-if="mosServices.netbird?.enabled"
+                      size="x-small"
+                      :color="mosServices.netbird?.online ? 'success' : 'error'"
+                      :prepend-icon="mosServices.netbird?.online ? 'mdi-lock-outline' : 'mdi-lock-off-outline'"
+                      variant="tonal"
+                    >
+                      Netbird
+                    </v-chip>
+                  </div>
+
+                  <!-- Supporter status -->
+                  <div v-if="mosServices?.mos?.supporter">
+                    <v-divider class="mb-2" />
+                    <div class="d-flex align-center justify-center">
+                      <div class="supporter-badge">
+                        <v-img src="/mos_black.png" alt="MOS" width="32" height="32" contain class="supporter-badge__logo" />
+                        <span class="supporter-badge__label">{{ $t('supporter') }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-menu>
+          </v-btn>
+
+          <!-- Logout button -->
+          <v-btn icon variant="text" size="x-small" :title="$t('logout')" @click="logoutDialog = true" class="logout-btn">
+            <v-icon>mdi-logout</v-icon>
+          </v-btn>
+        </div>
+      </div>
     </template>
   </v-app-bar>
 
@@ -321,6 +482,80 @@ onUnmounted(() => {
   flex: 0 0 auto;
 }
 
+/* Horizontal Menu Button-based Layout */
+.horizontal-menu-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0;
+  min-width: 0;
+}
+
+.horizontal-menu-container::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontal-menu-left {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.horizontal-menu-item {
+  text-transform: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0 12px;
+  height: 56px;
+  color: rgba(255, 255, 255, 1) !important;
+  border-radius: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.horizontal-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.horizontal-menu-item.v-btn--active {
+  color: #ffffff !important;
+}
+
+.horizontal-menu-item.v-btn--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #ffffff;
+}
+
+.horizontal-menu-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding-right: 8px;
+  flex-shrink: 0;
+}
+
+.info-btn,
+.logout-btn {
+  color: rgba(255, 255, 255, 1) !important;
+}
+
+.info-btn:hover,
+.logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 1) !important;
+}
+
 /* Tabs in app-bar extension - white text with white underline */
 .v-app-bar ::v-deep(.v-tabs) {
   background-color: transparent;
@@ -331,7 +566,7 @@ onUnmounted(() => {
   font-size: 0.875rem;
   font-weight: 500;
   padding: 0 12px;
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: rgba(255, 255, 255, 1) !important;
 }
 
 .v-app-bar ::v-deep(.v-tab.v-tab--selected) {
