@@ -2,8 +2,8 @@
   <div
     ref="container"
     class="pull-to-refresh-wrapper"
-    @touchstart.prevent="onTouchStart"
-    @touchmove.prevent="onTouchMove"
+    @touchstart="onTouchStart"
+    @touchmove="onTouchMove"
     @touchend="onTouchEnd"
     :style="{
       transform: `translate3d(0, ${translateY}px, 0)`,
@@ -52,6 +52,7 @@ const translateY = ref(0);
 const isRefreshing = ref(false);
 const isDraggedEnough = ref(false);
 const showIndicator = ref(false);
+let rafId = null;
 
 const refreshText = computed(() => {
   if (isRefreshing.value) return t('refreshing');
@@ -74,13 +75,22 @@ const onTouchMove = (e) => {
 
   if (diff > 0) {
     e.preventDefault();
-    const newTranslateY = Math.min(diff / 2, props.maxDrag);
-    translateY.value = newTranslateY;
-    isDraggedEnough.value = diff > props.threshold;
+    
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      const newTranslateY = Math.min(diff / 2, props.maxDrag);
+      translateY.value = newTranslateY;
+      isDraggedEnough.value = diff > props.threshold;
+    });
+  } else {
+    showIndicator.value = false;
+    translateY.value = 0;
   }
 };
 
 const onTouchEnd = async () => {
+  if (rafId) cancelAnimationFrame(rafId);
+  
   if (!isDraggedEnough.value || isRefreshing.value) {
     translateY.value = 0;
     showIndicator.value = false;
@@ -108,11 +118,10 @@ const onTouchEnd = async () => {
 <style scoped>
 .pull-to-refresh-wrapper {
   position: relative;
-  will-change: transform;
   backface-visibility: hidden;
-  perspective: 1000px;
-  touch-action: none;
-  overscroll-behavior: contain;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .pull-to-refresh-indicator {
@@ -126,7 +135,10 @@ const onTouchEnd = async () => {
   font-size: 14px;
   font-weight: 500;
   transition: opacity 0.3s ease-out;
-  will-change: opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .rotate-icon {
