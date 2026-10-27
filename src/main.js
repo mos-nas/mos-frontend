@@ -50,6 +50,7 @@ import * as directives from 'vuetify/directives';
 import colors from 'vuetify/util/colors';
 import { md3 } from 'vuetify/blueprints';
 import { createAutoOnColorsPlugin } from './plugins/autoOnColors';
+import { VPullToRefresh } from 'vuetify/components';
 
 const getSystemTheme = () => {
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -62,7 +63,10 @@ const initialTheme = getSystemTheme();
 
 const vuetify = createVuetify({
   blueprint: md3,
-  components,
+  components: {
+    ...components,
+    VPullToRefresh,
+  },
   directives,
   icons: {
     defaultSet: 'mdi',
