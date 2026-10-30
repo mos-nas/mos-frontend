@@ -1689,5 +1689,10 @@
   "select path": "Sélectionner un chemin",
   "parity devices": "Dispositifs de parité",
   "spindown (min)": "Spindown (min)",
-  "inherit": "Hériter"
+  "inherit": "Hériter",
+  "try adjusting your search filters or update your repositories": "Essayez d'ajuster vos filtres de recherche ou mettez à jour vos référentiels",
+  "update repositories": "Mettre à jour les référentiels",
+  "could not load templates": "Impossible de charger les modèles",
+  "or add more repositories to expand your selection": "Ou ajoutez d'autres référentiels pour agrandir votre sélection",
+  "manage repositories": "Gérer les référentiels"
 }

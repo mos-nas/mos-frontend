@@ -5,8 +5,8 @@ import federation from '@originjs/vite-plugin-federation';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // Target configuration
-const API_TARGET = 'http://mos.home';
-const WS_TARGET = 'ws://mos.home';
+const API_TARGET = 'http://mos-test.home';
+const WS_TARGET = 'ws://mos-test.home';
 
 export default defineConfig({
   define: {

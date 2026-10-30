@@ -1858,5 +1858,10 @@
   "almost there": "即将完成",
   "pull to refresh": "下拉刷新",
   "release to refresh": "松开刷新",
-  "refreshing": "正在刷新"
+  "refreshing": "正在刷新",
+  "try adjusting your search filters or update your repositories": "尝试调整您的搜索过滤器或更新您的存储库",
+  "update repositories": "更新存储库",
+  "could not load templates": "无法加载模板",
+  "or add more repositories to expand your selection": "或添加更多存储库以扩大您的选择",
+  "manage repositories": "管理存储库"
 }

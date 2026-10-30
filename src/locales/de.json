@@ -1861,5 +1861,10 @@
   "almost there": "Gleich geht's los",
   "pull to refresh": "Zum Aktualisieren ziehen",
   "release to refresh": "Loslassen zum Aktualisieren",
-  "refreshing": "Wird aktualisiert"
+  "refreshing": "Wird aktualisiert",
+  "try adjusting your search filters or update your repositories": "Versuche deine Suchfilter anzupassen oder aktualisiere deine Repositorys",
+  "update repositories": "Repositorys aktualisieren",
+  "could not load templates": "Vorlagen konnten nicht geladen werden",
+  "or add more repositories to expand your selection": "Oder füge weitere Repositorys hinzu, um die Auswahl zu vergrößern",
+  "manage repositories": "Repositorys verwalten"
 }

@@ -1781,5 +1781,10 @@
   "body": "Cuerpo",
   "parity devices": "Dispositivos de paridad",
   "spindown (min)": "Spindown (min)",
-  "inherit": "Heredar"
+  "inherit": "Heredar",
+  "try adjusting your search filters or update your repositories": "Intenta ajustar tus filtros de búsqueda o actualiza tus repositorios",
+  "update repositories": "Actualizar repositorios",
+  "could not load templates": "No se pudieron cargar las plantillas",
+  "or add more repositories to expand your selection": "O añade más repositorios para ampliar tu selección",
+  "manage repositories": "Gestionar repositorios"
 }

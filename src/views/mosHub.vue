@@ -150,89 +150,89 @@
             <v-container fluid class="pa-4" v-if="!hubLoading">
               <template v-if="mosHub.length > 0">
                 <div class="hub-grid">
-<v-card v-for="(tpl, i) in mosHub" :key="tpl.name || i" style="height: 240px; display: flex; flex-direction: column" class="pa-0">
-  <v-card-text class="pa-0" style="position: relative; flex: 0 0 auto; padding-top: 40px !important">
-    <v-chip
-      v-if="tpl.maintainer"
-      size="small"
-      class="position-absolute"
-      style="top: 12px; left: 12px; background: var(--v-theme-secondary); color: var(--v-theme-on-secondary); z-index: 1"
-      :href="tpl.maintainer_donate"
-      target="_blank"
-      prepend-icon="mdi-account"
-    >
-      {{ tpl.maintainer || $t('unknown') }}
-    </v-chip>
-    <div class="d-flex justify-center align-center" style="height: 64px; width: 60px; margin: 0 auto; overflow: hidden">
-      <v-img v-if="tpl.icon" :src="tpl.icon" contain style="max-width: 100%; max-height: 100%; width: auto; height: auto"></v-img>
-      <v-icon v-else size="48" color="grey" style="opacity: 0.5">mdi-package-variant</v-icon>
-    </div>
-    <v-chip v-if="tpl.type" size="small" class="position-absolute" style="top: 12px; right: 12px; background: var(--v-theme-primary); color: var(--v-theme-on-primary); z-index: 1">
-      {{ $t(tpl.type) }}
-    </v-chip>
-  </v-card-text>
-  <v-card-text class="py-2 px-4" style="flex: 1 1 auto; min-height: 0">
-    <div class="font-weight-bold mb-1" style="line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1.1rem">
-      {{ tpl.name || $t('unknown') }}
-    </div>
-    <div
-      style="
-        max-height: 3.6em;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        line-clamp: 2;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        white-space: normal;
-        font-size: 0.9rem;
-      "
-    >
-      {{ tpl.description }}
-    </div>
-  </v-card-text>
-  <v-divider />
-  <v-card-actions style="flex: 0 0 auto; gap: 4px; padding: 0 8px; display: flex; align-items: center; height: 44px; min-height: 44px">
-    <v-chip v-if="tpl.installed" color="secondary" size="small">
-      {{ $t('installed') }}
-    </v-chip>
-    <v-spacer />
-    <v-btn color="secondary" :href="tpl.website" target="_blank" v-if="tpl.website" prepend-icon="mdi-web" size="small">
-      {{ $t('webpage') }}
-    </v-btn>
-    <v-btn
-      v-if="tpl.type == 'docker' && mosServices && mosServices.docker"
-      color="secondary"
-      prepend-icon="mdi-docker"
-      size="small"
-      @click="
-        installDialog.tpl = tpl;
-        installDialog.type = 'docker';
-        installDialog.value = true;
-      "
-      :disabled="!mosServices.docker.running"
-    >
-      {{ tpl.installed ? $t('reinstall') : $t('install') }}
-    </v-btn>
-    <v-btn
-      v-else-if="tpl.type == 'compose' && mosServices && mosServices.docker"
-      color="secondary"
-      prepend-icon="mdi-toy-brick-plus"
-      size="small"
-      @click="
-        installDialog.tpl = tpl;
-        installDialog.type = 'compose';
-        installDialog.value = true;
-      "
-      :disabled="!mosServices.docker.running"
-    >
-      {{ $t('install') }}
-    </v-btn>
-    <v-btn v-else-if="tpl.type == 'plugin'" color="secondary" prepend-icon="mdi-puzzle" size="small" @click="openPluginInstallDialog(tpl)">
-      {{ $t('install') }}
-    </v-btn>
-  </v-card-actions>
-</v-card>
+                  <v-card v-for="(tpl, i) in mosHub" :key="tpl.name || i" style="height: 240px; display: flex; flex-direction: column" class="pa-0">
+                    <v-card-text class="pa-0" style="position: relative; flex: 0 0 auto; padding-top: 40px !important">
+                      <v-chip
+                        v-if="tpl.maintainer"
+                        size="small"
+                        class="position-absolute"
+                        style="top: 12px; left: 12px; background: var(--v-theme-secondary); color: var(--v-theme-on-secondary); z-index: 1"
+                        :href="tpl.maintainer_donate"
+                        target="_blank"
+                        prepend-icon="mdi-account"
+                      >
+                        {{ tpl.maintainer || $t('unknown') }}
+                      </v-chip>
+                      <div class="d-flex justify-center align-center" style="height: 64px; width: 60px; margin: 0 auto; overflow: hidden">
+                        <v-img v-if="tpl.icon" :src="tpl.icon" contain style="max-width: 100%; max-height: 100%; width: auto; height: auto"></v-img>
+                        <v-icon v-else size="48" color="grey" style="opacity: 0.5">mdi-package-variant</v-icon>
+                      </div>
+                      <v-chip v-if="tpl.type" size="small" class="position-absolute" style="top: 12px; right: 12px; background: var(--v-theme-primary); color: var(--v-theme-on-primary); z-index: 1">
+                        {{ $t(tpl.type) }}
+                      </v-chip>
+                    </v-card-text>
+                    <v-card-text class="py-2 px-4" style="flex: 1 1 auto; min-height: 0">
+                      <div class="font-weight-bold mb-1" style="line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1.1rem">
+                        {{ tpl.name || $t('unknown') }}
+                      </div>
+                      <div
+                        style="
+                          max-height: 3.6em;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                          display: -webkit-box;
+                          line-clamp: 2;
+                          -webkit-line-clamp: 2;
+                          -webkit-box-orient: vertical;
+                          white-space: normal;
+                          font-size: 0.9rem;
+                        "
+                      >
+                        {{ tpl.description }}
+                      </div>
+                    </v-card-text>
+                    <v-divider />
+                    <v-card-actions style="flex: 0 0 auto; gap: 4px; padding: 0 8px; display: flex; align-items: center; height: 44px; min-height: 44px">
+                      <v-chip v-if="tpl.installed" color="secondary" size="small">
+                        {{ $t('installed') }}
+                      </v-chip>
+                      <v-spacer />
+                      <v-btn color="secondary" :href="tpl.website" target="_blank" v-if="tpl.website" prepend-icon="mdi-web" size="small">
+                        {{ $t('webpage') }}
+                      </v-btn>
+                      <v-btn
+                        v-if="tpl.type == 'docker' && mosServices && mosServices.docker"
+                        color="secondary"
+                        prepend-icon="mdi-docker"
+                        size="small"
+                        @click="
+                          installDialog.tpl = tpl;
+                          installDialog.type = 'docker';
+                          installDialog.value = true;
+                        "
+                        :disabled="!mosServices.docker.running"
+                      >
+                        {{ tpl.installed ? $t('reinstall') : $t('install') }}
+                      </v-btn>
+                      <v-btn
+                        v-else-if="tpl.type == 'compose' && mosServices && mosServices.docker"
+                        color="secondary"
+                        prepend-icon="mdi-toy-brick-plus"
+                        size="small"
+                        @click="
+                          installDialog.tpl = tpl;
+                          installDialog.type = 'compose';
+                          installDialog.value = true;
+                        "
+                        :disabled="!mosServices.docker.running"
+                      >
+                        {{ $t('install') }}
+                      </v-btn>
+                      <v-btn v-else-if="tpl.type == 'plugin'" color="secondary" prepend-icon="mdi-puzzle" size="small" @click="openPluginInstallDialog(tpl)">
+                        {{ $t('install') }}
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
                 </div>
 
                 <!-- Pagination -->
@@ -250,13 +250,59 @@
                   />
                 </div>
               </template>
-              <div v-else>
-                <div v-if="errorMsg === ''" class="text-center grey--text text--darken-1">
-                  {{ $t('no templates found matching your search') }}
-                </div>
-                <div v-else class="text-center grey--text text--darken-1">
-                  {{ errorMsg }}
-                </div>
+              <div v-else class="d-flex justify-center align-center" style="min-height: 400px">
+                <v-card class="text-center pa-8" style="max-width: 500px; background: transparent; box-shadow: none; border: 2px dashed rgba(var(--v-theme-on-surface), 0.2)">
+                  <v-icon size="80" class="d-block mb-4 mx-auto" style="opacity: 0.4">
+                    mdi-inbox-multiple-outline
+                  </v-icon>
+                  <div v-if="errorMsg === ''">
+                    <div class="text-h6 font-weight-bold mb-2">
+                      {{ $t('no templates found matching your search') }}
+                    </div>
+                    <div class="text-body-2 text-medium-emphasis mb-4">
+                      {{ $t('try adjusting your search filters or update your repositories') }}
+                    </div>
+                    <div class="d-flex gap-2 justify-center flex-wrap">
+                      <v-btn
+                        color="primary"
+                        prepend-icon="mdi-refresh"
+                        variant="outlined"
+                        @click="refreshRepositories()"
+                        :loading="hubLoading"
+                      >
+                        {{ $t('update repositories') }}
+                      </v-btn>
+                      <div class="text-body-2 text-medium-emphasis mb-4 mt-4">
+                      {{ $t('or add more repositories to expand your selection') }}
+                      </div>
+                      <v-btn
+                        color="primary"
+                        prepend-icon="mdi-source-repository-multiple"
+                        variant="outlined"
+                        @click="openHubRepositoriesDialog()"
+                      >
+                        {{ $t('manage repositories') }}
+                      </v-btn>
+                    </div>
+                  </div>
+                  <div v-else>
+                    <div class="text-h6 font-weight-bold mb-2">
+                      {{ $t('could not load templates') }}
+                    </div>
+                    <div class="text-body-2 text-medium-emphasis mb-4">
+                      {{ errorMsg }}
+                    </div>
+                    <v-btn
+                      color="primary"
+                      prepend-icon="mdi-refresh"
+                      variant="outlined"
+                      @click="getMosHub(searchOnlineTemplate)"
+                      :loading="hubLoading"
+                    >
+                      {{ $t('retry') }}
+                    </v-btn>
+                  </div>
+                </v-card>
               </div>
             </v-container>
             <v-container v-else fluid class="pa-4 d-flex justify-center">
@@ -476,6 +522,7 @@ import { onMounted, ref, reactive, nextTick, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useOverlay } from '@/composables/useOverlay';
+import { useApi } from '@/composables/useApi';
 import { useRouter } from 'vue-router';
 
 const $router = useRouter();
@@ -484,7 +531,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
-const { overlay } = useOverlay();
+const { call } = useApi();
 const mosServices = inject('mosServices');
 const searchOnlineTemplate = ref('');
 const hubLoading = ref(true);
@@ -546,26 +593,18 @@ const getMosHub = async (search, limit = 24, skip = 0, order = hubOrderSel.value
     if (category && category !== 'all') url.searchParams.append('category', category);
     if (type && type !== 'all') url.searchParams.append('type', type);
 
-    const res = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
+    const result = await call(url.toString(), {
+      errorLabel: t('could not load templates'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      errorMsg.value = error.error || t('unknown error');
-    } else {
+    if (result) {
       errorMsg.value = '';
+      mosHub.value = result.results || [];
+      mosHubCount.value = result.count || 0;
     }
-
-    const result = await res.json();
-    mosHub.value = result.results || [];
-    mosHubCount.value = result.count || 0;
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    errorMsg.value = e.message.split('|$|')[1] || t('unknown error');
   } finally {
     hubLoading.value = false;
   }
@@ -574,24 +613,14 @@ const getMosHub = async (search, limit = 24, skip = 0, order = hubOrderSel.value
 const refreshRepositories = async () => {
   hubLoading.value = true;
   try {
-    const res = await fetch('/api/v1/mos/hub/update', {
+    await call('/api/v1/mos/hub/update', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
+      errorLabel: t('repositories could not be loaded'),
+      successLabel: t('repositories refreshed successfully'),
+      showOverlay: false,
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('repositories could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('repositories refreshed successfully'));
     getMosHub(searchOnlineTemplate.value);
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     hubLoading.value = false;
   }
@@ -599,54 +628,27 @@ const refreshRepositories = async () => {
 
 const getHubRepositories = async () => {
   try {
-    const res = await fetch('/api/v1/mos/hub/repositories', {
-      method: 'GET',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
+    return await call('/api/v1/mos/hub/repositories', {
+      errorLabel: t('repositories could not be loaded'),
+      showOverlay: false,
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('repositories could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    const repositories = await res.json();
-    return repositories;
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
+    return [];
   }
 };
 
 const setHubRepositories = async (repositories) => {
-  overlay.value = true;
-
   try {
-    const res = await fetch('/api/v1/mos/hub/repositories', {
+    await call('/api/v1/mos/hub/repositories', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(repositories),
+      body: repositories,
+      errorLabel: t('repositories could not be changed'),
+      successLabel: t('repositories changed successfully'),
+      showOverlay: true,
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('repositories could not be changed')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('repositories changed successfully'));
     refreshRepositories();
     mosHubRepositoriesDialog.value = false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const getPluginReleases = async (repository) => {
@@ -657,27 +659,19 @@ const getPluginReleases = async (repository) => {
   };
 
   try {
-    const res = await fetch('/api/v1/mos/plugins/releases', {
+    releasesLoading.value = true;
+    const data = await call('/api/v1/mos/plugins/releases', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('plugin releases could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('plugin releases could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    if (data) {
+      releasesItems.value = (data.releases || []).map((r) => r.tag);
+      installDialog.release = releasesItems.value.length > 0 ? releasesItems.value[0] : null;
     }
-
-    const data = await res.json();
-    releasesItems.value = (data.releases || []).map((r) => r.tag);
-    installDialog.release = releasesItems.value.length > 0 ? releasesItems.value[0] : null;
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-    return [];
   } finally {
     releasesLoading.value = false;
   }
@@ -685,77 +679,45 @@ const getPluginReleases = async (repository) => {
 
 const getHubTypes = async () => {
   try {
-    const res = await fetch('/api/v1/mos/hub/types', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
+    const result = await call('/api/v1/mos/hub/types', {
+      errorLabel: t('hub types could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('hub types could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    if (result) {
+      hubTypes.value = result;
     }
-
-    hubTypes.value = await res.json();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-    return [];
-  }
+  } catch (e) {}
 };
 
 const getHubCategories = async () => {
   try {
-    const res = await fetch('/api/v1/mos/hub/categories?all=true', {
-      method: 'GET',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
+    const result = await call('/api/v1/mos/hub/categories?all=true', {
+      errorLabel: t('hub categories could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('hub categories could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    if (result) {
+      hubCategories.value = result;
     }
-
-    hubCategories.value = await res.json();
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-    return [];
   }
 };
 
 const installPlugin = async (templatepath, release) => {
-  overlay.value = true;
   const payload = {
     template: templatepath,
     tag: release,
   };
   try {
-    const res = await fetch('/api/v1/mos/plugins/install', {
+    await call('/api/v1/mos/plugins/install', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: payload,
+      errorLabel: t('plugin installation could not be started'),
+      successLabel: t('plugin installation started successfully'),
+      showOverlay: true,
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('plugin installation could not be started')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    showSnackbarSuccess(t('plugin installation started successfully'));
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const getInstallDialogIcon = () => {
@@ -808,22 +770,15 @@ const openKnownReposDialog = async () => {
 
 const getKnownRepos = async () => {
   try {
-    const res = await fetch('/api/v1/mos/hub/knownrepositories', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/mos/hub/knownrepositories', {
+      errorLabel: t('could not get known repositories'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('could not get known repositories')}|$| ${error.error || t('unknown error')}`);
+    if (result) {
+      knownRepos.value = result;
     }
-
-    knownRepos.value = await res.json();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+  } catch (e) {}
 };
 
 const toggleKnownRepo = (repoName) => {

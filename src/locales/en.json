@@ -1861,5 +1861,10 @@
   "almost there": "Almost there",
   "pull to refresh": "Pull to refresh",
   "release to refresh": "Release to refresh",
-  "refreshing": "Refreshing"
+  "refreshing": "Refreshing",
+  "try adjusting your search filters or update your repositories": "Try adjusting your search filters or update your repositories",
+  "update repositories": "Update repositories",
+  "could not load templates": "Could not load templates",
+  "or add more repositories to expand your selection": "Or add more repositories to expand your selection",
+  "manage repositories": "Manage repositories"
 }
