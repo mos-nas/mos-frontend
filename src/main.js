@@ -37,6 +37,7 @@ import en from './locales/en.json';
 import fr from './locales/fr.json';
 import es from './locales/es.json';
 import zh from './locales/zh.json';
+import zhTW from './locales/zh-TW.json';
 import router from './router';
 import 'vue-sonner/style.css';
 import CronVuetifyPlugin from '@vue-js-cron/vuetify';
@@ -121,6 +122,7 @@ const i18n = createI18n({
     fr,
     es,
     zh,
+    'zh-TW': zhTW,
   },
 });
 
