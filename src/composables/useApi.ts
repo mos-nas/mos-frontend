@@ -10,6 +10,7 @@ interface ApiCallOptions {
   errorLabel: string;
   successLabel?: string;
   showOverlay?: boolean;
+  showError?: boolean;
 }
 
 interface ApiErrorResponse {
@@ -25,7 +26,7 @@ export function useApi() {
   });
 
   const call = async <T = unknown>(url: string, options: ApiCallOptions): Promise<T | null> => {
-    const { method = 'GET', body, errorLabel, successLabel, showOverlay = true } = options;
+    const { method = 'GET', body, errorLabel, successLabel, showOverlay = true, showError = true } = options;
 
     if (showOverlay) overlay.value = true;
     try {
@@ -46,7 +47,7 @@ export function useApi() {
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       const [userMessage, apiErrorMessage] = message.split('|$|');
-      showSnackbarError(userMessage, apiErrorMessage);
+      if (showError) showSnackbarError(userMessage, apiErrorMessage);
       throw e;
     } finally {
       if (showOverlay) overlay.value = false;

@@ -252,9 +252,7 @@
               </template>
               <div v-else class="d-flex justify-center align-center" style="min-height: 400px">
                 <v-card class="text-center pa-8" style="max-width: 500px; background: transparent; box-shadow: none; border: 2px dashed rgba(var(--v-theme-on-surface), 0.2)">
-                  <v-icon size="80" class="d-block mb-4 mx-auto" style="opacity: 0.4">
-                    mdi-inbox-multiple-outline
-                  </v-icon>
+                  <v-icon size="80" class="d-block mb-4 mx-auto" style="opacity: 0.4">mdi-inbox-multiple-outline</v-icon>
                   <div v-if="errorMsg === ''">
                     <div class="text-h6 font-weight-bold mb-2">
                       {{ $t('no templates found matching your search') }}
@@ -263,24 +261,13 @@
                       {{ $t('try adjusting your search filters or update your repositories') }}
                     </div>
                     <div class="d-flex gap-2 justify-center flex-wrap">
-                      <v-btn
-                        color="primary"
-                        prepend-icon="mdi-refresh"
-                        variant="outlined"
-                        @click="refreshRepositories()"
-                        :loading="hubLoading"
-                      >
+                      <v-btn color="primary" prepend-icon="mdi-refresh" variant="outlined" @click="refreshRepositories()" :loading="hubLoading">
                         {{ $t('update repositories') }}
                       </v-btn>
                       <div class="text-body-2 text-medium-emphasis mb-4 mt-4">
-                      {{ $t('or add more repositories to expand your selection') }}
+                        {{ $t('or add more repositories to expand your selection') }}
                       </div>
-                      <v-btn
-                        color="primary"
-                        prepend-icon="mdi-source-repository-multiple"
-                        variant="outlined"
-                        @click="openHubRepositoriesDialog()"
-                      >
+                      <v-btn color="primary" prepend-icon="mdi-source-repository-multiple" variant="outlined" @click="openHubRepositoriesDialog()">
                         {{ $t('manage repositories') }}
                       </v-btn>
                     </div>
@@ -292,14 +279,8 @@
                     <div class="text-body-2 text-medium-emphasis mb-4">
                       {{ errorMsg }}
                     </div>
-                    <v-btn
-                      color="primary"
-                      prepend-icon="mdi-refresh"
-                      variant="outlined"
-                      @click="getMosHub(searchOnlineTemplate)"
-                      :loading="hubLoading"
-                    >
-                      {{ $t('retry') }}
+                    <v-btn color="primary" prepend-icon="mdi-refresh" variant="outlined" @click="refreshRepositories()" :loading="hubLoading">
+                      {{ $t('update repositories') }}
                     </v-btn>
                   </div>
                 </v-card>
@@ -520,8 +501,6 @@
 <script setup>
 import { onMounted, ref, reactive, nextTick, inject } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
-import { useOverlay } from '@/composables/useOverlay';
 import { useApi } from '@/composables/useApi';
 import { useRouter } from 'vue-router';
 
@@ -567,7 +546,7 @@ const mosHubRepositoriesDialog = reactive({
 });
 const currentPage = ref(1);
 const pageLimit = 24;
-onMounted(() => {
+onMounted(async () => {
   if (props.hubType === 'docker') {
     hubTypeSel.value = 'docker';
   } else if (props.hubType === 'compose') {
@@ -575,9 +554,14 @@ onMounted(() => {
   } else if (props.hubType === 'plugin') {
     hubTypeSel.value = 'plugin';
   }
-  getMosHub();
-  getHubTypes();
-  getHubCategories();
+  
+  try {
+    await getMosHub();
+    await getHubTypes();
+    await getHubCategories();
+  } catch (e) {
+    // If getMosHub fails, stop executing further calls
+  }
 });
 
 const getMosHub = async (search, limit = 24, skip = 0, order = hubOrderSel.value, sort = hubSortingSel.value, type = hubTypeSel.value, category = hubCategoriesSel.value) => {
@@ -605,6 +589,7 @@ const getMosHub = async (search, limit = 24, skip = 0, order = hubOrderSel.value
     }
   } catch (e) {
     errorMsg.value = e.message.split('|$|')[1] || t('unknown error');
+    throw e;
   } finally {
     hubLoading.value = false;
   }
@@ -700,8 +685,7 @@ const getHubCategories = async () => {
     if (result) {
       hubCategories.value = result;
     }
-  } catch (e) {
-  }
+  } catch (e) {}
 };
 
 const installPlugin = async (templatepath, release) => {
