@@ -1578,6 +1578,7 @@
   "localmaster": "Localmaster",
   "receiver": "Empfänger",
   "sender": "Absender",
+  "notification levels": "Benachrichtigungsstufen",
   "receiver must be valid email": "Empfänger muss eine gültige e-Mail Adresse sein",
   "sender must be valid email": "Absender muss eine gültige e-Mail Adresse sein",
   "used docker ports": "Verwendete Docker Ports",

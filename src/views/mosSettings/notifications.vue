@@ -42,6 +42,7 @@
                   <v-text-field v-model="providers[provider].from" :label="$t('sender')" type="email" class="mt-4" hide-details="auto"></v-text-field>
                   <v-text-field :model-value="getEmailToValue()" @update:model-value="setEmailToValue" :label="$t('receiver')" class="mt-4" hide-details="auto"></v-text-field>
                   <v-text-field v-model="providers[provider].subject" :label="$t('subject')" class="mt-4" hide-details="auto"></v-text-field>
+                  <v-select v-model="providers[provider].levels" :items="notificationLevels" :label="$t('notification levels')" multiple chips class="mt-4" hide-details="auto"></v-select>
                   <v-textarea v-model="providers[provider].body" :label="$t('body')" class="mt-4" rows="6" auto-grow hide-details="auto"></v-textarea>
                   <v-textarea
                     v-model="jsonEditors[provider].alert_mapping"
@@ -61,6 +62,7 @@
                   <v-text-field v-model="providers[provider].token" :label="$t('token')" class="mt-4" hide-details="auto"></v-text-field>
                   <v-text-field v-model="providers[provider].url" :label="$t('url')" class="mt-4" hide-details="auto"></v-text-field>
                   <v-select v-model="providers[provider].method" :items="getMethodOptions(provider)" :label="$t('method')" class="mt-4" hide-details="auto"></v-select>
+                  <v-select v-model="providers[provider].levels" :items="notificationLevels" :label="$t('notification levels')" multiple chips class="mt-4" hide-details="auto"></v-select>
                   <v-textarea
                     v-model="jsonEditors[provider].headers"
                     :label="$t('headers (json)')"
@@ -166,18 +168,17 @@
   <v-fab @click="setNotificationProviders()" color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
     <v-icon>mdi-content-save</v-icon>
   </v-fab>
-  
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useOverlay } from '@/composables/useOverlay';
+import { useApi } from '@/composables/useApi';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
-const { overlay } = useOverlay();
+const { call } = useApi();
 const EMAIL_PROVIDER = 'email';
 const providers = ref({});
 const jsonEditors = ref({});
@@ -188,6 +189,7 @@ const showDeleteDialog = ref(false);
 const providerToDelete = ref(null);
 const originalProviderNames = ref(new Set());
 const httpMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+const notificationLevels = ['info', 'normal', 'warning', 'alert'];
 
 const providerNames = computed(() => {
   const names = Object.keys(providers.value);
@@ -208,6 +210,7 @@ const getDefaultEmailProvider = () => ({
   to: [],
   subject: '{{.Title}}',
   body: '{{.Message}}',
+  levels: [],
   alert_mapping: {},
 });
 
@@ -219,12 +222,16 @@ onMounted(() => {
 });
 
 const initializeEditors = (data) => {
-  providers.value = JSON.parse(JSON.stringify(data || {}));
+  providers.value = data || {};
   originalProviderNames.value = new Set(Object.keys(providers.value));
   const nextEditors = {};
 
   for (const providerName of Object.keys(providers.value)) {
     const provider = providers.value[providerName] || {};
+    // Ensure levels is always an array
+    if (!Array.isArray(provider.levels)) {
+      provider.levels = [];
+    }
     nextEditors[providerName] = {
       headers: JSON.stringify(provider.headers ?? {}, null, 2),
       body: JSON.stringify(provider.body ?? {}, null, 2),
@@ -276,34 +283,27 @@ const createNewProvider = async () => {
     return;
   }
 
+  const newProvider = {
+    name: name,
+    enabled: false,
+    user: '',
+    token: '',
+    url: '',
+    method: 'POST',
+    headers: {},
+    body: {},
+    levels: [],
+    alert_mapping: {},
+    color_prio: {},
+  };
+
   try {
-    overlay.value = true;
-    const newProvider = {
-      name: name,
-      enabled: false,
-      user: '',
-      token: '',
-      url: '',
+    await call('/api/v1/mos/settings/notifications/providers', {
       method: 'POST',
-      headers: {},
-      body: {},
-      alert_mapping: {},
-      color_prio: {},
-    };
-
-    const res = await fetch('/api/v1/mos/settings/notifications/providers', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newProvider),
+      body: newProvider,
+      errorLabel: t('provider could not be created'),
+      successLabel: t('provider created'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || t('unknown error'));
-    }
 
     providers.value[name] = newProvider;
     originalProviderNames.value.add(name);
@@ -317,12 +317,7 @@ const createNewProvider = async () => {
     selectedProvider.value = name;
     showAddProviderDialog.value = false;
     newProviderName.value = '';
-    showSnackbarSuccess(t('provider created'));
-  } catch (e) {
-    showSnackbarError(t('provider could not be created'), e.message);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const confirmDeleteProvider = (providerName) => {
@@ -337,21 +332,14 @@ const deleteProvider = async () => {
     return;
   }
 
+  const providerName = providerToDelete.value;
+
   try {
-    overlay.value = true;
-    const providerName = providerToDelete.value;
-
-    const res = await fetch(`/api/v1/mos/settings/notifications/providers/${providerName}`, {
+    await call(`/api/v1/mos/settings/notifications/providers/${providerName}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+      errorLabel: t('provider could not be deleted'),
+      successLabel: t('provider deleted'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || t('unknown error'));
-    }
 
     delete providers.value[providerName];
     delete jsonEditors.value[providerName];
@@ -364,12 +352,7 @@ const deleteProvider = async () => {
 
     showDeleteDialog.value = false;
     providerToDelete.value = null;
-    showSnackbarSuccess(t('provider deleted'));
-  } catch (e) {
-    showSnackbarError(t('provider could not be deleted'), e.message);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const safeParse = (value) => {
@@ -430,6 +413,7 @@ const buildPayload = () => {
         token: provider.token ?? '',
         url: provider.url ?? '',
         method: provider.method ?? 'POST',
+        levels: Array.isArray(provider.levels) ? provider.levels : [],
         headers: parseHeaders.value,
         body: parseBody.value,
         alert_mapping: parseAlertMapping.value,
@@ -474,40 +458,24 @@ const buildEmailPayload = () => {
     to: receivers,
     subject: emailProvider.subject ?? '{{.Title}}',
     body: emailProvider.body ?? '{{.Message}}',
+    levels: Array.isArray(emailProvider.levels) ? emailProvider.levels : [],
     alert_mapping: parseAlertMapping.value,
   };
 };
 
 const getNotificationProviders = async () => {
   try {
-    overlay.value = true;
-    const [providersRes, emailRes] = await Promise.all([
-      fetch('/api/v1/mos/settings/notifications/providers', {
-        method: 'GET',
-        headers: {
-          Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        },
+    const [data, emailData] = await Promise.all([
+      call('/api/v1/mos/settings/notifications/providers', {
+        errorLabel: t('notification settings could not be loaded'),
+        showOverlay: false,
       }),
-      fetch('/api/v1/mos/settings/notifications/email', {
-        method: 'GET',
-        headers: {
-          Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        },
+      call('/api/v1/mos/settings/notifications/email', {
+        errorLabel: t('notification settings could not be loaded'),
+        showOverlay: false,
       }),
     ]);
 
-    if (!providersRes.ok) {
-      const error = await providersRes.json();
-      throw new Error(`${t('notification settings could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    if (!emailRes.ok) {
-      const error = await emailRes.json();
-      throw new Error(`${t('notification settings could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    const data = await providersRes.json();
-    const emailData = await emailRes.json();
     let providersData = {};
 
     if (Array.isArray(data)) {
@@ -533,59 +501,32 @@ const getNotificationProviders = async () => {
       ...providersData,
       [EMAIL_PROVIDER]: normalizedEmailData,
     });
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const setNotificationProviders = async () => {
+  const emailPayload = buildEmailPayload();
+  const payloads = buildPayload();
+
   try {
-    overlay.value = true;
-    const emailPayload = buildEmailPayload();
-    const payloads = buildPayload();
-
-    const emailRes = await fetch('/api/v1/mos/settings/notifications/email', {
+    await call('/api/v1/mos/settings/notifications/email', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(emailPayload),
+      body: emailPayload,
+      errorLabel: t('notification settings could not be saved'),
     });
-
-    if (!emailRes.ok) {
-      const error = await emailRes.json();
-      throw new Error(`${t('notification settings could not be saved')}|$| ${error.error || t('unknown error')}`);
-    }
 
     for (const payload of payloads) {
       const providerName = payload.name;
-      const res = await fetch(`/api/v1/mos/settings/notifications/providers/${providerName}`, {
+      await call(`/api/v1/mos/settings/notifications/providers/${providerName}`, {
         method: 'PATCH',
-        headers: {
-          Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        body: payload,
+        errorLabel: t('notification settings could not be saved'),
       });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(`${t('notification settings could not be saved')}|$| ${error.error || t('unknown error')}`);
-      }
     }
 
     showSnackbarSuccess(t('notification settings saved successfully'));
     emit('refresh-drawer');
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 watch(

@@ -42,8 +42,6 @@ import router from './router';
 import 'vue-sonner/style.css';
 import CronVuetifyPlugin from '@vue-js-cron/vuetify';
 import '@vue-js-cron/vuetify/dist/vuetify.css';
-
-// Vuetify
 import 'vuetify/styles';
 import { createVuetify } from 'vuetify';
 import * as components from 'vuetify/components';
@@ -117,11 +115,11 @@ const i18n = createI18n({
   locale: 'en',
   fallbackLocale: 'en',
   messages: {
-    de,
-    en,
-    fr,
-    es,
-    zh,
+    'de': de,
+    'en': en,
+    'fr': fr,
+    'es': es,
+    'zh': zh,
     'zh-TW': zhTW,
   },
 });
