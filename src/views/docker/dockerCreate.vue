@@ -498,14 +498,7 @@
       <v-card-actions>
         <v-progress-circular v-if="wsOperationDialog.loading" color="primary" class="ma-0" indeterminate />
         <v-spacer />
-        <v-btn
-          color="onPrimary"
-          text
-          @click="
-            closeWsDialog();
-            goBackSafely();
-          "
-        >
+        <v-btn color="onPrimary" text @click="closeWsDialog()">
           {{ $t('close') }}
         </v-btn>
       </v-card-actions>
@@ -599,7 +592,10 @@ onMounted(() => {
 const { wsIsConnected, wsError, wsOperationDialog, wsScrollContainer, sendDockerWSCommand, closeWsDialog } = useDockerWebSocket({
   onErrorSnackbar: showSnackbarError,
   onSuccessSnackbar: showSnackbarSuccess,
-  onCompleted: async () => {},
+  onCompleted: async () => {
+    closeWsDialog();
+    goBackSafely();
+  },
 });
 
 const openFsDialog = (cb) => {
