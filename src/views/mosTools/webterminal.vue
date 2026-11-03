@@ -186,5 +186,4 @@ const openPopupSession = async () => {
   const sessionId = result.sessionId;
   openTerminalPopup(sessionId);
 };
-
 </script>

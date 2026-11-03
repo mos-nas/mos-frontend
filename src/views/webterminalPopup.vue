@@ -1,5 +1,5 @@
 <template>
-  <div id="terminal" style="width: 100vw; height: 100vh; padding: 8px; background: #000000"></div>
+  <div id="terminal" style="position: fixed; inset: 0; box-sizing: border-box; padding: 8px; background: #000000; overflow: hidden"></div>
 </template>
 
 <script setup>
@@ -12,19 +12,44 @@ import { useI18n } from 'vue-i18n';
 import '@xterm/xterm/css/xterm.css';
 
 let socket, term;
+let resizeObserver;
+let rafId = 0;
+let previousStyles = null;
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
 
 const fitAddon = new FitAddon();
 const clipboardAddon = new ClipboardAddon();
 
+const fit = () => {
+  if (!term || !term.element) return;
+  try {
+    fitAddon.fit();
+  } catch (e) {}
+};
+
 onMounted(() => {
+  previousStyles = {
+    htmlOverflow: document.documentElement.style.overflow,
+    bodyOverflow: document.body.style.overflow,
+    bodyMargin: document.body.style.margin,
+  };
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  document.body.style.margin = '0';
+
+  const terminalEl = document.getElementById('terminal');
+
   term = new Terminal({ cursorBlink: true, fontFamily: 'monospace', fontSize: 14 });
   term.loadAddon(fitAddon);
   term.loadAddon(clipboardAddon);
-  term.open(document.getElementById('terminal'));
+  term.open(terminalEl);
   term.focus();
-  fitAddon.fit();
+  fit();
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fit);
+  }
 
   term.onSelectionChange(() => {
     if (!term.hasSelection()) return;
@@ -49,20 +74,19 @@ onMounted(() => {
   const wsUrl = __WS_BASE_URL__ || '';
   socket = io(wsUrl ? `${wsUrl}/terminal` : '/terminal', { path: '/api/v1/socket.io/' });
 
-  socket.on('connect', () => {
-    term.write(t('connection to mos terminal established') + '\r\n');
-  });
-
   const params = new URLSearchParams(window.location.search);
   const sessionId = params.get('sessionId');
-  socket.emit('join-session', {
-    sessionId: sessionId,
-    token: localStorage.getItem('authToken'),
+
+  socket.on('connect', () => {
+    term.write(t('connection to mos terminal established') + '\r\n');
+    socket.emit('join-session', {
+      sessionId: sessionId,
+      token: localStorage.getItem('authToken'),
+    });
   });
 
-  socket.on('session-joined', (info) => {
-    term.resize(info.cols, info.rows);
-    fitAddon.fit();
+  socket.on('session-joined', () => {
+    fit();
     socket.emit('terminal-resize', { cols: term.cols, rows: term.rows });
   });
 
@@ -74,19 +98,32 @@ onMounted(() => {
     socket.emit('terminal-input', data);
   });
 
-  socket.on('disconnect', () => {
-    term.write(t('connection closed') + '\r\n');
+  term.onResize(({ cols, rows }) => {
+    socket.emit('terminal-resize', { cols, rows });
   });
-});
 
-window.addEventListener('resize', () => {
-  fitAddon.fit();
+  socket.on('disconnect', () => {
+    term.write('\r\n' + t('connection closed') + '\r\n');
+  });
+
+  resizeObserver = new ResizeObserver(() => {
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(fit);
+  });
+  resizeObserver.observe(terminalEl);
 });
 
 onBeforeUnmount(() => {
+  cancelAnimationFrame(rafId);
+  if (resizeObserver) resizeObserver.disconnect();
   if (socket) socket.disconnect();
   if (term) term.dispose();
   if (fitAddon) fitAddon.dispose();
   if (clipboardAddon) clipboardAddon.dispose();
+  if (previousStyles) {
+    document.documentElement.style.overflow = previousStyles.htmlOverflow;
+    document.body.style.overflow = previousStyles.bodyOverflow;
+    document.body.style.margin = previousStyles.bodyMargin;
+  }
 });
 </script>
