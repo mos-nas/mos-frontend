@@ -498,7 +498,7 @@
       <v-card-actions>
         <v-progress-circular v-if="wsOperationDialog.loading" color="primary" class="ma-0" indeterminate />
         <v-spacer />
-        <v-btn color="onPrimary" text @click="closeWsDialog()">
+        <v-btn color="onPrimary" text @click="closeWsDialog()" :disabled="wsOperationDialog.loading">
           {{ $t('close') }}
         </v-btn>
       </v-card-actions>
@@ -516,11 +516,11 @@
 
 <script setup>
 import { onMounted, ref, nextTick, computed } from 'vue';
-import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { useOverlay } from '@/composables/useOverlay';
 import { useDockerWebSocket } from '@/composables/useDockerWebSocket';
+import { useApi } from '@/composables/useApi';
+import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 
 let _uidCounter = 0;
@@ -533,7 +533,7 @@ const props = defineProps({
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
 const router = useRouter();
-const { overlay } = useOverlay();
+const { call } = useApi();
 const networkOptions = ref([]);
 const loadingNetworks = ref(false);
 const containerOptions = ref([]);
@@ -614,46 +614,39 @@ const getDockerNetworks = async () => {
   try {
     loadingNetworks.value = true;
 
-    const res = await fetch('/api/v1/docker/networks', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const networks = await call('/api/v1/docker/networks', {
+      errorLabel: t('docker networks could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('docker networks could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    if (Array.isArray(networks)) {
+      networkOptions.value = networks.map((network) => ({
+        name: network.Name,
+        id: network.Id,
+      }));
+      networkOptions.value.sort((a, b) => {
+        const nameA = a.name.toLowerCase();
+        const nameB = b.name.toLowerCase();
+
+        if (nameA === 'bridge') return -1;
+        if (nameB === 'bridge') return 1;
+
+        const isEthBrA = nameA.startsWith('eth') || nameA.startsWith('br');
+        const isEthBrB = nameB.startsWith('eth') || nameB.startsWith('br');
+
+        if (isEthBrA && !isEthBrB) return -1;
+        if (!isEthBrA && isEthBrB) return 1;
+
+        return nameA.localeCompare(nameB);
+      });
+
+      networkOptions.value.push({ name: 'container-network', id: 'container-network' });
     }
-
-    const networks = await res.json();
-    networkOptions.value = networks.map((network) => ({
-      name: network.Name,
-      id: network.Id,
-    }));
-    networkOptions.value.sort((a, b) => {
-      const nameA = a.name.toLowerCase();
-      const nameB = b.name.toLowerCase();
-
-      if (nameA === 'bridge') return -1;
-      if (nameB === 'bridge') return 1;
-
-      const isEthBrA = nameA.startsWith('eth') || nameA.startsWith('br');
-      const isEthBrB = nameB.startsWith('eth') || nameB.startsWith('br');
-
-      if (isEthBrA && !isEthBrB) return -1;
-      if (!isEthBrA && isEthBrB) return 1;
-
-      return nameA.localeCompare(nameB);
-    });
-
-    networkOptions.value.push({ name: 'container-network', id: 'container-network' });
   } catch (e) {
     networkOptions.value = [
       { name: 'container-network', id: 'container-network' },
       { name: 'none', id: 'none' },
     ];
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     loadingNetworks.value = false;
   }
@@ -662,30 +655,22 @@ const getDockerNetworks = async () => {
 const getDockerContainers = async () => {
   try {
     loadingContainers.value = true;
-    const authHeaders = {
-      Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-    };
 
-    const res = await fetch('/api/v1/docker/containers/json?all=true', {
-      headers: authHeaders,
+    const containers = await call('/api/v1/docker/containers/json?all=true', {
+      errorLabel: t('docker containers could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('docker containers could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    if (Array.isArray(containers)) {
+      containerOptions.value = containers.map((container) => ({
+        name: container.Names[0].startsWith('/') ? container.Names[0].slice(1) : container.Names[0],
+        id: container.Id,
+      }));
+
+      containerOptions.value.sort((a, b) => a.name.localeCompare(b.name));
     }
-
-    const containers = await res.json();
-    containerOptions.value = containers.map((container) => ({
-      name: container.Names[0].startsWith('/') ? container.Names[0].slice(1) : container.Names[0],
-      id: container.Id,
-    }));
-
-    containerOptions.value.sort((a, b) => a.name.localeCompare(b.name));
   } catch (e) {
     containerOptions.value = [];
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     loadingContainers.value = false;
   }
@@ -693,22 +678,14 @@ const getDockerContainers = async () => {
 
 const getDockerPorts = async () => {
   try {
-    const res = await fetch('/api/v1/docker/mos/ports', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/docker/mos/ports', {
+      errorLabel: t('docker ports could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('docker ports could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    usedDockerPorts.value = await res.json();
+    usedDockerPorts.value = Array.isArray(result) ? result : [];
   } catch (e) {
     usedDockerPorts.value = [];
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   }
 };
 
@@ -748,30 +725,18 @@ const removeLabel = (index) => {
 const getDockerHubTemplate = async (template) => {
   const newPathBody = { template: template };
   try {
-    overlay.value = true;
-    const res = await fetch('/api/v1/mos/hub/docker/template', {
+    const jsonData = await call('/api/v1/mos/hub/docker/template', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newPathBody),
+      body: newPathBody,
+      errorLabel: t('path template could not be fetched'),
+      successLabel: t('template loaded successfully'),
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('path template could not be fetched')}|$| ${error.error || t('unknown error')}`);
+    if (jsonData) {
+      fillFormFromJson(jsonData);
+      await nextTick();
     }
-
-    const jsonData = await res.json();
-    fillFormFromJson(jsonData);
-    await nextTick();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const fillFormFromJson = (jsonData) => {
@@ -852,8 +817,6 @@ const fillFormFromJson = (jsonData) => {
       }))
     : [];
   form.gpus = Array.isArray(jsonData.gpus) ? jsonData.gpus : [];
-
-  showSnackbarSuccess(t('template loaded successfully'));
 };
 
 const createDocker = async () => {
@@ -923,24 +886,16 @@ const goBackSafely = () => {
 
 const getAllTemplates = async () => {
   try {
-    const res = await fetch('/api/v1/docker/mos/templates', {
-      method: 'GET',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/docker/mos/templates', {
+      errorLabel: t('could not fetch templates'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('could not fetch templates')}|$| ${error.error || t('unknown error')}`);
+    if (result) {
+      allTemplates.value = result;
+      allTemplatesMixed.value = [...result.installed, ...result.removed];
     }
-    const result = await res.json();
-    allTemplates.value = result;
-    allTemplatesMixed.value = [...result.installed, ...result.removed];
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+  } catch (e) {}
 };
 
 const selectTemplate = async () => {
@@ -950,18 +905,9 @@ const selectTemplate = async () => {
 
 const getDockerTemplate = async (docker, installed) => {
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/docker/mos/templates/${docker}${installed ? '?edit=true' : ''}`, {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call(`/api/v1/docker/mos/templates/${docker}${installed ? '?edit=true' : ''}`, {
+      errorLabel: t('docker container could not be loaded'),
     });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('docker container could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-    const result = await res.json();
 
     if (result) {
       form.value.name = result.name;
@@ -1056,47 +1002,36 @@ const getDockerTemplate = async (docker, installed) => {
       form.value.labels = [];
       form.value.gpus = [];
     }
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const getGPUs = async () => {
   try {
-    const res = await fetch('/api/v1/system/gpus', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/system/gpus', {
+      errorLabel: t('gpus could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('gpus could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-    gpus.value = await res.json();
+    if (result) {
+      gpus.value = result;
 
-    gpuIds.value = [];
-    const vendors = ['Intel', 'AMD', 'NVIDIA'];
-    const seen = new Set();
-    vendors.forEach((vendor) => {
-      const list = gpus.value?.[vendor];
-      if (!Array.isArray(list)) return;
-      list.forEach((gpu) => {
-        if (!gpu) return;
-        const pci = gpu.pci;
-        const name = gpu.name;
-        if (!pci || seen.has(pci)) return;
-        seen.add(pci);
-        gpuIds.value.push({ key: pci, value: pci + ' | ' + name });
+      gpuIds.value = [];
+      const vendors = ['Intel', 'AMD', 'NVIDIA'];
+      const seen = new Set();
+      vendors.forEach((vendor) => {
+        const list = gpus.value?.[vendor];
+        if (!Array.isArray(list)) return;
+        list.forEach((gpu) => {
+          if (!gpu) return;
+          const pci = gpu.pci;
+          const name = gpu.name;
+          if (!pci || seen.has(pci)) return;
+          seen.add(pci);
+          gpuIds.value.push({ key: pci, value: pci + ' | ' + name });
+        });
       });
-    });
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+    }
+  } catch (e) {}
 };
 
 const dockerStateColor = (status) => {

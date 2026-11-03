@@ -483,7 +483,7 @@
       <v-card-actions>
         <v-progress-circular v-if="wsOperationDialog.loading" color="primary" class="ma-0" indeterminate />
         <v-spacer />
-        <v-btn color="onPrimary" text @click="closeWsDialog()">
+        <v-btn color="onPrimary" text @click="closeWsDialog()" :disabled="wsOperationDialog.loading">
           {{ $t('close') }}
         </v-btn>
       </v-card-actions>
@@ -501,11 +501,11 @@
 
 <script setup>
 import { ref, onMounted, reactive, nextTick } from 'vue';
-import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useDockerWebSocket } from '@/composables/useDockerWebSocket';
-import { useOverlay } from '@/composables/useOverlay';
+import { useApi } from '@/composables/useApi';
+import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 
 const fsDialog = ref(false);
@@ -513,7 +513,7 @@ const fsDialogCallback = ref(null);
 const router = useRouter();
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
-const { overlay } = useOverlay();
+const { call } = useApi();
 const gpus = ref({});
 const gpuIds = ref([]);
 const getDocker = ref({});
@@ -582,146 +582,128 @@ const handleFsSelected = (item) => {
 
 const getDockerTemplate = async () => {
   try {
-    overlay.value = true;
-
-    const res = await fetch(`/api/v1/docker/mos/templates/${props.docker}?edit=true`, {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call(`/api/v1/docker/mos/templates/${props.docker}?edit=true`, {
+      errorLabel: t('docker container could not be loaded'),
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('docker container could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
+    if (result) {
+      getDocker.value = result;
 
-    getDocker.value = await res.json();
+      form.name = getDocker.value.name;
+      form.repo = getDocker.value.repo;
 
-    form.name = getDocker.value.name;
-    form.repo = getDocker.value.repo;
+      if (getDocker.value.network && getDocker.value.network.startsWith('container:')) {
+        networkMode.value = 'container-network';
+        form.network = getDocker.value.network;
+        const containerName = getDocker.value.network.replace('container:', '');
+        selectedContainer.value = containerName;
+        await nextTick();
+        validateContainerExists(containerName);
+      } else {
+        networkMode.value = getDocker.value.network;
+        form.network = getDocker.value.network;
+        selectedContainer.value = '';
+      }
 
-    if (getDocker.value.network && getDocker.value.network.startsWith('container:')) {
-      networkMode.value = 'container-network';
-      form.network = getDocker.value.network;
-      const containerName = getDocker.value.network.replace('container:', '');
-      selectedContainer.value = containerName;
+      form.custom_ip = getDocker.value.custom_ip;
+      form.default_shell = getDocker.value.default_shell;
+      form.privileged = getDocker.value.privileged;
+      form.no_autoupdate = getDocker.value.no_autoupdate || false;
+      form.extra_parameters = getDocker.value.extra_parameters;
+      form.post_parameters = getDocker.value.post_parameters;
+      form.web_ui_url = getDocker.value.web_ui_url;
+      form.icon = getDocker.value.icon;
+      form.paths = Array.isArray(getDocker.value.paths)
+        ? getDocker.value.paths.map((path) => ({
+            _uid: uid(),
+            name: path.name,
+            mode: path.mode,
+            host: path.host,
+            container: path.container,
+            description: path.description || '',
+          }))
+        : [];
+      form.ports = Array.isArray(getDocker.value.ports)
+        ? getDocker.value.ports.map((port) => ({
+            _uid: uid(),
+            name: port.name,
+            protocol: port.protocol,
+            host: port.host,
+            container: port.container,
+            description: port.description || '',
+          }))
+        : [];
+      form.variables = Array.isArray(getDocker.value.variables)
+        ? getDocker.value.variables.map((variable) => ({
+            _uid: uid(),
+            name: variable.name,
+            key: variable.key,
+            value: variable.value,
+            mask: variable.mask || false,
+            description: variable.description || '',
+          }))
+        : [];
+      form.devices = Array.isArray(getDocker.value.devices)
+        ? getDocker.value.devices.map((device) => ({
+            _uid: uid(),
+            name: device.name,
+            host: device.host,
+            container: device.container,
+            description: device.description || '',
+          }))
+        : [];
+      form.labels = Array.isArray(getDocker.value.labels)
+        ? getDocker.value.labels.map((label) => ({
+            _uid: uid(),
+            name: label.name,
+            key: label.key,
+            value: label.value,
+            mask: label.mask || false,
+            description: label.description || '',
+          }))
+        : [];
       await nextTick();
-      validateContainerExists(containerName);
-    } else {
-      networkMode.value = getDocker.value.network;
-      form.network = getDocker.value.network;
-      selectedContainer.value = '';
+      form.gpus = Array.isArray(getDocker.value.gpus) ? getDocker.value.gpus : [];
     }
-
-    form.custom_ip = getDocker.value.custom_ip;
-    form.default_shell = getDocker.value.default_shell;
-    form.privileged = getDocker.value.privileged;
-    form.no_autoupdate = getDocker.value.no_autoupdate || false;
-    form.extra_parameters = getDocker.value.extra_parameters;
-    form.post_parameters = getDocker.value.post_parameters;
-    form.web_ui_url = getDocker.value.web_ui_url;
-    form.icon = getDocker.value.icon;
-    form.paths = Array.isArray(getDocker.value.paths)
-      ? getDocker.value.paths.map((path) => ({
-          _uid: uid(),
-          name: path.name,
-          mode: path.mode,
-          host: path.host,
-          container: path.container,
-          description: path.description || '',
-        }))
-      : [];
-    form.ports = Array.isArray(getDocker.value.ports)
-      ? getDocker.value.ports.map((port) => ({
-          _uid: uid(),
-          name: port.name,
-          protocol: port.protocol,
-          host: port.host,
-          container: port.container,
-          description: port.description || '',
-        }))
-      : [];
-    form.variables = Array.isArray(getDocker.value.variables)
-      ? getDocker.value.variables.map((variable) => ({
-          _uid: uid(),
-          name: variable.name,
-          key: variable.key,
-          value: variable.value,
-          mask: variable.mask || false,
-          description: variable.description || '',
-        }))
-      : [];
-    form.devices = Array.isArray(getDocker.value.devices)
-      ? getDocker.value.devices.map((device) => ({
-          _uid: uid(),
-          name: device.name,
-          host: device.host,
-          container: device.container,
-          description: device.description || '',
-        }))
-      : [];
-    form.labels = Array.isArray(getDocker.value.labels)
-      ? getDocker.value.labels.map((label) => ({
-          _uid: uid(),
-          name: label.name,
-          key: label.key,
-          value: label.value,
-          mask: label.mask || false,
-          description: label.description || '',
-        }))
-      : [];
-    await nextTick();
-    form.gpus = Array.isArray(getDocker.value.gpus) ? getDocker.value.gpus : [];
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const getDockerNetworks = async () => {
   try {
     loadingNetworks.value = true;
-    const res = await fetch('/api/v1/docker/networks', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+
+    const networks = await call('/api/v1/docker/networks', {
+      errorLabel: t('docker networks could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('docker networks could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    if (Array.isArray(networks)) {
+      networkOptions.value = networks.map((network) => ({
+        name: network.Name,
+        id: network.Id,
+      }));
+      networkOptions.value.sort((a, b) => {
+        const nameA = a.name.toLowerCase();
+        const nameB = b.name.toLowerCase();
+
+        if (nameA === 'bridge') return -1;
+        if (nameB === 'bridge') return 1;
+
+        const isEthBrA = nameA.startsWith('eth') || nameA.startsWith('br');
+        const isEthBrB = nameB.startsWith('eth') || nameB.startsWith('br');
+
+        if (isEthBrA && !isEthBrB) return -1;
+        if (!isEthBrA && isEthBrB) return 1;
+
+        return nameA.localeCompare(nameB);
+      });
+      networkOptions.value.push({ name: 'container-network', id: 'container-network' });
     }
-
-    const networks = await res.json();
-    networkOptions.value = networks.map((network) => ({
-      name: network.Name,
-      id: network.Id,
-    }));
-    networkOptions.value.sort((a, b) => {
-      const nameA = a.name.toLowerCase();
-      const nameB = b.name.toLowerCase();
-
-      if (nameA === 'bridge') return -1;
-      if (nameB === 'bridge') return 1;
-
-      const isEthBrA = nameA.startsWith('eth') || nameA.startsWith('br');
-      const isEthBrB = nameB.startsWith('eth') || nameB.startsWith('br');
-
-      if (isEthBrA && !isEthBrB) return -1;
-      if (!isEthBrA && isEthBrB) return 1;
-
-      return nameA.localeCompare(nameB);
-    });
-    networkOptions.value.push({ name: 'container-network', id: 'container-network' });
   } catch (e) {
     networkOptions.value = [
       { name: 'container-network', id: 'container-network' },
       { name: 'none', id: 'none' },
     ];
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     loadingNetworks.value = false;
   }
@@ -730,30 +712,22 @@ const getDockerNetworks = async () => {
 const getDockerContainers = async () => {
   try {
     loadingContainers.value = true;
-    const authHeaders = {
-      Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-    };
 
-    const res = await fetch('/api/v1/docker/containers/json?all=true', {
-      headers: authHeaders,
+    const containers = await call('/api/v1/docker/containers/json?all=true', {
+      errorLabel: t('docker containers could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('docker containers could not be loaded')}|$| ${error.error || t('unknown error')}`);
+    if (Array.isArray(containers)) {
+      containerOptions.value = containers.map((container) => ({
+        name: container.Names[0].startsWith('/') ? container.Names[0].slice(1) : container.Names[0],
+        id: container.Id,
+      }));
+
+      containerOptions.value.sort((a, b) => a.name.localeCompare(b.name));
     }
-
-    const containers = await res.json();
-    containerOptions.value = containers.map((container) => ({
-      name: container.Names[0].startsWith('/') ? container.Names[0].slice(1) : container.Names[0],
-      id: container.Id,
-    }));
-
-    containerOptions.value.sort((a, b) => a.name.localeCompare(b.name));
   } catch (e) {
     containerOptions.value = [];
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   } finally {
     loadingContainers.value = false;
   }
@@ -761,22 +735,14 @@ const getDockerContainers = async () => {
 
 const getDockerPorts = async () => {
   try {
-    const res = await fetch('/api/v1/docker/mos/ports', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/docker/mos/ports', {
+      errorLabel: t('docker ports could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('docker ports could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    usedDockerPorts.value = await res.json();
+    usedDockerPorts.value = Array.isArray(result) ? result : [];
   } catch (e) {
     usedDockerPorts.value = [];
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
   }
 };
 
@@ -834,37 +800,31 @@ const updateDocker = async () => {
 
 const getGPUs = async () => {
   try {
-    const res = await fetch('/api/v1/system/gpus', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/system/gpus', {
+      errorLabel: t('gpus could not be loaded'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('gpus could not be loaded')}|$| ${error.error || t('unknown error')}`);
-    }
-    gpus.value = await res.json();
+    if (result) {
+      gpus.value = result;
 
-    gpuIds.value = [];
-    const vendors = ['Intel', 'AMD', 'NVIDIA'];
-    const seen = new Set();
-    vendors.forEach((vendor) => {
-      const list = gpus.value?.[vendor];
-      if (!Array.isArray(list)) return;
-      list.forEach((gpu) => {
-        if (!gpu) return;
-        const pci = gpu.pci;
-        const name = gpu.name;
-        if (!pci || seen.has(pci)) return;
-        seen.add(pci);
-        gpuIds.value.push({ key: pci, value: pci + ' | ' + name });
+      gpuIds.value = [];
+      const vendors = ['Intel', 'AMD', 'NVIDIA'];
+      const seen = new Set();
+      vendors.forEach((vendor) => {
+        const list = gpus.value?.[vendor];
+        if (!Array.isArray(list)) return;
+        list.forEach((gpu) => {
+          if (!gpu) return;
+          const pci = gpu.pci;
+          const name = gpu.name;
+          if (!pci || seen.has(pci)) return;
+          seen.add(pci);
+          gpuIds.value.push({ key: pci, value: pci + ' | ' + name });
+        });
       });
-    });
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
+    }
+  } catch (e) {}
 };
 
 const goBackSafely = () => {

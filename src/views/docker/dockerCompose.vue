@@ -120,7 +120,7 @@
       <v-card-actions>
         <v-progress-circular v-if="wsOperationDialog.loading" color="primary" class="ma-0" indeterminate />
         <v-spacer />
-        <v-btn color="onPrimary" text @click="closeWsDialog()">
+        <v-btn color="onPrimary" text @click="closeWsDialog()" :disabled="wsOperationDialog.loading">
           {{ $t('close') }}
         </v-btn>
       </v-card-actions>
@@ -134,7 +134,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted, watch } from 'vue';
+import { reactive, ref, onMounted, watch, toRaw } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useTheme } from 'vuetify';
@@ -143,15 +143,15 @@ import { EditorView } from '@codemirror/view';
 import { basicSetup } from 'codemirror';
 import { yaml } from '@codemirror/lang-yaml';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { useOverlay } from '@/composables/useOverlay';
 import { useDockerWebSocket } from '@/composables/useDockerWebSocket';
+import { useApi } from '@/composables/useApi';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { t } = useI18n();
 const router = useRouter();
 const theme = useTheme();
-const { overlay } = useOverlay();
+const { call } = useApi();
 const sidePanel = ref({ open: false });
 const usedDockerPorts = ref([]);
 const yamlEditorContainer = ref(null);
@@ -273,95 +273,63 @@ const updateEnvEditor = (newValue) => {
 };
 
 const createComposeStack = async () => {
-  sendDockerWSCommand('compose-create', composeStack);
+  sendDockerWSCommand('compose-create', toRaw(composeStack));
 };
 
 const getComposeHubTemplate = async (template, yaml, env, web_ui_url, no_autoupdate) => {
   const newFilesBody = { template: template, yaml: yaml, env: env, web_ui_url: web_ui_url, no_autoupdate: no_autoupdate };
   try {
-    overlay.value = true;
-    const res = await fetch('/api/v1/mos/hub/compose/template', {
+    const result = await call('/api/v1/mos/hub/compose/template', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newFilesBody),
+      body: newFilesBody,
+      errorLabel: t('compose template could not be fetched'),
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('compose template could not be fetched')}|$| ${error.error || t('unknown error')}`);
+    if (result) {
+      composeStack.name = result.name || '';
+      composeStack.yaml = result.yaml || '';
+      updateYamlEditor(composeStack.yaml);
+      composeStack.env = result.env || '';
+      updateEnvEditor(composeStack.env);
+      composeStack.icon = result.icon || '';
+      composeStack.web_ui_url = result.web_ui_url || '';
+      composeStack.no_autoupdate = result.no_autoupdate || false;
     }
-
-    const result = await res.json();
-    composeStack.name = result.name || '';
-    composeStack.yaml = result.yaml || '';
-    updateYamlEditor(composeStack.yaml);
-    composeStack.env = result.env || '';
-    updateEnvEditor(composeStack.env);
-    composeStack.icon = result.icon || '';
-    composeStack.web_ui_url = result.web_ui_url || '';
-    composeStack.no_autoupdate = result.no_autoupdate || false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const getComposeTemplateNames = async () => {
   try {
-    const res = await fetch('/api/v1/docker/mos/compose/templates', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call('/api/v1/docker/mos/compose/templates', {
+      errorLabel: t('compose templates could not be fetched'),
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('compose templates could not be fetched')}|$| ${error.error || t('unknown error')}`);
+    if (result) {
+      composeTemplates.value = [...(result.installed || []), ...(result.removed || [])];
     }
-
-    const result = await res.json();
-    composeTemplates.value = [...(result.installed || []), ...(result.removed || [])];
   } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
     composeTemplates.value = [];
   }
 };
 
 const getComposeTemplate = async (templateName) => {
   try {
-    overlay.value = true;
-    const res = await fetch(`/api/v1/docker/mos/compose/templates/${encodeURIComponent(templateName)}`, {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
+    const result = await call(`/api/v1/docker/mos/compose/templates/${encodeURIComponent(templateName)}`, {
+      errorLabel: t('compose template could not be fetched'),
     });
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('compose template could not be fetched')}|$| ${error.error || t('unknown error')}`);
+    if (result) {
+      composeStack.name = result.name || '';
+      composeStack.yaml = result.yaml || '';
+      updateYamlEditor(composeStack.yaml);
+      composeStack.env = result.env || '';
+      updateEnvEditor(composeStack.env);
+      composeStack.icon = result.icon || '';
+      composeStack.web_ui_url = result.web_ui_url || '';
+      composeStack.no_autoupdate = result.no_autoupdate || false;
     }
-
-    const result = await res.json();
-    composeStack.name = result.name || '';
-    composeStack.yaml = result.yaml || '';
-    updateYamlEditor(composeStack.yaml);
-    composeStack.env = result.env || '';
-    updateEnvEditor(composeStack.env);
-    composeStack.icon = result.icon || '';
-    composeStack.web_ui_url = result.web_ui_url || '';
-    composeStack.no_autoupdate = result.no_autoupdate || false;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    overlay.value = false;
-  }
+  } catch (e) {}
 };
 
 const goBackSafely = () => {
@@ -386,16 +354,13 @@ const dockerStateColor = (status) => {
 
 const getDockerPorts = async () => {
   try {
-    const res = await fetch('/api/v1/docker/mos/ports', {
-      headers: { Authorization: 'Bearer ' + localStorage.getItem('authToken') },
+    const result = await call('/api/v1/docker/mos/ports', {
+      errorLabel: t('docker ports could not be loaded'),
+      showError: false,
+      showOverlay: false,
     });
 
-    if (!res.ok) {
-      usedDockerPorts.value = [];
-      return;
-    }
-
-    usedDockerPorts.value = await res.json();
+    usedDockerPorts.value = Array.isArray(result) ? result : [];
   } catch {
     usedDockerPorts.value = [];
   }
