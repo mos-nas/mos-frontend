@@ -1,8 +1,8 @@
 <template>
-  <v-container fluid class="d-flex justify-center">
-    <v-container style="width: 100%; max-width: 1920px" class="pa-0">
-      <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
-        <div class="d-flex align-center ga-3 mb-4">
+  <v-container fluid class="pa-0 d-flex justify-center" style="height: calc(100vh - var(--v-layout-top, 64px) - var(--v-layout-bottom, 0px)); overflow: hidden">
+    <v-container style="width: 100%; max-width: 1920px; display: flex; flex-direction: column; height: 100%; min-height: 0" class="pa-4">
+      <v-container fluid class="pt-2 pr-0 pl-0 pb-2" style="flex: 0 0 auto">
+        <div class="d-flex align-center ga-3 mb-2">
           <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
           <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ t('webterminal') }}</h2>
           <v-spacer></v-spacer>
@@ -12,8 +12,8 @@
           </v-btn>
         </div>
       </v-container>
-      <v-container fluid class="pa-0">
-        <div id="terminal" style="width: 100%; height: 420px; padding: 8px; background: #000000"></div>
+      <v-container fluid class="pa-0" style="display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0">
+        <div id="terminal" style="width: 100%; flex: 1 1 auto; min-height: 0; padding: 8px; background: #000000; overflow: hidden"></div>
       </v-container>
     </v-container>
   </v-container>
@@ -36,6 +36,7 @@ const clipboardAddon = new ClipboardAddon();
 const fitAddon = new FitAddon();
 let socket;
 let term;
+let resizeObserver;
 let joined = false;
 const sessions = ref([]);
 
@@ -44,7 +45,8 @@ onMounted(async () => {
   term = new Terminal({ cursorBlink: true, fontFamily: 'monospace', fontSize: 14 });
   term.loadAddon(fitAddon);
   term.loadAddon(clipboardAddon);
-  term.open(document.getElementById('terminal'));
+  const terminalEl = document.getElementById('terminal');
+  term.open(terminalEl);
   fitAddon.fit();
 
   term.onSelectionChange(() => {
@@ -106,9 +108,10 @@ onMounted(async () => {
   });
 
   // Window Resize - Resize Terminal
-  window.addEventListener('resize', () => {
+  resizeObserver = new ResizeObserver(() => {
     fitAddon.fit();
   });
+  resizeObserver.observe(terminalEl);
 
   // Error handling
   socket.on('error', (error) => {
@@ -123,6 +126,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  if (resizeObserver) resizeObserver.disconnect();
   if (socket) {
     socket.emit('leave-session');
     socket.disconnect();
