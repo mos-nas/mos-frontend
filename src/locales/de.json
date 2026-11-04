@@ -1524,6 +1524,7 @@
   "download certificate": "Zertifikat herunterladen",
   "download": "Herunterladen",
   "upload": "Hochladen",
+  "drop files to upload": "Dateien zum Hochladen hier loslassen",
   "file could not be downloaded": "Datei konnte nicht heruntergeladen werden",
   "file could not be uploaded": "Datei konnte nicht hochgeladen werden",
   "file uploaded successfully": "Datei erfolgreich hochgeladen",

@@ -1524,6 +1524,7 @@
   "download certificate": "Download Certificate",
   "download": "Download",
   "upload": "Upload",
+  "drop files to upload": "Drop files here to upload",
   "file could not be downloaded": "File could not be downloaded",
   "file could not be uploaded": "File could not be uploaded",
   "file uploaded successfully": "File uploaded successfully",

@@ -90,7 +90,38 @@
             </div>
           </v-card-title>
           <v-divider />
-          <v-card-text class="pa-0" style="min-height: 300px; max-height: 75vh; overflow-y: auto">
+          <v-card-text
+            class="pa-0 file-drop-zone"
+            style="min-height: 300px; max-height: 75vh; overflow-y: auto; position: relative"
+            @dragenter.prevent="onDragEnter"
+            @dragover.prevent
+            @dragleave.prevent="onDragLeave"
+            @drop.prevent="handleDrop"
+          >
+            <div
+              v-if="dragOverTable"
+              class="drop-overlay"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(var(--v-theme-primary), 0.1);
+                border: 2px dashed rgb(var(--v-theme-primary));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10;
+                border-radius: 4px;
+                pointer-events: none;
+              "
+            >
+              <div class="d-flex flex-column align-center gap-2">
+                <v-icon size="48" color="primary">mdi-cloud-upload-outline</v-icon>
+                <span class="text-h6 text-primary">{{ $t('drop files to upload') }}</span>
+              </div>
+            </div>
             <v-table density="compact">
               <thead>
                 <tr style="cursor: pointer; background-color: rgba(0, 0, 0, 0.04)">
@@ -547,6 +578,8 @@ const items = ref([]);
 const canGoUp = ref(false);
 const parentPath = ref(null);
 const activeItem = ref(null);
+const dragOverTable = ref(false);
+const dragCounter = ref(0);
 const { overlay } = useOverlay();
 const editFileDialogVisible = ref(false);
 const fsDialog = ref(false);
@@ -952,6 +985,32 @@ const isSelectable = (item) => {
   if (selectType.value === 'directory') return item.type === 'directory';
   if (selectType.value === 'file') return item.type !== 'directory';
   return true;
+};
+
+const onDragEnter = (e) => {
+  dragCounter.value++;
+  dragOverTable.value = true;
+};
+
+const onDragLeave = (e) => {
+  dragCounter.value--;
+  if (dragCounter.value === 0) {
+    dragOverTable.value = false;
+  }
+};
+
+const handleDrop = async (e) => {
+  dragCounter.value = 0;
+  dragOverTable.value = false;
+
+  const files = e.dataTransfer?.files;
+  if (!files || files.length === 0) return;
+
+  const fileArray = Array.from(files);
+
+  for (const file of fileArray) {
+    await uploadFile(file, currentPath.value);
+  }
 };
 
 const setActiveItem = (item) => {
