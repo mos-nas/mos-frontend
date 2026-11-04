@@ -13,7 +13,7 @@
           <template #item="{ element: pool, index }">
             <v-card class="mb-3 pa-0" variant="outlined" rounded="lg">
               <div class="d-flex align-center px-3 py-2">
-                <span class="drag-handle mr-2" style="cursor: grab; line-height: 1" aria-label="drag handle" aria-hidden>
+                <span :class="{ 'drag-handle': !pool.external }" class="mr-2" style="cursor: grab; line-height: 1" aria-label="drag handle" aria-hidden>
                   <v-icon size="18">mdi-drag</v-icon>
                 </span>
                 <span class="font-weight-medium text-truncate text-h6">{{ pool.name }}</span>
@@ -40,8 +40,8 @@
                 <v-chip v-if="pool.type" size="x-small" class="mr-1" variant="tonal">{{ pool.type }}</v-chip>
                 <v-chip v-if="pool.status.mounted" size="x-small" color="green" variant="tonal">{{ $t('mounted') }}</v-chip>
                 <v-chip v-else size="x-small" color="grey" variant="tonal">{{ $t('unmounted') }}</v-chip>
-                <v-switch v-model="pool.automount" hide-details density="compact" color="green" inset class="ml-3 flex-grow-0" style="transform: scale(0.8)" @change="switchAutomount(pool)" />
-                <v-menu>
+                <v-switch v-if="!pool.external" v-model="pool.automount" hide-details density="compact" color="green" inset class="ml-3 flex-grow-0" style="transform: scale(0.8)" @change="switchAutomount(pool)" />
+                <v-menu v-if="!pool.external">
                   <template #activator="{ props }">
                     <v-btn variant="text" icon size="small" v-bind="props" color="onPrimary">
                       <v-icon size="20">mdi-dots-vertical</v-icon>
