@@ -40,7 +40,17 @@
                 <v-chip v-if="pool.type" size="x-small" class="mr-1" variant="tonal">{{ pool.type }}</v-chip>
                 <v-chip v-if="pool.status.mounted" size="x-small" color="green" variant="tonal">{{ $t('mounted') }}</v-chip>
                 <v-chip v-else size="x-small" color="grey" variant="tonal">{{ $t('unmounted') }}</v-chip>
-                <v-switch v-if="!pool.external" v-model="pool.automount" hide-details density="compact" color="green" inset class="ml-3 flex-grow-0" style="transform: scale(0.8)" @change="switchAutomount(pool)" />
+                <v-switch
+                  v-if="!pool.external"
+                  v-model="pool.automount"
+                  hide-details
+                  density="compact"
+                  color="green"
+                  inset
+                  class="ml-3 flex-grow-0"
+                  style="transform: scale(0.8)"
+                  @change="switchAutomount(pool)"
+                />
                 <v-menu v-if="!pool.external">
                   <template #activator="{ props }">
                     <v-btn variant="text" icon size="small" v-bind="props" color="onPrimary">
@@ -2412,6 +2422,9 @@ const openPoolSettingsDialog = async (pool) => {
     openNonraidSettingsDialog(pool);
   } else if (pool.type === 'btrfs') {
     openBtrfsSettingsDialog(pool);
+  } else if (pool.type === 'single') {
+    //Not implemented for single type pools
+    showSnackbarError('Settings for single type pools are not implemented');
   }
 };
 const openBtrfsSettingsDialog = (pool) => {
@@ -2440,10 +2453,10 @@ const openBtrfsSettingsDialog = (pool) => {
   );
 
   btrfsSettingsDialog.spindown.data_devices = (pool.data_devices || [])
-    .filter(d => d.spindown !== undefined && d.spindown !== null)
+    .filter((d) => d.spindown !== undefined && d.spindown !== null)
     .map((d) => ({ slot: d.slot, device: d.device, value: d.spindown }));
   btrfsSettingsDialog.spindown.parity_devices = (pool.parity_devices || [])
-    .filter(d => d.spindown !== undefined && d.spindown !== null)
+    .filter((d) => d.spindown !== undefined && d.spindown !== null)
     .map((d) => ({ slot: d.slot, device: d.device, value: d.spindown }));
 
   btrfsSettingsDialog.value = true;
@@ -2483,10 +2496,10 @@ const openMergerfsSettingsDialog = async (pool) => {
   );
 
   mergerfsSettingsDialog.spindown.data_devices = (pool.data_devices || [])
-    .filter(d => d.spindown !== undefined && d.spindown !== null)
+    .filter((d) => d.spindown !== undefined && d.spindown !== null)
     .map((d) => ({ slot: d.slot, device: d.device, value: d.spindown }));
   mergerfsSettingsDialog.spindown.parity_devices = (pool.parity_devices || [])
-    .filter(d => d.spindown !== undefined && d.spindown !== null)
+    .filter((d) => d.spindown !== undefined && d.spindown !== null)
     .map((d) => ({ slot: d.slot, device: d.device, value: d.spindown }));
 
   mergerfsSettingsDialog.value = true;
@@ -2509,10 +2522,10 @@ const openNonraidSettingsDialog = (pool) => {
   );
 
   nonraidSettingsDialog.spindown.data_devices = (pool.data_devices || [])
-    .filter(d => d.spindown !== undefined && d.spindown !== null)
+    .filter((d) => d.spindown !== undefined && d.spindown !== null)
     .map((d) => ({ slot: d.slot, device: d.device, value: d.spindown }));
   nonraidSettingsDialog.spindown.parity_devices = (pool.parity_devices || [])
-    .filter(d => d.spindown !== undefined && d.spindown !== null)
+    .filter((d) => d.spindown !== undefined && d.spindown !== null)
     .map((d) => ({ slot: d.slot, device: d.device, value: d.spindown }));
 
   nonraidSettingsDialog.value = true;

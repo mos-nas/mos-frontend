@@ -1,9 +1,10 @@
 <template>
   <v-container fluid class="d-flex justify-center">
-    <v-container style="width: 100%; max-width: 1920px" class="pa-0">
-      <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
-        <div class="d-flex align-center ga-3 mb-4">
-          <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
+    <pull-to-refresh :on-refresh="getLXCs" class="w-100">
+      <v-container style="width: 100%; max-width: 1920px" class="pa-0">
+        <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
+          <div class="d-flex align-center ga-3 mb-4">
+            <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
           <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ t('lxc containers') }}</h2>
           <v-spacer />
           <v-text-field v-model="searchTerm" :placeholder="t('search')" density="compact" hide-details clearable class="search-field" prepend-inner-icon="mdi-magnify" />
@@ -163,6 +164,7 @@
         </v-card>
       </v-container>
     </v-container>
+    </pull-to-refresh>
   </v-container>
 
   <!-- Create LXC Dialog -->
@@ -368,6 +370,7 @@ import { useApi } from '@/composables/useApi';
 import { openTerminalPopup } from '@/composables/terminalpopup';
 import FileEditDialog from '@/components/fileEditDialog.vue';
 import FsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
+import PullToRefresh from '@/components/pullToRefresh.vue';
 import { io } from 'socket.io-client';
 
 const editFileDialogVisible = ref(false);

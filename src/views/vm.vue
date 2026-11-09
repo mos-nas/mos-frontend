@@ -1,9 +1,10 @@
 <template>
   <v-container fluid class="d-flex justify-center">
-    <v-container style="width: 100%; max-width: 1920px" class="pa-0">
-      <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
-        <div class="d-flex align-center ga-3 mb-4">
-          <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
+    <pull-to-refresh :on-refresh="getVMs" class="w-100">
+      <v-container style="width: 100%; max-width: 1920px" class="pa-0">
+        <v-container fluid class="pt-2 pr-0 pl-0 pb-2">
+          <div class="d-flex align-center ga-3 mb-4">
+            <div style="width: 4px; height: 32px; border-radius: 2px; background: rgb(var(--v-theme-primary))"></div>
           <h2 class="font-weight-medium ma-0" style="font-weight: 600; line-height: 1.1">{{ t('vm') }}</h2>
           <v-spacer />
           <v-text-field v-model="searchTerm" :placeholder="t('search')" density="compact" hide-details clearable class="search-field" prepend-inner-icon="mdi-magnify" />
@@ -147,6 +148,7 @@
         </v-card>
       </v-container>
     </v-container>
+    </pull-to-refresh>
   </v-container>
 
   <!-- Create VM Dialog -->
@@ -1146,6 +1148,7 @@ import { useApi } from '@/composables/useApi';
 import { io } from 'socket.io-client';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 import xmlEditor from '@/components/xmlEditor.vue';
+import PullToRefresh from '@/components/pullToRefresh.vue';
 import { useRouter } from 'vue-router';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
