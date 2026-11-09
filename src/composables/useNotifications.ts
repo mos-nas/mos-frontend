@@ -12,6 +12,7 @@ const notificationsBadge = ref(false);
 let ws: WebSocket | null = null;
 let reconnectTimer: number | null = null;
 let reconnectAttempts = 0;
+let connectGeneration = 0;
 
 const errorMessage = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -66,8 +67,31 @@ const handleMessage = (ev: MessageEvent) => {
   }
 };
 
-function connectWS() {
+async function getWsTicket(): Promise<string | null> {
+  try {
+    const resp = await fetch('/api/v1/notifications/ticket', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + localStorage.getItem('authToken') },
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data.ticket || null;
+  } catch {
+    return null;
+  }
+}
+
+async function connectWS() {
   cleanupWS();
+  const generation = ++connectGeneration;
+
+  const ticket = await getWsTicket();
+  if (generation !== connectGeneration) return;
+  if (!ticket) {
+    scheduleReconnect();
+    return;
+  }
+
   let wsUrl: string;
   if (__WS_BASE_URL__) {
     wsUrl = `${__WS_BASE_URL__}/api/v1/notify`;
@@ -75,7 +99,7 @@ function connectWS() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     wsUrl = `${protocol}//${window.location.host}/api/v1/notify`;
   }
-  ws = new WebSocket(wsUrl);
+  ws = new WebSocket(`${wsUrl}?ticket=${encodeURIComponent(ticket)}`);
 
   ws.onopen = () => {
     reconnectAttempts = 0;
@@ -169,7 +193,10 @@ export function useNotifications() {
   };
 
   const connect = () => connectWS();
-  const disconnect = () => cleanupWS();
+  const disconnect = () => {
+    connectGeneration++;
+    cleanupWS();
+  };
   const reset = () => {
     notificationsBadge.value = false;
   };
