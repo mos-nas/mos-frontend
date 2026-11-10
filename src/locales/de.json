@@ -1872,5 +1872,10 @@
   "update repositories": "Repositorys aktualisieren",
   "could not load templates": "Vorlagen konnten nicht geladen werden",
   "or add more repositories to expand your selection": "Oder füge weitere Repositorys hinzu, um die Auswahl zu vergrößern",
-  "manage repositories": "Repositorys verwalten"
+  "manage repositories": "Repositorys verwalten",
+  "new version": "Neue Version",
+  "mos version is up to date": "MOS-Version ist aktuell",
+  "auto update enabled": "Automatische Updates aktiviert",
+  "auto update disabled": "Automatische Updates deaktiviert",
+  "security notice": "Sicherheitsmitteilung"
 }

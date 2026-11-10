@@ -198,13 +198,11 @@ import { onMounted, ref, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useTheme } from 'vuetify';
-import { useOverlay } from '@/composables/useOverlay';
 import { useApi } from '@/composables/useApi';
 import { useServerInfo } from '@/composables/useServerInfo';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const { availableLocales, locale, t } = useI18n();
-const { overlay } = useOverlay();
 const { call } = useApi();
 const { menuLayout } = useServerInfo();
 const selectedLanguage = ref(locale.value);
@@ -254,8 +252,8 @@ const getUser = async () => {
       errorLabel: t('profile could not be loaded'),
       showOverlay: false,
     });
+    selectedLanguage.value = result.language || locale.value;
     selectedByteFormat.value = result.byte_format || 'binary';
-    // Handle darkmode: convert boolean (old format) to string (new format)
     if (typeof result.darkmode === 'boolean') {
       darkMode.value = result.darkmode ? 'dark' : 'light';
     } else {

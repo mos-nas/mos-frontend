@@ -49,18 +49,11 @@ const ready = ref(false);
 const overlay = ref(false);
 const loadingStatus = ref('');
 
-const currentLogo = computed(() => 
-  theme.global.name.value === 'dark' ? mosIconWhite : mosIcon
-);
+const currentLogo = computed(() => (theme.global.name.value === 'dark' ? mosIconWhite : mosIcon));
 
 const startLoadingMessages = () => {
-  const messages = [
-    t('initializing system'),
-    t('loading modules'),
-    t('preparing interface'),
-    t('almost there')
-  ];
-  
+  const messages = [t('initializing system'), t('loading modules'), t('preparing interface'), t('almost there')];
+
   const randomIndex = Math.floor(Math.random() * messages.length);
   loadingStatus.value = messages[randomIndex];
 };
@@ -71,9 +64,12 @@ onMounted(() => {
   startLoadingMessages();
 });
 
-router.isReady().then(() => {
-  ready.value = true;
-});
+router
+  .isReady()
+  .catch(() => {})
+  .finally(() => {
+    ready.value = true;
+  });
 
 const layout = computed(() => (route.meta.layout === 'blank' ? RouterView : AppShell));
 
@@ -114,14 +110,6 @@ html {
   justify-content: center;
   background: linear-gradient(135deg, var(--v-theme-background) 0%, var(--v-theme-surface) 100%);
   z-index: 9999;
-  animation: fadeOut 0.5s ease-in-out 2.5s forwards;
-}
-
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-    pointer-events: none;
-  }
 }
 
 .loading-container {

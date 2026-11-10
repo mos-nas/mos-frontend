@@ -1,4 +1,3 @@
-// composables/useApi.ts
 import { showSnackbarError, showSnackbarSuccess } from './snackbar';
 import { useOverlay } from './useOverlay';
 

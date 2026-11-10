@@ -1872,5 +1872,10 @@
   "update repositories": "Update repositories",
   "could not load templates": "Could not load templates",
   "or add more repositories to expand your selection": "Or add more repositories to expand your selection",
-  "manage repositories": "Manage repositories"
+  "manage repositories": "Manage repositories",
+  "new version": "New version",
+  "mos version is up to date": "MOS version is up to date",
+  "auto update enabled": "Auto update enabled",
+  "auto update disabled": "Auto update disabled",
+  "security notice": "Security notice"
 }
