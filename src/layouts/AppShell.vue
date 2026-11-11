@@ -16,8 +16,8 @@
             <!-- MOS Version with Status Icon -->
             <div v-if="mosVersion" class="d-flex align-center ga-1">
               <span class="text-caption text-disabled info-value">{{ $t('mos') }}: {{ mosVersion }}&nbsp;</span>
-              <v-icon size="x-small" :color="mosServices?.mos?.os_update_available ? 'warning' : 'success'">
-                {{ mosServices?.mos?.os_update_available ? 'mdi-alert-circle' : 'mdi-check-circle' }}
+              <v-icon size="x-small" :color="updateStatusIcon.color">
+                {{ updateStatusIcon.icon }}
               </v-icon>
             </div>
             <!-- OS Update Status -->
@@ -44,7 +44,7 @@
 
             <!-- Next Scheduled Auto Update -->
             <div v-if="mosServices?.mos?.auto_update?.next_scheduled != null" class="d-flex align-center ga-2">
-              <span class="text-caption text-disabled">{{ $t('next scheduled') }}:&nbsp;</span>
+              <span class="text-caption text-disabled">{{ $t('execution') }}:&nbsp;</span>
               <div class="flex-grow-1">
                 <div class="text-caption text-disabled info-value" :title="String(mosServices.mos.auto_update.next_scheduled)">
                   {{ mosServices.mos.auto_update.next_scheduled }}
@@ -302,6 +302,14 @@ provide('mosServices', mosServices);
 
 // Critical system update: an OS update is available
 const criticalUpdate = computed(() => Boolean(mosServices.value?.mos?.os_update_available));
+
+// os_update_available: string (neue Version) | false (aktuell) | null (Prüfung nicht möglich)
+const updateStatusIcon = computed(() => {
+  const available = mosServices.value?.mos?.os_update_available;
+  if (available == null) return { icon: 'mdi-help-circle', color: 'grey' };
+  if (available) return { icon: 'mdi-alert-circle', color: 'warning' };
+  return { icon: 'mdi-check-circle', color: 'success' };
+});
 
 const relativeLuminance = (hex) => {
   const value = String(hex).replace('#', '');

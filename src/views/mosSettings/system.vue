@@ -33,13 +33,15 @@
             <v-switch :label="$t('https enabled')" color="green" inset v-model="settingsSystem.webui.https_enabled" density="compact" class="pt-4 pb-4" hide-details="auto"></v-switch>
             <v-row class="ga-2">
               <v-col cols="12" sm="auto">
-              <v-btn color="primary" variant="outlined" @click="openShowCertificatesDialog()" :disabled="!settingsSystem.webui.https_enabled" block>{{ $t('show certificates') }}</v-btn>
+                <v-btn color="primary" variant="outlined" @click="openShowCertificatesDialog()" :disabled="!settingsSystem.webui.https_enabled" block>{{ $t('show certificates') }}</v-btn>
               </v-col>
               <v-col cols="12" sm="auto">
-              <v-btn color="primary" variant="outlined" @click="recreateCertificatesDialog.value = true" :disabled="!settingsSystem.webui.https_enabled" block>{{ $t('recreate certificates') }}</v-btn>
+                <v-btn color="primary" variant="outlined" @click="recreateCertificatesDialog.value = true" :disabled="!settingsSystem.webui.https_enabled" block>
+                  {{ $t('recreate certificates') }}
+                </v-btn>
               </v-col>
               <v-col cols="12" sm="auto">
-              <v-btn color="primary" variant="outlined" @click="downloadCertificate()" :disabled="!settingsSystem.webui.https_enabled" block>{{ $t('download root certificate') }}</v-btn>
+                <v-btn color="primary" variant="outlined" @click="downloadCertificate()" :disabled="!settingsSystem.webui.https_enabled" block>{{ $t('download root certificate') }}</v-btn>
               </v-col>
             </v-row>
             <v-text-field class="mt-6" :label="$t('http port')" type="number" v-model="settingsSystem.webui.ports.http"></v-text-field>
@@ -51,7 +53,14 @@
             <v-text-field :label="$t('max log directory size')" type="number" v-model="settingsSystem.logsize" class="mb-4 mt-4" suffix="MB"></v-text-field>
             <v-divider class="my-2"></v-divider>
             <span class="text-title-medium font-weight-medium">{{ $t('update settings') }}</span>
-            <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" class="pt-4" density="compact"></v-switch>
+            <v-row class="ga-2">
+              <v-col cols="12" sm="6">
+                <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" class="pt-4" density="compact"></v-switch>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-switch :label="$t('webui notification')" color="green" inset v-model="settingsSystem.update_check.webui_notification" class="pt-4" density="compact"></v-switch>
+              </v-col>
+            </v-row>
             <v-text-field
               :label="$t('update check schedule (cron)')"
               v-model="settingsSystem.update_check.update_check_schedule"
@@ -261,7 +270,6 @@
   <v-fab @click="setSystemSettings()" color="primary" style="position: fixed; bottom: 32px; right: 32px; z-index: 1000" size="large" icon>
     <v-icon>mdi-content-save</v-icon>
   </v-fab>
-
 </template>
 
 <script setup>

@@ -1880,5 +1880,7 @@
   "mos version is up to date": "MOS version is up to date",
   "auto update enabled": "Auto update enabled",
   "auto update disabled": "Auto update disabled",
-  "security notice": "Security notice"
+  "security notice": "Security notice",
+  "execution": "Execution",
+  "webui notification": "WebUI Notification"
 }
