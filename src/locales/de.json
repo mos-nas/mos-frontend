@@ -1882,5 +1882,6 @@
   "auto update disabled": "Automatische Updates deaktiviert",
   "security notice": "Sicherheitsmitteilung",
   "execution": "Ausführung",
-  "webui notification": "WebUI Benachrichtigung"
+  "webui notification": "WebUI Benachrichtigung",
+  "new version available": "Neue Version verfügbar"
 }

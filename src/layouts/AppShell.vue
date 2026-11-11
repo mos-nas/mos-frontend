@@ -13,62 +13,60 @@
       <v-menu activator="parent" location="bottom">
         <v-card min-width="200">
           <v-card-text class="pa-3">
-            <!-- MOS Version with Status Icon -->
-            <div v-if="mosVersion" class="d-flex align-center ga-1">
-              <span class="text-caption text-disabled info-value">{{ $t('mos') }}: {{ mosVersion }}&nbsp;</span>
-              <v-icon size="x-small" :color="updateStatusIcon.color">
-                {{ updateStatusIcon.icon }}
-              </v-icon>
-            </div>
-            <!-- OS Update Status -->
-            <div class="d-flex align-center ga-2">
-              <div class="flex-grow-1">
-                <div v-if="mosServices?.mos?.os_update_available" class="text-subtitle-2 text-warning">
-                  {{ $t('new version') }}
+            <div class="info-grid">
+              <!-- MOS Version with Status Icon -->
+              <div v-if="mosVersion" class="info-row">
+                <span class="text-caption text-disabled">{{ $t('mos version') }}:</span>
+                <div class="d-flex align-center ga-1">
+                  <span class="text-caption text-disabled info-value">{{ mosVersion }}</span>
+                  <v-icon size="x-small" :color="updateStatusIcon.color">
+                    {{ updateStatusIcon.icon }}
+                  </v-icon>
                 </div>
-                <div v-if="mosServices?.mos?.os_update_available" class="text-caption text-medium-emphasis info-value" :title="mosServices?.mos?.os_update_available">
+              </div>
+
+              <!-- OS Update Status -->
+              <div v-if="mosServices?.mos?.os_update_available" class="info-full">
+                <div class="text-subtitle-2 text-warning">
+                  {{ $t('new version available') }}
+                </div>
+                <div class="text-caption text-medium-emphasis info-value" :title="mosServices?.mos?.os_update_available">
                   {{ mosServices?.mos?.os_update_available }}
                 </div>
               </div>
-            </div>
 
-            <!-- Auto Update Info -->
-            <div class="d-flex align-center ga-2">
-              <span class="text-caption text-disabled">{{ $t('auto update') }}:&nbsp;</span>
-              <div class="flex-grow-1">
+              <!-- Auto Update Info -->
+              <div class="info-row">
+                <span class="text-caption text-disabled">{{ $t('auto update') }}:</span>
                 <div class="text-caption text-disabled info-value">
                   {{ mosServices?.mos?.auto_update?.enabled ? $t('enabled') : $t('disabled') }}
                 </div>
               </div>
-            </div>
 
-            <!-- Next Scheduled Auto Update -->
-            <div v-if="mosServices?.mos?.auto_update?.next_scheduled != null" class="d-flex align-center ga-2">
-              <span class="text-caption text-disabled">{{ $t('execution') }}:&nbsp;</span>
-              <div class="flex-grow-1">
-                <div class="text-caption text-disabled info-value" :title="String(mosServices.mos.auto_update.next_scheduled)">
-                  {{ mosServices.mos.auto_update.next_scheduled }}
+              <!-- Next Scheduled Auto Update -->
+              <div v-if="mosServices?.mos?.auto_update?.next_scheduled != null" class="info-row">
+                <span class="text-caption text-disabled">{{ $t('execution') }}:</span>
+                <div class="d-flex align-center ga-2">
+                  <span class="text-caption text-disabled info-value" :title="String(mosServices.mos.auto_update.next_scheduled)">
+                    {{ mosServices.mos.auto_update.next_scheduled }}
+                  </span>
+                  <v-btn size="x-small" variant="tonal" density="compact" class="auto-update-cancel-btn" @click="cancelAutoUpdate">
+                    {{ $t('cancel') }}
+                  </v-btn>
                 </div>
               </div>
-              <v-btn size="x-small" variant="tonal" density="compact" class="auto-update-cancel-btn" @click="cancelAutoUpdate">
-                {{ $t('cancel') }}
-              </v-btn>
-            </div>
 
-            <!-- Security Notice -->
-            <div v-if="mosServices?.mos?.security_notice" class="d-flex align-center ga-2">
-              <span class="text-caption text-disabled">{{ $t('security notice') }}:&nbsp;</span>
-              <div class="flex-grow-1">
+              <!-- Security Notice -->
+              <div v-if="mosServices?.mos?.security_notice" class="info-row">
+                <span class="text-caption text-disabled">{{ $t('security notice') }}:</span>
                 <div class="text-caption text-disabled info-value" :title="mosServices.mos.security_notice">
-                  <a href="{{ mosServices.mos.security_notice }}" target="_blank">{{ mosServices.mos.security_notice }}</a>
+                  <a :href="mosServices.mos.security_notice" target="_blank">{{ mosServices.mos.security_notice }}</a>
                 </div>
               </div>
-            </div>
 
-            <!-- Reboot Pending -->
-            <div v-if="mosServices?.mos?.reboot_pending?.pending" class="d-flex align-center ga-2">
-              <span class="text-caption text-disabled">{{ $t('reboot pending') }}:&nbsp;</span>
-              <div class="flex-grow-1">
+              <!-- Reboot Pending -->
+              <div v-if="mosServices?.mos?.reboot_pending?.pending" class="info-row">
+                <span class="text-caption text-disabled">{{ $t('reboot pending') }}:</span>
                 <div class="text-caption text-disabled info-value" :title="mosServices?.mos?.reboot_pending?.reason?.join(', ')">
                   {{ mosServices?.mos?.reboot_pending?.reason?.join(', ') }}
                 </div>
@@ -300,13 +298,9 @@ const isGroupActive = (entry) => entry.items.some((item) => item.key === activeT
 
 provide('mosServices', mosServices);
 
-// Critical system update: an OS update is available
 const criticalUpdate = computed(() => Boolean(mosServices.value?.mos?.os_update_available));
-
-// os_update_available: string (neue Version) | false (aktuell) | null (Prüfung nicht möglich)
 const updateStatusIcon = computed(() => {
   const available = mosServices.value?.mos?.os_update_available;
-  if (available == null) return { icon: 'mdi-help-circle', color: 'grey' };
   if (available) return { icon: 'mdi-alert-circle', color: 'warning' };
   return { icon: 'mdi-check-circle', color: 'success' };
 });
@@ -479,6 +473,24 @@ onUnmounted(() => {
   margin-left: auto;
   padding-right: 8px;
   flex-shrink: 0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: center;
+}
+
+.info-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.info-full {
+  grid-column: 1 / -1;
 }
 
 .info-value {
