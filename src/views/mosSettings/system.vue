@@ -53,21 +53,39 @@
             <v-text-field :label="$t('max log directory size')" type="number" v-model="settingsSystem.logsize" class="mb-4 mt-4" suffix="MB"></v-text-field>
             <v-divider class="my-2"></v-divider>
             <span class="text-title-medium font-weight-medium">{{ $t('update settings') }}</span>
-            <v-row class="ga-2">
-              <v-col cols="12" sm="6">
-                <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" class="pt-4" density="compact"></v-switch>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <v-switch :label="$t('webui notification')" color="green" inset v-model="settingsSystem.update_check.webui_notification" class="pt-4" density="compact"></v-switch>
-              </v-col>
-            </v-row>
-            <v-text-field
-              :label="$t('update check schedule (cron)')"
-              v-model="settingsSystem.update_check.update_check_schedule"
-              :disabled="!settingsSystem.update_check.enabled"
-              append-inner-icon="mdi-calendar-clock"
-              @click:append-inner="openCronDialog(settingsSystem.update_check.update_check_schedule, (schedule) => (settingsSystem.update_check.update_check_schedule = schedule))"
-            ></v-text-field>
+            <div class="d-flex flex-column flex-sm-row align-sm-center ga-2 ga-sm-6 mt-4">
+              <div style="min-width: 280px">
+                <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" density="compact" hide-details></v-switch>
+              </div>
+              <v-text-field
+                :label="$t('update check schedule (cron)')"
+                v-model="settingsSystem.update_check.update_check_schedule"
+                :disabled="!settingsSystem.update_check.enabled"
+                append-inner-icon="mdi-calendar-clock"
+                hide-details
+                density="compact"
+                class="update-cron-field"
+                @click:append-inner="openCronDialog(settingsSystem.update_check.update_check_schedule, (schedule) => (settingsSystem.update_check.update_check_schedule = schedule))"
+              ></v-text-field>
+            </div>
+            <div class="d-flex flex-column flex-sm-row align-sm-center ga-2 ga-sm-6 mt-4">
+              <div style="min-width: 280px">
+                <v-switch :label="$t('auto update')" color="green" inset v-model="settingsSystem.update_check.auto_update.enabled" density="compact" hide-details></v-switch>
+              </div>
+              <v-text-field
+                :label="$t('update check schedule (cron)')"
+                v-model="settingsSystem.update_check.auto_update.auto_update_schedule"
+                :disabled="!settingsSystem.update_check.auto_update.enabled"
+                append-inner-icon="mdi-calendar-clock"
+                hide-details
+                density="compact"
+                class="update-cron-field"
+                @click:append-inner="openCronDialog(settingsSystem.update_check.auto_update.auto_update_schedule, (schedule) => (settingsSystem.update_check.auto_update.auto_update_schedule = schedule))"
+              ></v-text-field>
+            </div>
+            <div class="mt-4">
+              <v-switch :label="$t('webui notification')" color="green" inset v-model="settingsSystem.update_check.webui_notification" density="compact" hide-details></v-switch>
+            </div>
             <v-divider class="my-2"></v-divider>
             <span class="text-title-medium font-weight-medium">{{ $t('display settings') }}</span>
             <v-switch :label="$t('powersave')" color="green" inset v-model="settingsSystem.display.powersave" :true-value="'on'" :false-value="'off'" class="pt-4" density="compact" />
@@ -330,6 +348,11 @@ const settingsSystem = ref({
   update_check: {
     enabled: true,
     update_check_schedule: '0 1 * * *',
+    webui_notification: false,
+    auto_update: {
+      enabled: false,
+      auto_update_schedule: '0 5 * * SAT',
+    },
   },
   logsize: 200,
   binfmt: {
