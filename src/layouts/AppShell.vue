@@ -6,14 +6,16 @@
     <v-spacer />
 
     <v-btn icon variant="text" :title="$t('about')" :aria-label="$t('about')" class="info-btn-appbar">
-      <v-icon>mdi-information</v-icon>
+      <v-badge :model-value="criticalUpdate" color="error" dot floating bordered location="top end">
+        <v-icon>mdi-information</v-icon>
+      </v-badge>
 
       <v-menu activator="parent" location="bottom">
         <v-card min-width="200">
           <v-card-text class="pa-3">
             <!-- MOS Version with Status Icon -->
             <div v-if="mosVersion" class="d-flex align-center ga-1">
-              <span class="text-caption text-disabled">{{ $t('mos') }}: {{ mosVersion }}&nbsp;</span>
+              <span class="text-caption text-disabled info-value">{{ $t('mos') }}: {{ mosVersion }}&nbsp;</span>
               <v-icon size="x-small" :color="mosServices?.mos?.os_update_available ? 'warning' : 'success'">
                 {{ mosServices?.mos?.os_update_available ? 'mdi-alert-circle' : 'mdi-check-circle' }}
               </v-icon>
@@ -24,7 +26,7 @@
                 <div v-if="mosServices?.mos?.os_update_available" class="text-subtitle-2 text-warning">
                   {{ $t('new version') }}
                 </div>
-                <div v-if="mosServices?.mos?.os_update_available" class="text-caption text-medium-emphasis">
+                <div v-if="mosServices?.mos?.os_update_available" class="text-caption text-medium-emphasis info-value" :title="mosServices?.mos?.os_update_available">
                   {{ mosServices?.mos?.os_update_available }}
                 </div>
               </div>
@@ -34,17 +36,30 @@
             <div class="d-flex align-center ga-2">
               <span class="text-caption text-disabled">{{ $t('auto update') }}:&nbsp;</span>
               <div class="flex-grow-1">
-                <div class="text-caption text-disabled">
+                <div class="text-caption text-disabled info-value">
                   {{ mosServices?.mos?.auto_update?.enabled ? $t('enabled') : $t('disabled') }}
                 </div>
               </div>
+            </div>
+
+            <!-- Next Scheduled Auto Update -->
+            <div v-if="mosServices?.mos?.auto_update?.next_scheduled != null" class="d-flex align-center ga-2">
+              <span class="text-caption text-disabled">{{ $t('next scheduled') }}:&nbsp;</span>
+              <div class="flex-grow-1">
+                <div class="text-caption text-disabled info-value" :title="String(mosServices.mos.auto_update.next_scheduled)">
+                  {{ mosServices.mos.auto_update.next_scheduled }}
+                </div>
+              </div>
+              <v-btn size="x-small" variant="tonal" density="compact" class="auto-update-cancel-btn" @click="cancelAutoUpdate">
+                {{ $t('cancel') }}
+              </v-btn>
             </div>
 
             <!-- Security Notice -->
             <div v-if="mosServices?.mos?.security_notice" class="d-flex align-center ga-2">
               <span class="text-caption text-disabled">{{ $t('security notice') }}:&nbsp;</span>
               <div class="flex-grow-1">
-                <div class="text-caption text-disabled">
+                <div class="text-caption text-disabled info-value" :title="mosServices.mos.security_notice">
                   {{ mosServices.mos.security_notice }}
                 </div>
               </div>
@@ -54,7 +69,7 @@
             <div v-if="mosServices?.mos?.reboot_pending?.pending" class="d-flex align-center ga-2">
               <span class="text-caption text-disabled">{{ $t('reboot pending') }}:&nbsp;</span>
               <div class="flex-grow-1">
-                <div class="text-caption text-disabled">
+                <div class="text-caption text-disabled info-value" :title="mosServices?.mos?.reboot_pending?.reason?.join(', ')">
                   {{ mosServices?.mos?.reboot_pending?.reason?.join(', ') }}
                 </div>
               </div>
@@ -209,7 +224,11 @@ import { useAuth } from '../composables/useAuth';
 import { useAppearance } from '../composables/useAppearance';
 import { useNotifications } from '../composables/useNotifications';
 import { useServerInfo } from '../composables/useServerInfo';
+import { useApi } from '../composables/useApi';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
+const { call } = useApi();
 const router = useRouter();
 const display = useDisplay();
 const theme = useVuetifyTheme();
@@ -281,6 +300,9 @@ const isGroupActive = (entry) => entry.items.some((item) => item.key === activeT
 
 provide('mosServices', mosServices);
 
+// Critical system update: an OS update is available
+const criticalUpdate = computed(() => Boolean(mosServices.value?.mos?.os_update_available));
+
 const relativeLuminance = (hex) => {
   const value = String(hex).replace('#', '');
   const full =
@@ -315,6 +337,19 @@ const toggleDrawer = () => {
 const refreshDrawer = async () => {
   loadMenuPreferences();
   await loadServices();
+};
+
+const cancelAutoUpdate = async () => {
+  try {
+    await call('/api/v1/mos/settings/system/auto_update/cancel', {
+      method: 'POST',
+      errorLabel: t('could not cancel auto update'),
+      showOverlay: false,
+    });
+    await loadServices();
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const doLogout = async () => {
@@ -436,6 +471,22 @@ onUnmounted(() => {
   margin-left: auto;
   padding-right: 8px;
   flex-shrink: 0;
+}
+
+.info-value {
+  max-width: 50ch;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auto-update-cancel-btn {
+  height: 18px !important;
+  min-width: 0 !important;
+  padding: 0 6px !important;
+  font-size: 0.65rem !important;
+  text-transform: none;
 }
 
 .info-btn-appbar,
