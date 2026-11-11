@@ -55,7 +55,7 @@
             <span class="text-title-medium font-weight-medium">{{ $t('update settings') }}</span>
             <div class="d-flex flex-column flex-sm-row align-sm-center ga-2 ga-sm-6 mt-4">
               <div style="min-width: 280px">
-                <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" density="compact" hide-details></v-switch>
+                <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" @update:model-value="onUpdateCheckToggle" density="compact" hide-details></v-switch>
               </div>
               <v-text-field
                 :label="$t('update check schedule (cron)')"
@@ -70,12 +70,12 @@
             </div>
             <div class="d-flex flex-column flex-sm-row align-sm-center ga-2 ga-sm-6 mt-4">
               <div style="min-width: 280px">
-                <v-switch :label="$t('auto update')" color="green" inset v-model="settingsSystem.update_check.auto_update.enabled" density="compact" hide-details></v-switch>
+                <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('auto update')" color="green" inset v-model="settingsSystem.update_check.auto_update.enabled" density="compact" hide-details></v-switch>
               </div>
               <v-text-field
                 :label="$t('update check schedule (cron)')"
                 v-model="settingsSystem.update_check.auto_update.auto_update_schedule"
-                :disabled="!settingsSystem.update_check.auto_update.enabled"
+                :disabled="!settingsSystem.update_check.enabled || !settingsSystem.update_check.auto_update.enabled"
                 append-inner-icon="mdi-calendar-clock"
                 hide-details
                 density="compact"
@@ -84,7 +84,7 @@
               ></v-text-field>
             </div>
             <div class="mt-4">
-              <v-switch :label="$t('webui notification')" color="green" inset v-model="settingsSystem.update_check.webui_notification" density="compact" hide-details></v-switch>
+              <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('webui notification')" color="green" inset v-model="settingsSystem.update_check.webui_notification" density="compact" hide-details></v-switch>
             </div>
             <v-divider class="my-2"></v-divider>
             <span class="text-title-medium font-weight-medium">{{ $t('display settings') }}</span>
@@ -297,6 +297,13 @@ import { useI18n } from 'vue-i18n';
 import { useOverlay } from '@/composables/useOverlay';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
+
+function onUpdateCheckToggle(enabled) {
+  if (!enabled) {
+    settingsSystem.value.update_check.auto_update.enabled = false;
+    settingsSystem.value.update_check.webui_notification = false;
+  }
+}
 
 const fsDialog = ref(false);
 const fsDialogCallback = ref(null);

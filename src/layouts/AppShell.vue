@@ -6,7 +6,7 @@
     <v-spacer />
 
     <v-btn icon variant="text" :title="$t('about')" :aria-label="$t('about')" class="info-btn-appbar">
-      <v-badge :model-value="criticalUpdate" color="error" dot floating bordered location="top end">
+      <v-badge :model-value="criticalUpdate" color="error" dot floating bordered location="bottom end" offset-x="18" offset-y="18">
         <v-icon>mdi-information</v-icon>
       </v-badge>
 
@@ -60,7 +60,7 @@
               <span class="text-caption text-disabled">{{ $t('security notice') }}:&nbsp;</span>
               <div class="flex-grow-1">
                 <div class="text-caption text-disabled info-value" :title="mosServices.mos.security_notice">
-                  {{ mosServices.mos.security_notice }}
+                  <a href="{{ mosServices.mos.security_notice }}" target="_blank">{{ mosServices.mos.security_notice }}</a>
                 </div>
               </div>
             </div>
