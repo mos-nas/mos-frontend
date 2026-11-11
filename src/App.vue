@@ -9,19 +9,14 @@
       </div>
     </div>
     <component :is="layout" v-else />
+
+    <v-overlay :model-value="overlay" persistent class="align-center justify-center">
+      <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
+    </v-overlay>
   </v-app>
 
-  <Toaster id="top-toaster" position="top-center" :richColors="true" :theme="theme.global.name.value === 'dark' ? 'dark' : 'light'" :expand="true" :visibleToasts="3" :offset="16" />
-  <Toaster id="bottom-toaster" position="bottom-center" :richColors="true" :theme="theme.global.name.value === 'dark' ? 'dark' : 'light'" :expand="true" :visibleToasts="3" :offset="16" />
-
-  <v-overlay
-    :model-value="overlay"
-    contained
-    class="d-flex align-center justify-center"
-    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex !important; align-items: center !important; justify-content: center !important"
-  >
-    <v-progress-circular color="onPrimary" size="64" indeterminate></v-progress-circular>
-  </v-overlay>
+  <Toaster id="top-toaster" position="top-center" :richColors="true" :theme="toasterTheme" :expand="true" :visibleToasts="3" :offset="16" />
+  <Toaster id="bottom-toaster" position="bottom-center" :richColors="true" :theme="toasterTheme" :expand="true" :visibleToasts="3" :offset="16" />
 </template>
 
 <script setup>
@@ -49,7 +44,9 @@ const ready = ref(false);
 const overlay = ref(false);
 const loadingStatus = ref('');
 
-const currentLogo = computed(() => (theme.global.name.value === 'dark' ? mosIconWhite : mosIcon));
+const isDark = computed(() => theme.global.current.value.dark);
+const currentLogo = computed(() => (isDark.value ? mosIconWhite : mosIcon));
+const toasterTheme = computed(() => (isDark.value ? 'dark' : 'light'));
 
 const startLoadingMessages = () => {
   const messages = [t('initializing system'), t('loading modules'), t('preparing interface'), t('almost there')];
@@ -75,15 +72,11 @@ const layout = computed(() => (route.meta.layout === 'blank' ? RouterView : AppS
 
 applyStoredAppearance();
 
-watch(
-  isLoggedIn,
-  (loggedIn) => {
-    if (!loggedIn) {
-      applySystemDefaults();
-    }
-  },
-  { immediate: true },
-);
+watch(isLoggedIn, (loggedIn) => {
+  if (!loggedIn) {
+    applySystemDefaults();
+  }
+});
 
 watch(
   () => [hostname.value, route.path],
@@ -108,7 +101,7 @@ html {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--v-theme-background) 0%, var(--v-theme-surface) 100%);
+  background: linear-gradient(135deg, rgb(var(--v-theme-background)) 0%, rgb(var(--v-theme-surface)) 100%);
   z-index: 9999;
 }
 

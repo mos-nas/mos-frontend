@@ -214,7 +214,7 @@ const router = useRouter();
 const display = useDisplay();
 const theme = useVuetifyTheme();
 const { logout, fetchProfile } = useAuth();
-const { applySystemDefaults, applyUser } = useAppearance();
+const { applyUser } = useAppearance();
 const { notificationsBadge, refreshBadge, connect, disconnect, subscribePush, unsubscribePush, reset: resetNotifications } = useNotifications();
 const { mosServices, hostname, mosVersion, hideInactiveMenus, groupMenus, menuLayout, loadMenuPreferences, loadServices, loadHostInfo, reset: resetServerInfo } = useServerInfo();
 
@@ -320,7 +320,7 @@ const refreshDrawer = async () => {
 const doLogout = async () => {
   logoutDialog.value = false;
   try {
-    unsubscribePush();
+    await unsubscribePush();
     disconnect();
     resetNotifications();
     resetServerInfo();
@@ -328,7 +328,6 @@ const doLogout = async () => {
     console.error(error);
   } finally {
     logout();
-    applySystemDefaults();
     await router.push('/login');
   }
 };

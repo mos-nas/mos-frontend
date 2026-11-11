@@ -149,7 +149,7 @@ router.beforeEach(async (to) => {
   }
 
   const { description } = to.meta;
-  const defaultDescription = 'MOS - Modern Operating System for your home server';
+  const defaultDescription = 'MOS - Modular Operating System for your home server';
   const descriptionElement = document.querySelector('head meta[name="description"]');
 
   if (descriptionElement) {
