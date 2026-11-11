@@ -703,6 +703,7 @@ import { onMounted, ref, reactive, inject, watch, nextTick } from 'vue';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import { useOverlay } from '@/composables/useOverlay';
+import { useServerInfo } from '@/composables/useServerInfo';
 
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
 const mosReleases = ref({});
@@ -719,7 +720,7 @@ const rollbackKernelDialog = ref(false);
 const rebootDialog = ref(false);
 const shutdownDialog = ref(false);
 const showSpecialActions = ref(0);
-const osInfo = ref({});
+const { osInfo, loadHostInfo } = useServerInfo();
 const { t } = useI18n();
 const { overlay } = useOverlay();
 const updateOsDialog = reactive({
@@ -736,9 +737,7 @@ const updateKernelDialog = reactive({
   loading: true
 });
 
-onMounted(() => {
-  getOsInfo();
-});
+onMounted(loadHostInfo);
 
 const getMosReleases = async () => {
   try {
@@ -784,26 +783,6 @@ const getMosKernel = async () => {
 
     const data = await res.json();
     mosKernel.value = data;
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = e.message.split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  }
-};
-
-const getOsInfo = async () => {
-  try {
-    const res = await fetch('/api/v1/mos/osinfo', {
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-      },
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(`${t('API-Error')}|$| ${error.error || t('unknown error')}`);
-    }
-
-    osInfo.value = await res.json();
   } catch (e) {
     const [userMessage, apiErrorMessage] = e.message.split('|$|');
     showSnackbarError(userMessage, apiErrorMessage);

@@ -3,6 +3,7 @@ import { showSnackbarError } from './snackbar';
 import { useAuth } from './useAuth';
 
 const mosServices = ref<Record<string, any>>({});
+const osInfo = ref<Record<string, any>>({});
 const hostname = ref('');
 const mosVersion = ref('');
 const hideInactiveMenus = ref(localStorage.getItem('hideInactiveMenus') === 'true');
@@ -33,6 +34,7 @@ export function useServerInfo() {
       const res = await fetch('/api/v1/mos/osinfo', { method: 'GET', headers: authHeaders() });
       if (!res.ok) throw new Error('API-Error');
       const result = await res.json();
+      osInfo.value = result;
       hostname.value = result.hostname || '';
       mosVersion.value = result.mos?.version || '';
     } catch (e) {
@@ -42,6 +44,7 @@ export function useServerInfo() {
 
   const reset = () => {
     mosServices.value = {};
+    osInfo.value = {};
     hostname.value = '';
     mosVersion.value = '';
     hideInactiveMenus.value = false;
@@ -49,5 +52,5 @@ export function useServerInfo() {
     menuLayout.value = 'vertical';
   };
 
-  return { mosServices, hostname, mosVersion, hideInactiveMenus, groupMenus, menuLayout, loadMenuPreferences, loadServices, loadHostInfo, reset };
+  return { mosServices, osInfo, hostname, mosVersion, hideInactiveMenus, groupMenus, menuLayout, loadMenuPreferences, loadServices, loadHostInfo, reset };
 }
