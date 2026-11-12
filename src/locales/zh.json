@@ -763,7 +763,7 @@
   "stop stack": "停止堆栈",
   "remove stack": "移除堆栈",
   "restart stack": "重启堆栈",
-  "are you sure you want to remove this docker compose stack? all containers in this stack will be removed.": "确定要移除此 Docker Compose 堆栈吗？堆栈中的所有容器都将被移除。",
+  "are you sure you want to remove this docker compose stack? all containers in this stack will be removed.": "确定要移除此 Docker Compose 堆栈吗？警告：此堆栈中的所有容器和命名卷都将被移除。这些卷中存储的数据将被永久删除。",
   "remove docker compose stack": "移除 Docker Compose 堆栈",
   "docker compose stack could not be restarted": "无法重启 Docker Compose 堆栈",
   "docker compose stack restarted successfully": "Docker Compose 堆栈已重启",

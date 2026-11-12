@@ -766,7 +766,7 @@
   "stop stack": "Stop Stack",
   "remove stack": "Remove Stack",
   "restart stack": "Restart Stack",
-  "are you sure you want to remove this docker compose stack? all containers in this stack will be removed.": "Are you sure you want to remove this Docker Compose stack? All containers in this stack will be removed.",
+  "are you sure you want to remove this docker compose stack? all containers in this stack will be removed.": "Are you sure you want to remove this Docker Compose stack? Warning: All containers and named volumes in this stack will be removed. Data stored in these volumes will be permanently deleted.",
   "remove docker compose stack": "Remove Docker Compose Stack",
   "docker compose stack could not be restarted": "Docker Compose Stack could not be restarted",
   "docker compose stack restarted successfully": "Docker Compose Stack restarted successfully",
