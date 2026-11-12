@@ -763,7 +763,7 @@
   "stop stack": "停止堆疊",
   "remove stack": "移除堆疊",
   "restart stack": "重新啟動堆疊",
-  "are you sure you want to remove this docker compose stack? all containers in this stack will be removed.": "確定要移除此 Docker Compose 堆疊嗎？堆疊中的所有容器都將被移除。",
+  "are you sure you want to remove this docker compose stack? all containers in this stack will be removed.": "確定要移除此 Docker Compose 堆疊嗎？警告：此堆疊中的所有容器和具名卷都將被移除。這些卷中儲存的資料將被永久刪除。",
   "remove docker compose stack": "移除 Docker Compose 堆疊",
   "docker compose stack could not be restarted": "無法重新啟動 Docker Compose 堆疊",
   "docker compose stack restarted successfully": "Docker Compose 堆疊已重新啟動",

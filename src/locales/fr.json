@@ -729,7 +729,7 @@
   "stop stack": "Arrêter la stack",
   "remove stack": "Supprimer la stack",
   "restart stack": "Redémarrer la stack",
-  "are you sure you want to remove this docker compose stack? all containers in this stack will be removed.": "Êtes-vous sûr de vouloir supprimer cette stack Docker Compose ? Tous les conteneurs de cette stack seront supprimés.",
+  "are you sure you want to remove this docker compose stack? all containers in this stack will be removed.": "Êtes-vous sûr de vouloir supprimer cette stack Docker Compose ? Avertissement : Tous les conteneurs et tous les volumes nommés de cette stack seront supprimés. Les données stockées dans ces volumes seront définitivement supprimées.",
   "remove docker compose stack": "Supprimer la stack Docker Compose",
   "docker compose stack could not be restarted": "Impossible de redémarrer la stack Docker Compose",
   "docker compose stack restarted successfully": "Stack Docker Compose redémarrée avec succès",
