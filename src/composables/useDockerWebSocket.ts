@@ -29,22 +29,47 @@ export function useDockerWebSocket(options: DockerWsOptions = {}) {
 
   let socket: Socket | null = null;
 
+  // Auto-Scroll nur, solange der Nutzer am Ende klebt; scrollt er hoch, bleibt die Position
+  let stickToBottom = true;
+  const onScroll = () => {
+    const el = wsScrollContainer.value;
+    if (el) {
+      stickToBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 20;
+    }
+  };
+
+  const scrollToBottom = () => {
+    const el = wsScrollContainer.value;
+    if (el && stickToBottom) {
+      el.scrollTop = el.scrollHeight;
+    }
+  };
+
+  // Listener setzen, sobald der Container (verzögert) im Dialog gemountet wird
+  watch(wsScrollContainer, (el, oldEl) => {
+    oldEl?.removeEventListener('scroll', onScroll);
+    el?.addEventListener('scroll', onScroll, { passive: true });
+    if (el) {
+      stickToBottom = true;
+    }
+  });
+
   watch(
-    () => wsOperationDialog.data.length,
+    [() => wsOperationDialog.data.length, wsScrollContainer],
     () => {
       nextTick(() => {
-        const el = wsScrollContainer.value;
-        if (el) {
-          el.scrollTop = el.scrollHeight;
-        }
+        scrollToBottom();
+        requestAnimationFrame(scrollToBottom);
       });
     },
+    { flush: 'post' },
   );
 
   const clearWsOperationDialog = () => {
     wsOperationDialog.operationId = '';
     wsOperationDialog.data = [];
     wsOperationDialog.loading = false;
+    stickToBottom = true;
   };
 
   const openWsOperationDialog = () => {
@@ -102,6 +127,7 @@ export function useDockerWebSocket(options: DockerWsOptions = {}) {
     socket.on('connect_error', (err: any) => {
       wsError.value = `Connection error: ${err.message}`;
       onErrorSnackbar(t('docker command error occurred'), err.message);
+      wsOperationDialog.loading = false;
       cleanupSocket();
     });
 
@@ -130,6 +156,7 @@ export function useDockerWebSocket(options: DockerWsOptions = {}) {
         wsOperationDialog.loading = true;
       } else if (data.status === 'error') {
         onErrorSnackbar(t('docker command error occurred'), data.message);
+        wsOperationDialog.loading = false;
         cleanupSocket();
       } else if (data.status === 'completed') {
         onSuccessSnackbar(t('docker command completed successfully'));
@@ -138,11 +165,8 @@ export function useDockerWebSocket(options: DockerWsOptions = {}) {
           output: `------------------------------------\n${command} ${data.status}`,
         });
         cleanupSocket();
-
-        if (onCompleted) {
-          wsOperationDialog.loading = false;
-          onCompleted();
-        }
+        wsOperationDialog.loading = false;
+        onCompleted?.();
       }
     };
 
@@ -151,6 +175,7 @@ export function useDockerWebSocket(options: DockerWsOptions = {}) {
     socket.on('error', (err: any) => {
       wsError.value = `Socket error: ${err}`;
       onErrorSnackbar(t('docker command error occurred'), String(err));
+      wsOperationDialog.loading = false;
       cleanupSocket();
     });
   };

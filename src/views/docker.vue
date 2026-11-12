@@ -1019,7 +1019,7 @@ const unusedImagesDialog = reactive({
   images: [],
 });
 const dockersLoading = ref(true);
-const { wsOperationDialog, sendDockerWSCommand, closeWsDialog } = useDockerWebSocket({
+const { wsOperationDialog, wsScrollContainer, sendDockerWSCommand, closeWsDialog } = useDockerWebSocket({
   onErrorSnackbar: showSnackbarError,
   onSuccessSnackbar: showSnackbarSuccess,
   onCompleted: async () => {

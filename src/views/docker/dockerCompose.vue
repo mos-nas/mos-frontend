@@ -120,7 +120,7 @@
       <v-card-actions>
         <v-progress-circular v-if="wsOperationDialog.loading" color="primary" class="ma-0" indeterminate />
         <v-spacer />
-        <v-btn color="onPrimary" text @click="closeWsDialog()" :disabled="wsOperationDialog.loading">
+        <v-btn color="onPrimary" text @click="onCloseWsDialog()" :disabled="wsOperationDialog.loading">
           {{ $t('close') }}
         </v-btn>
       </v-card-actions>
@@ -196,10 +196,17 @@ const { wsIsConnected, wsError, wsOperationDialog, wsScrollContainer, sendDocker
   onErrorSnackbar: showSnackbarError,
   onSuccessSnackbar: showSnackbarSuccess,
   onCompleted: async () => {
-    closeWsDialog();
-    goBackSafely();
+    wsCompleted = true;
   },
 });
+
+let wsCompleted = false;
+const onCloseWsDialog = () => {
+  const completed = wsCompleted;
+  wsCompleted = false;
+  closeWsDialog();
+  if (completed) goBackSafely();
+};
 
 const getEditorTheme = () => {
   return theme.global.name.value === 'dark' ? [oneDark] : [];
