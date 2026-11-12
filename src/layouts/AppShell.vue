@@ -5,106 +5,108 @@
     <v-toolbar-title v-show="display.mdAndUp.value">{{ hostname || '' }}</v-toolbar-title>
     <v-spacer />
 
-    <v-btn icon variant="text" :title="$t('about')" :aria-label="$t('about')" class="info-btn-appbar">
-      <v-badge :model-value="criticalUpdate" color="error" dot floating bordered location="bottom end" offset-x="18" offset-y="18">
+    <v-badge :model-value="mosServices?.mos?.os_update_available" color="error" dot floating bordered location="bottom end" offset-x="18" offset-y="18">
+      <v-btn icon variant="text" :title="$t('about')" :aria-label="$t('about')" class="info-btn-appbar">
         <v-icon>mdi-information</v-icon>
-      </v-badge>
 
-      <v-menu activator="parent" location="bottom">
-        <v-card min-width="200">
-          <v-card-text class="pa-3">
-            <div class="info-grid">
-              <!-- MOS Version with Status Icon -->
-              <div v-if="mosVersion" class="info-row">
-                <span class="text-caption text-disabled">{{ $t('mos version') }}:</span>
-                <div class="d-flex align-center ga-1">
-                  <span class="text-caption text-disabled info-value">{{ mosVersion }}</span>
-                  <v-icon size="x-small" :color="updateStatusIcon.color">
-                    {{ updateStatusIcon.icon }}
+        <v-menu activator="parent" location="bottom">
+          <v-card min-width="200">
+            <v-card-text class="pa-3">
+              <div class="info-grid">
+                <!-- MOS Version with Status Icon -->
+                <div v-if="mosVersion" class="info-row">
+                  <span class="text-caption text-disabled">{{ $t('mos version') }}:</span>
+                  <div class="d-flex align-center ga-1">
+                    <span class="text-caption text-disabled info-value">{{ mosVersion }}</span>
+                    <v-icon size="x-small" :color="updateStatusIcon.color">
+                      {{ updateStatusIcon.icon }}
+                    </v-icon>
+                  </div>
+                </div>
+
+                <!-- OS Update Status -->
+                <div v-if="mosServices?.mos?.os_update_available" class="info-full">
+                  <div class="text-subtitle-2 text-warning">
+                    {{ $t('new version available') }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis info-value" :title="mosServices?.mos?.os_update_available">
+                    {{ mosServices?.mos?.os_update_available }}
+                  </div>
+                </div>
+
+                <!-- Auto Update Info -->
+                <div class="info-row">
+                  <span class="text-caption text-disabled">{{ $t('auto update') }}:</span>
+                  <div class="text-caption text-disabled info-value">
+                    {{ mosServices?.mos?.auto_update?.enabled ? $t('enabled') : $t('disabled') }}
+                  </div>
+                </div>
+
+                <!-- Next Scheduled Auto Update -->
+                <div v-if="mosServices?.mos?.auto_update?.next_scheduled != null" class="info-row">
+                  <span class="text-caption text-disabled">{{ $t('execution') }}:</span>
+                  <div class="d-flex align-center ga-2">
+                    <span class="text-caption text-disabled info-value" :title="String(mosServices.mos.auto_update.next_scheduled)">
+                      {{ mosServices.mos.auto_update.next_scheduled }}
+                    </span>
+                    <v-btn size="x-small" variant="tonal" density="compact" class="auto-update-cancel-btn" @click="cancelAutoUpdate">
+                      {{ $t('cancel') }}
+                    </v-btn>
+                  </div>
+                </div>
+
+                <!-- Security Notice -->
+                <div v-if="mosServices?.mos?.security_notice" class="info-row">
+                  <span class="text-caption text-disabled">{{ $t('security notice') }}:</span>
+                  <div class="text-caption text-disabled info-value" :title="mosServices.mos.security_notice">
+                    <v-btn size="x-small" variant="tonal" density="compact" class="auto-update-cancel-btn" :href="mosServices.mos.security_notice" target="_blank" rel="noopener noreferrer">
+                      {{ $t('open') }}
+                    </v-btn>
+                  </div>
+                </div>
+
+                <!-- Reboot Pending -->
+                <div v-if="mosServices?.mos?.reboot_pending?.pending" class="info-row">
+                  <span class="text-caption text-disabled">{{ $t('reboot pending') }}:</span>
+                  <div class="text-caption text-disabled info-value" :title="mosServices?.mos?.reboot_pending?.reason?.join(', ')">
+                    {{ mosServices?.mos?.reboot_pending?.reason?.join(', ') }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Horizontal Menu Content -->
+              <div v-if="menuLayout === 'horizontal'" class="d-flex flex-column ga-2">
+                <v-divider class="mt-2 mb-2"></v-divider>
+
+                <!-- Tailscale -->
+                <div v-if="mosServices?.tailscale?.enabled" class="d-flex align-center ga-1">
+                  <v-icon size="x-small" :color="mosServices.tailscale?.online ? 'success' : 'error'">
+                    {{ mosServices.tailscale?.online ? 'mdi-lock-outline' : 'mdi-lock-off-outline' }}
                   </v-icon>
+                  <span class="text-caption" :class="mosServices.tailscale?.online ? 'text-success' : 'text-error'">Tailscale</span>
+                </div>
+
+                <!-- Netbird -->
+                <div v-if="mosServices?.netbird?.enabled" class="d-flex align-center ga-1">
+                  <v-icon size="x-small" :color="mosServices.netbird?.online ? 'success' : 'error'">
+                    {{ mosServices.netbird?.online ? 'mdi-lock-outline' : 'mdi-lock-off-outline' }}
+                  </v-icon>
+                  <span class="text-caption" :class="mosServices.netbird?.online ? 'text-success' : 'text-error'">Netbird</span>
+                </div>
+
+                <!-- Supporter Badge -->
+                <div v-if="mosServices?.mos?.supporter">
+                  <div class="supporter-badge">
+                    <v-img src="/mos_black.png" alt="MOS" width="24" height="24" contain class="supporter-badge__logo" />
+                    <span class="supporter-badge__label">{{ $t('supporter') }}</span>
+                  </div>
                 </div>
               </div>
-
-              <!-- OS Update Status -->
-              <div v-if="mosServices?.mos?.os_update_available" class="info-full">
-                <div class="text-subtitle-2 text-warning">
-                  {{ $t('new version available') }}
-                </div>
-                <div class="text-caption text-medium-emphasis info-value" :title="mosServices?.mos?.os_update_available">
-                  {{ mosServices?.mos?.os_update_available }}
-                </div>
-              </div>
-
-              <!-- Auto Update Info -->
-              <div class="info-row">
-                <span class="text-caption text-disabled">{{ $t('auto update') }}:</span>
-                <div class="text-caption text-disabled info-value">
-                  {{ mosServices?.mos?.auto_update?.enabled ? $t('enabled') : $t('disabled') }}
-                </div>
-              </div>
-
-              <!-- Next Scheduled Auto Update -->
-              <div v-if="mosServices?.mos?.auto_update?.next_scheduled != null" class="info-row">
-                <span class="text-caption text-disabled">{{ $t('execution') }}:</span>
-                <div class="d-flex align-center ga-2">
-                  <span class="text-caption text-disabled info-value" :title="String(mosServices.mos.auto_update.next_scheduled)">
-                    {{ mosServices.mos.auto_update.next_scheduled }}
-                  </span>
-                  <v-btn size="x-small" variant="tonal" density="compact" class="auto-update-cancel-btn" @click="cancelAutoUpdate">
-                    {{ $t('cancel') }}
-                  </v-btn>
-                </div>
-              </div>
-
-              <!-- Security Notice -->
-              <div v-if="mosServices?.mos?.security_notice" class="info-row">
-                <span class="text-caption text-disabled">{{ $t('security notice') }}:</span>
-                <div class="text-caption text-disabled info-value" :title="mosServices.mos.security_notice">
-                  <a :href="mosServices.mos.security_notice" target="_blank">{{ mosServices.mos.security_notice }}</a>
-                </div>
-              </div>
-
-              <!-- Reboot Pending -->
-              <div v-if="mosServices?.mos?.reboot_pending?.pending" class="info-row">
-                <span class="text-caption text-disabled">{{ $t('reboot pending') }}:</span>
-                <div class="text-caption text-disabled info-value" :title="mosServices?.mos?.reboot_pending?.reason?.join(', ')">
-                  {{ mosServices?.mos?.reboot_pending?.reason?.join(', ') }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Horizontal Menu Content -->
-            <div v-if="menuLayout === 'horizontal'" class="d-flex flex-column ga-2">
-              <v-divider class="mt-2 mb-2"></v-divider>
-
-              <!-- Tailscale -->
-              <div v-if="mosServices?.tailscale?.enabled" class="d-flex align-center ga-1">
-                <v-icon size="x-small" :color="mosServices.tailscale?.online ? 'success' : 'error'">
-                  {{ mosServices.tailscale?.online ? 'mdi-lock-outline' : 'mdi-lock-off-outline' }}
-                </v-icon>
-                <span class="text-caption" :class="mosServices.tailscale?.online ? 'text-success' : 'text-error'">Tailscale</span>
-              </div>
-
-              <!-- Netbird -->
-              <div v-if="mosServices?.netbird?.enabled" class="d-flex align-center ga-1">
-                <v-icon size="x-small" :color="mosServices.netbird?.online ? 'success' : 'error'">
-                  {{ mosServices.netbird?.online ? 'mdi-lock-outline' : 'mdi-lock-off-outline' }}
-                </v-icon>
-                <span class="text-caption" :class="mosServices.netbird?.online ? 'text-success' : 'text-error'">Netbird</span>
-              </div>
-
-              <!-- Supporter Badge -->
-              <div v-if="mosServices?.mos?.supporter">
-                <div class="supporter-badge">
-                  <v-img src="/mos_black.png" alt="MOS" width="24" height="24" contain class="supporter-badge__logo" />
-                  <span class="supporter-badge__label">{{ $t('supporter') }}</span>
-                </div>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-menu>
-    </v-btn>
+            </v-card-text>
+          </v-card>
+        </v-menu>
+      </v-btn>
+    </v-badge>
     <v-badge :model-value="notificationsBadge" color="green" dot floating bordered location="bottom end" offset-x="18" offset-y="18">
       <v-btn icon variant="text" :aria-label="$t('notifications')" to="/notifications">
         <v-icon>mdi-bell</v-icon>
