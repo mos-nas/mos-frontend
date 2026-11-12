@@ -5,7 +5,7 @@
     <v-toolbar-title v-show="display.mdAndUp.value">{{ hostname || '' }}</v-toolbar-title>
     <v-spacer />
 
-    <v-badge :model-value="mosServices?.mos?.os_update_available" color="error" dot floating bordered location="bottom end" offset-x="18" offset-y="18">
+    <v-badge :model-value="Boolean(mosServices?.mos?.os_update_available)"color="error" dot floating bordered location="bottom end" offset-x="18" offset-y="18">
       <v-btn icon variant="text" :title="$t('about')" :aria-label="$t('about')" class="info-btn-appbar">
         <v-icon>mdi-information</v-icon>
 
