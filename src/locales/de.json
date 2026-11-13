@@ -1883,5 +1883,6 @@
   "security notice": "Sicherheitsmitteilung",
   "execution": "Ausführung",
   "webui notification": "WebUI Benachrichtigung",
-  "new version available": "Neue Version verfügbar"
+  "new version available": "Neue Version verfügbar",
+  "spaces in the container name are removed automatically": "Leerzeichen im Containernamen werden automatisch entfernt"
 }

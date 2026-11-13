@@ -71,10 +71,16 @@
           </v-card-text>
           <v-divider :color="$vuetify.theme.name === 'dark' ? 'white' : 'black'"></v-divider>
           <v-card-text>
-            <v-text-field :label="$t('name')" v-model="form.name" required :hide-details="isContainerNameExists ? 'auto' : false"></v-text-field>
-            <v-alert v-if="isContainerNameExists" type="warning" variant="tonal" density="compact" class="mb-2">
-              {{ $t('warning: container with this name already exists, this will overwrite the existing container') }}
-            </v-alert>
+            <v-text-field
+              :label="$t('name')"
+              :model-value="form.name"
+              @keydown.space.prevent="showSpaceHint = true"
+              @update:model-value="onNameInput"
+              required
+              :hide-details="isContainerNameExists || showSpaceHint ? 'auto' : false"
+            ></v-text-field>
+            <div v-if="showSpaceHint" class="text-caption text-warning mb-2">{{ $t('spaces in the container name are removed automatically') }}</div>
+            <div v-if="isContainerNameExists" class="text-caption text-warning mb-2">{{ $t('warning: container with this name already exists, this will overwrite the existing container') }}</div>
             <v-text-field :label="$t('repository')" v-model="form.repo" required></v-text-field>
             <v-select
               :label="$t('network')"
@@ -572,6 +578,13 @@ const sidePanel = ref({
   props: {},
 });
 const usedDockerPorts = ref([]);
+
+const showSpaceHint = ref(false);
+const onNameInput = (value) => {
+  const raw = value || '';
+  if (/\s/.test(raw)) showSpaceHint.value = true;
+  form.value.name = raw.replace(/\s/g, '');
+};
 
 const isContainerNameExists = computed(() => {
   return containerOptions.value.some((container) => container.name === form.value.name);

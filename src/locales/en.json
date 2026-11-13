@@ -1883,5 +1883,6 @@
   "security notice": "Security notice",
   "execution": "Execution",
   "webui notification": "WebUI Notification",
-  "new version available": "New version available"
+  "new version available": "New version available",
+  "spaces in the container name are removed automatically": "Spaces in the container name are removed automatically"
 }

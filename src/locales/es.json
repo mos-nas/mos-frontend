@@ -1787,5 +1787,6 @@
   "update repositories": "Actualizar repositorios",
   "could not load templates": "No se pudieron cargar las plantillas",
   "or add more repositories to expand your selection": "O añade más repositorios para ampliar tu selección",
-  "manage repositories": "Gestionar repositorios"
+  "manage repositories": "Gestionar repositorios",
+  "spaces in the container name are removed automatically": "Spaces in the container name are removed automatically"
 }

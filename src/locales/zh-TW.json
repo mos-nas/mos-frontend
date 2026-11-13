@@ -1867,5 +1867,6 @@
   "update repositories": "更新儲存庫",
   "could not load templates": "無法載入範本",
   "or add more repositories to expand your selection": "或新增更多儲存庫，以增加可選項目",
-  "manage repositories": "管理儲存庫"
+  "manage repositories": "管理儲存庫",
+  "spaces in the container name are removed automatically": "容器名稱中的空格會被自動移除"
 }

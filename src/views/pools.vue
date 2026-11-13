@@ -143,7 +143,7 @@
                     </template>
 
                     <!-- Pool Settings -->
-                    <v-list-item v-if="pool.type !== 'single' && pool.type !== 'xfs' && pool.type !== 'ext4'" @click="openPoolSettingsDialog(pool)"> 
+                    <v-list-item v-if="pool.type !== 'single' && pool.type !== 'xfs' && pool.type !== 'ext4'" @click="openPoolSettingsDialog(pool)">
                       <template #prepend>
                         <v-icon size="18">mdi-cog</v-icon>
                       </template>
