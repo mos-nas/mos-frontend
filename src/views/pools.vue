@@ -143,7 +143,7 @@
                     </template>
 
                     <!-- Pool Settings -->
-                    <v-list-item @click="openPoolSettingsDialog(pool)">
+                    <v-list-item v-if="pool.type !== 'single' && pool.type !== 'xfs' && pool.type !== 'ext4'" @click="openPoolSettingsDialog(pool)">
                       <template #prepend>
                         <v-icon size="18">mdi-cog</v-icon>
                       </template>
@@ -2422,9 +2422,6 @@ const openPoolSettingsDialog = async (pool) => {
     openNonraidSettingsDialog(pool);
   } else if (pool.type === 'btrfs') {
     openBtrfsSettingsDialog(pool);
-  } else if (pool.type === 'single') {
-    //Not implemented for single type pools
-    showSnackbarError('Settings for single type pools are not implemented');
   }
 };
 const openBtrfsSettingsDialog = (pool) => {
