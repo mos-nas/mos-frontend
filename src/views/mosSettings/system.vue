@@ -85,6 +85,8 @@
             </div>
             <div class="mt-4">
               <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('webui notification')" color="green" inset v-model="settingsSystem.update_check.webui_notification" density="compact" hide-details></v-switch>
+              <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('update kernel')" color="green" inset v-model="settingsSystem.update.update_kernel" density="compact" hide-details></v-switch>
+              <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('update plugins')" color="green" inset v-model="settingsSystem.update.update_plugins" density="compact" hide-details></v-switch>
             </div>
             <v-divider class="my-2"></v-divider>
             <span class="text-title-medium font-weight-medium">{{ $t('display settings') }}</span>
@@ -362,6 +364,10 @@ const settingsSystem = ref({
     },
   },
   logsize: 200,
+  update: {
+    update_kernel: true,
+    update_plugins: true
+  },
   binfmt: {
     enabled: false,
     architectures: [],

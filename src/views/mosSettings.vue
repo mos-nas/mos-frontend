@@ -736,6 +736,7 @@ const updateKernelDialog = reactive({
   version: null,
   loading: true
 });
+const systemSettings = ref({});
 
 onMounted(loadHostInfo);
 
@@ -1036,6 +1037,31 @@ const downloadDiagnostics = async () => {
   }
 };
 
+const getSystemSettings = async () => {
+  try {
+    overlay.value = true;
+    const res = await fetch('/api/v1/mos/settings/system', {
+      method: 'GET',
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(`${t('could not fetch system settings')}|$| ${error.error || t('unknown error')}`);
+    }
+
+    const data = await res.json();
+    systemSettings.value = data;
+  } catch (e) {
+    const [userMessage, apiErrorMessage] = e.message.split('|$|');
+    showSnackbarError(userMessage, apiErrorMessage);
+  } finally {
+    overlay.value = false;
+  }
+}
+
 const validateSupportCode = async (supportCode) => {
   const payload = {
     supporter_key: supportCode,
@@ -1081,12 +1107,13 @@ const onChannelChange = async () => {
 };
 
 const openUpdateOsDialog = async () => {
-  updateOsDialog.update_kernel = true;
-  updateOsDialog.update_plugins = true;
   updateOsDialog.value = true;
   updateOsDialog.channel = null;
   updateOsDialog.release = null;
   updateOsDialog.loading = true;
+  await getSystemSettings();
+  updateOsDialog.update_kernel = systemSettings.value.update.update_kernel;
+  updateOsDialog.update_plugins = systemSettings.value.update.update_plugins;
   await getMosReleases();
   updateOsDialog.loading = false;
   updateOsDialog.channel = osInfo.value?.mos?.channel || null;
