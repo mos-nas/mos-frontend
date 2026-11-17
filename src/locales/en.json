@@ -1884,5 +1884,10 @@
   "execution": "Execution",
   "webui notification": "WebUI Notification",
   "new version available": "New version available",
-  "spaces in the container name are removed automatically": "Spaces in the container name are removed automatically"
+  "spaces in the container name are removed automatically": "Spaces in the container name are removed automatically",
+  "installation failed": "Installation failed",
+  "installation cancelled": "Installation cancelled",
+  "cancelling": "Cancelling",
+  "no auth token found": "No auth token found",
+  "connection error": "Connection error"
 }

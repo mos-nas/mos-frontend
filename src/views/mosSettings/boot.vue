@@ -95,20 +95,53 @@
     </v-card>
   </v-dialog>
 
-  <!-- File System Navigator Dialog -->
-  <fsNavigatorDialog v-model="fsDialog" :initial-path="'/'" select-type="file" :title="$t('select file')" @selected="handleFsSelected" />
+  <!-- Install Output Dialog (WebSocket) -->
+  <v-dialog v-model="installOutputDialog.value" max-width="800" persistent>
+    <v-card>
+      <v-card-text class="pa-1">
+        <div
+          ref="installScrollContainer"
+          :style="{
+            height: 'calc(100vh - 340px)',
+            overflow: 'auto',
+            whiteSpace: 'pre',
+            fontFamily: 'monospace',
+            border: '1px solid ' + ($vuetify.theme && $vuetify.theme.name == 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.12)'),
+            borderRadius: '4px',
+            backgroundColor: $vuetify.theme && $vuetify.theme.name == 'dark' ? '#121212' : '#fafafa',
+            color: $vuetify.theme && $vuetify.theme.name == 'dark' ? '#e0e0e0' : '#111',
+          }"
+        >
+          <div v-for="(line, index) in installOutputDialog.data" :key="index" style="padding-left: 4px; padding-right: 4px; white-space: pre-wrap">
+            <small>{{ line }}</small>
+          </div>
+        </div>
+      </v-card-text>
+      <v-divider />
+      <v-card-actions>
+        <v-progress-circular v-if="installOutputDialog.loading" color="primary" class="ma-0" indeterminate />
+        <v-spacer />
+        <v-btn v-if="installOutputDialog.loading" color="error" text :disabled="installOutputDialog.cancelling || !installOutputDialog.operationId" @click="cancelInstallToDisk()">
+          {{ $t('cancel') }}
+        </v-btn>
+        <v-btn color="onPrimary" text :disabled="installOutputDialog.loading" @click="closeInstallOutputDialog()">
+          {{ $t('close') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
   <!-- File Edit Dialog -->
-  <FileEditDialog v-model="editFileDialogVisible" :path="selectedFilePath" :createBackup="true" :title="$t('edit file')" @saved="onFileSaved" />
+  <FileEditDialog v-model="editFileDialogVisible" :path="selectedFilePath" :createBackup="true" :title="$t('edit file')" />
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, onUnmounted, watch } from 'vue';
+import { ref, onMounted, reactive, onUnmounted, watch, nextTick } from 'vue';
+import { io } from 'socket.io-client';
 import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import { useOverlay } from '@/composables/useOverlay';
 import FileEditDialog from '@/components/fileEditDialog.vue';
-import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 
 const editFileDialogVisible = ref(false);
 const selectedFilePath = ref('');
@@ -125,12 +158,173 @@ const installToDiskDialog = reactive({
   backup_label: false,
 });
 const bootBackupFiles = ref([]);
-const fsDialog = ref(false);
-const fsDialogCallback = ref(null);
+
+const SEPARATOR = '------------------------------------';
+const installOutputDialog = reactive({
+  value: false,
+  operationId: '',
+  data: [],
+  loading: false,
+  cancelling: false,
+});
+const installScrollContainer = ref(null);
+let socket = null;
+let stickToBottom = true;
+
+const FINISHED_STATES = ['completed', 'cancelled', 'error'];
+let runningOperationIds = null;
+let replayBuffer = {};
+
+const onInstallScroll = () => {
+  const el = installScrollContainer.value;
+  if (el) stickToBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 20;
+};
+
+watch(installScrollContainer, (el, oldEl) => {
+  oldEl?.removeEventListener('scroll', onInstallScroll);
+  el?.addEventListener('scroll', onInstallScroll, { passive: true });
+  if (el) stickToBottom = true;
+});
+
+watch(
+  () => installOutputDialog.data.length,
+  () => {
+    nextTick(() => {
+      const el = installScrollContainer.value;
+      if (el && stickToBottom) el.scrollTop = el.scrollHeight;
+    });
+  },
+  { flush: 'post' },
+);
 
 onMounted(() => {
   getUnassignedDisks();
+  connectInstallSocket();
 });
+
+onUnmounted(disconnectInstallSocket);
+
+function disconnectInstallSocket() {
+  if (!socket) return;
+  socket.removeAllListeners();
+  socket.disconnect();
+  socket = null;
+}
+
+const resetInstallOutput = () => {
+  installOutputDialog.operationId = '';
+  installOutputDialog.data = [];
+  installOutputDialog.cancelling = false;
+  stickToBottom = true;
+};
+
+const openInstallOutput = () => {
+  if (!installOutputDialog.value) {
+    resetInstallOutput();
+    installOutputDialog.value = true;
+  }
+  installOutputDialog.loading = true;
+};
+
+const finishInstall = (line) => {
+  installOutputDialog.loading = false;
+  installOutputDialog.cancelling = false;
+  if (line) installOutputDialog.data.push(`${SEPARATOR}\n${line}`);
+};
+
+const appendInstallOutput = (operationId, output) => {
+  if (!installOutputDialog.operationId) installOutputDialog.operationId = operationId || '';
+  openInstallOutput();
+  installOutputDialog.data.push(output ?? '');
+};
+
+const handleOperationsList = (data) => {
+  const operations = Array.isArray(data) ? data : data.operations || [];
+  runningOperationIds = new Set(operations.filter((op) => op?.operationId && !FINISHED_STATES.includes(op.status)).map((op) => op.operationId));
+
+  runningOperationIds.forEach((id) => (replayBuffer[id] || []).forEach((output) => appendInstallOutput(id, output)));
+  replayBuffer = {};
+};
+
+const handleReplayOutput = (data) => {
+  if (runningOperationIds) {
+    if (runningOperationIds.has(data.operationId)) appendInstallOutput(data.operationId, data.output);
+    return;
+  }
+  (replayBuffer[data.operationId] ||= []).push(data.output);
+};
+
+const handleInstallUpdate = (data) => {
+  if (!data) return;
+  if (installOutputDialog.operationId && data.operationId && data.operationId !== installOutputDialog.operationId) return;
+
+  switch (data.status) {
+    case 'started':
+      resetInstallOutput();
+      installOutputDialog.operationId = data.operationId || '';
+      openInstallOutput();
+      installOutputDialog.data.push(`mos-install started\n${SEPARATOR}\n`);
+      break;
+    case 'running':
+      if (data.replay) handleReplayOutput(data);
+      else appendInstallOutput(data.operationId, data.output);
+      break;
+    case 'operations-list':
+      handleOperationsList(data);
+      break;
+    case 'cancelling':
+      installOutputDialog.cancelling = true;
+      installOutputDialog.data.push(`${SEPARATOR}\n${t('cancelling')}...\n`);
+      break;
+    case 'completed':
+      finishInstall(`mos-install completed (exit code ${data.exitCode})`);
+      if (data.exitCode === 0) {
+        showSnackbarSuccess(t('installation successfully, please make sure to reboot the system from the installed disk'));
+      } else {
+        showSnackbarError(t('installation failed'), `exit code ${data.exitCode}`);
+      }
+      break;
+    case 'cancelled':
+      finishInstall(t('installation cancelled'));
+      break;
+    case 'error':
+      finishInstall();
+      showSnackbarError(t('installation failed'), data.message);
+      break;
+  }
+};
+
+function connectInstallSocket() {
+  const authToken = localStorage.getItem('authToken');
+  if (!authToken) return;
+
+  disconnectInstallSocket();
+  runningOperationIds = null;
+  replayBuffer = {};
+  const wsUrl = __WS_BASE_URL__ || '';
+  socket = io(wsUrl ? `${wsUrl}/mos/installtodisk` : '/mos/installtodisk', { path: '/api/v1/socket.io/', transports: ['websocket'], upgrade: false });
+
+  socket.on('connect', () => socket.emit('installtodisk-get-operations', { token: authToken }));
+  socket.on('installtodisk-update', handleInstallUpdate);
+  socket.on('connect_error', (err) => {
+    finishInstall();
+    showSnackbarError(t('installation failed'), `Connection error: ${err.message}`);
+  });
+  socket.on('error', (err) => {
+    finishInstall();
+    showSnackbarError(t('installation failed'), `Socket error: ${String(err)}`);
+  });
+}
+
+const closeInstallOutputDialog = () => {
+  installOutputDialog.value = false;
+  resetInstallOutput();
+};
+
+const cancelInstallToDisk = () => {
+  if (!socket || !installOutputDialog.operationId) return;
+  socket.emit('installtodisk-cancel', { token: localStorage.getItem('authToken'), operationId: installOutputDialog.operationId });
+};
 
 const openInstallToDiskDialog = async () => {
   installToDiskDialog.value = true;
@@ -144,54 +338,36 @@ const openInstallToDiskDialog = async () => {
   overlay.value = false;
 };
 
-const openFsDialog = (cb) => {
-  fsDialogCallback.value = cb;
-  fsDialog.value = true;
-};
-const handleFsSelected = (item) => {
-  if (typeof fsDialogCallback.value === 'function') {
-    fsDialogCallback.value(item);
-  }
-  fsDialogCallback.value = null;
-  fsDialog.value = false;
-};
-
 const openFileEditor = (path) => {
   selectedFilePath.value = path;
   editFileDialogVisible.value = true;
 };
-const onFileSaved = (file) => {};
 
-const installToDisk = async () => {
-  const installToDiskBody = {
+const installToDisk = () => {
+  const authToken = localStorage.getItem('authToken');
+  if (!authToken) {
+    showSnackbarError(t('installation failed'), t('no auth token found'));
+    return;
+  }
+  if (!socket || !socket.connected) {
+    connectInstallSocket();
+    showSnackbarError(t('installation failed'), t('connection error'));
+    return;
+  }
+
+  installToDiskDialog.value = false;
+  resetInstallOutput();
+  installOutputDialog.value = true;
+  installOutputDialog.loading = true;
+
+  socket.emit('installtodisk-run', {
+    token: authToken,
     disk: installToDiskDialog.disk,
     filesystem: installToDiskDialog.filesystem,
     extra_partition: installToDiskDialog.extra_partition,
     tar_file: installToDiskDialog.tar_file,
     backup_label: installToDiskDialog.backup_label,
-  };
-
-  try {
-    overlay.value = true;
-    const res = await fetch('/api/v1/mos/installtodisk', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + localStorage.getItem('authToken'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(installToDiskBody),
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || t('installation failed'));
-    }
-    showSnackbarSuccess(t('installation successfully, please make sure to reboot the system from the installed disk'));
-  } catch (e) {
-    showSnackbarError(e.message);
-  } finally {
-    overlay.value = false;
-  }
+  });
 };
 
 const getUnassignedDisks = async () => {

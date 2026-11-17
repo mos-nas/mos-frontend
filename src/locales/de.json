@@ -1884,5 +1884,10 @@
   "execution": "Ausführung",
   "webui notification": "WebUI Benachrichtigung",
   "new version available": "Neue Version verfügbar",
-  "spaces in the container name are removed automatically": "Leerzeichen im Containernamen werden automatisch entfernt"
+  "spaces in the container name are removed automatically": "Leerzeichen im Containernamen werden automatisch entfernt",
+  "installation failed": "Installation fehlgeschlagen",
+  "installation cancelled": "Installation abgebrochen",
+  "cancelling": "Wird abgebrochen",
+  "no auth token found": "Kein Auth Token gefunden",
+  "connection error": "Verbindungsfehler"
 }
