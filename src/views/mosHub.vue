@@ -499,7 +499,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, reactive, nextTick, inject } from 'vue';
+import { onMounted, ref, reactive, nextTick, inject, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useApi } from '@/composables/useApi';
 import { useRouter } from 'vue-router';
@@ -545,7 +545,10 @@ const mosHubRepositoriesDialog = reactive({
   repositories: [''],
 });
 const currentPage = ref(1);
-const pageLimit = 24;
+const pageLimit = computed(() => {
+  const entries = parseInt(mosServices.value?.hub?.page_entries, 10);
+  return entries > 0 ? entries : 24;
+});
 onMounted(async () => {
   if (props.hubType === 'docker') {
     hubTypeSel.value = 'docker';
@@ -564,7 +567,7 @@ onMounted(async () => {
   }
 });
 
-const getMosHub = async (search, limit = 24, skip = 0, order = hubOrderSel.value, sort = hubSortingSel.value, type = hubTypeSel.value, category = hubCategoriesSel.value) => {
+const getMosHub = async (search, limit = pageLimit.value, skip = 0, order = hubOrderSel.value, sort = hubSortingSel.value, type = hubTypeSel.value, category = hubCategoriesSel.value) => {
   hubLoading.value = true;
   try {
     const baseUrl = __API_BASE_URL__ || window.location.origin;
