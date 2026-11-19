@@ -94,6 +94,38 @@
                 </v-col>
               </v-row>
               <v-divider class="my-4"></v-divider>
+              <span class="text-title-medium font-weight-medium">{{ $t('removed templates') }}</span>
+              <v-row class="pt-2">
+                <v-col cols="12" md="6" lg="4">
+                  <v-btn
+                    color="primary"
+                    rounded
+                    size="large"
+                    block
+                    prepend-icon="mdi-delete-sweep"
+                    variant="tonal"
+                    :disabled="!settingsDocker.enabled || removedContainerTemplates.length === 0"
+                    @click="openDeleteTemplatesDialog('container')"
+                  >
+                    {{ $t('delete removed container templates') }} ({{ removedContainerTemplates.length }})
+                  </v-btn>
+                </v-col>
+                <v-col cols="12" md="6" lg="4">
+                  <v-btn
+                    color="primary"
+                    rounded
+                    size="large"
+                    block
+                    prepend-icon="mdi-delete-sweep"
+                    variant="tonal"
+                    :disabled="!settingsDocker.enabled || removedComposeTemplates.length === 0"
+                    @click="openDeleteTemplatesDialog('compose')"
+                  >
+                    {{ $t('delete removed compose templates') }} ({{ removedComposeTemplates.length }})
+                  </v-btn>
+                </v-col>
+              </v-row>
+              <v-divider class="my-4"></v-divider>
               <v-row>
                 <v-col cols="12" class="d-flex align-center justify-space-between">
                   <span class="text-title-medium font-weight-medium">{{ $t('docker networks') }}</span>
@@ -189,6 +221,19 @@
     </v-card>
   </v-dialog>
 
+  <!-- Delete Removed Templates Dialog -->
+  <v-dialog v-model="deleteTemplatesDialog.value" max-width="500">
+    <v-card class="pa-0" :title="$t(deleteTemplatesDialog.type === 'compose' ? 'delete removed compose templates' : 'delete removed container templates')" prepend-icon="mdi-delete">
+      <v-card-text>{{ $t(deleteTemplatesDialog.type === 'compose' ? 'are you sure you want to delete all removed compose templates' : 'are you sure you want to delete all removed container templates') }}?</v-card-text>
+      <v-divider />
+      <v-card-actions>
+        <v-spacer />
+        <v-btn color="onPrimary" @click="deleteTemplatesDialog.value = false">{{ $t('cancel') }}</v-btn>
+        <v-btn color="red" @click="confirmDeleteTemplates()">{{ $t('delete') }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <!-- Create Network Dialog -->
   <v-dialog v-model="createNetworkDialog.value" max-width="500">
     <v-card class="pa-0" :title="$t('create docker network')" prepend-icon="mdi-plus">
@@ -268,6 +313,12 @@ const createNetworkDialog = reactive({
     Driver: 'bridge',
   },
 });
+const removedContainerTemplates = ref([]);
+const removedComposeTemplates = ref([]);
+const deleteTemplatesDialog = reactive({
+  value: false,
+  type: 'container',
+});
 const { t } = useI18n();
 const { call } = useApi();
 const emit = defineEmits(['refresh-drawer', 'refresh-notifications-badge']);
@@ -326,8 +377,11 @@ const getDockerService = async () => {
 
     if (settingsDocker.value.enabled) {
       await getDockerNetworks();
+      getRemovedTemplates();
     } else {
       dockerNetworks.value = [];
+      removedContainerTemplates.value = [];
+      removedComposeTemplates.value = [];
       dockerNetworksLoading.value = false;
     }
   }
@@ -347,6 +401,35 @@ const getDockerNetworks = async () => {
   }
 
   dockerNetworksLoading.value = false;
+};
+
+const getRemovedTemplates = async () => {
+  const [containerResult, composeResult] = await Promise.all([
+    call('/api/v1/docker/mos/templates', { method: 'GET', errorLabel: t('removed templates could not be loaded'), showOverlay: false }),
+    call('/api/v1/docker/mos/compose/templates', { method: 'GET', errorLabel: t('removed templates could not be loaded'), showOverlay: false }),
+  ]);
+  removedContainerTemplates.value = Array.isArray(containerResult?.removed) ? containerResult.removed : [];
+  removedComposeTemplates.value = Array.isArray(composeResult?.removed) ? composeResult.removed : [];
+};
+
+const openDeleteTemplatesDialog = (type) => {
+  deleteTemplatesDialog.type = type;
+  deleteTemplatesDialog.value = true;
+};
+
+const confirmDeleteTemplates = async () => {
+  const url = deleteTemplatesDialog.type === 'compose' ? '/api/v1/docker/mos/compose/templates/removed' : '/api/v1/docker/mos/templates/removed';
+  const result = await call(url, {
+    method: 'DELETE',
+    errorLabel: t('removed templates could not be deleted'),
+    successLabel: t('removed templates deleted successfully'),
+    showOverlay: true,
+  });
+
+  if (result) {
+    deleteTemplatesDialog.value = false;
+    getRemovedTemplates();
+  }
 };
 
 const deleteDockerNetwork = async (network) => {
