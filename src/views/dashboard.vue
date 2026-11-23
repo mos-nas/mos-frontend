@@ -148,11 +148,11 @@ const DEFAULT_RIGHT = [{ id: 'network' }, { id: 'memory' }, { id: 'disks' }, { i
 const DEFAULT_VISIBILITY = {
   os: true,
   processor: true,
-  loadhistory: true,
   pools: true,
   network: true,
   memory: true,
   disks: true,
+  loadhistory: false,
   fan: false,
   temperature: false,
   power: false,

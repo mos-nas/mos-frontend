@@ -1826,7 +1826,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, watch, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, reactive, watch, nextTick } from 'vue';
+import { io } from 'socket.io-client';
 import { showSnackbarError } from '@/composables/snackbar';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
@@ -2110,7 +2111,63 @@ onMounted(async () => {
   getVPools();
   getUnassignedDisks();
   getPoolTypes();
+  getPoolsWS();
 });
+
+onUnmounted(() => {
+  closePoolsWS();
+});
+
+let socket = null;
+
+const closePoolsWS = () => {
+  if (socket) {
+    socket.emit('unsubscribe-pools');
+    socket.removeAllListeners();
+    socket.disconnect();
+    socket = null;
+  }
+};
+
+const getPoolsWS = () => {
+  const authToken = localStorage.getItem('authToken');
+  if (!authToken) {
+    showSnackbarError(t('unknown error'), 'No auth token found');
+    return;
+  }
+
+  closePoolsWS();
+
+  const wsUrl = __WS_BASE_URL__ || '';
+  socket = io(wsUrl ? `${wsUrl}/pools` : '/pools', { path: '/api/v1/socket.io/', transports: ['websocket'], upgrade: false });
+
+  socket.on('connect', () => {
+    socket.emit('subscribe-pools', { token: authToken });
+  });
+
+  socket.on('connect_error', (err) => {
+    showSnackbarError(t('unknown error'), `Connection error: ${err}`);
+  });
+
+  const apply = (data) => {
+    if (!data) return;
+    const updates = Array.isArray(data) ? data : Array.isArray(data.pools) ? data.pools : [];
+    updates.forEach((update) => {
+      if (!update || update.id == null) return;
+      const pool = pools.value.find((x) => String(x.id) === String(update.id));
+      if (!pool) return;
+      if (update.status) pool.status = { ...pool.status, ...update.status };
+    });
+  };
+
+  socket.on('pools-update', apply);
+  socket.on('pools-error', (err) => {
+    showSnackbarError(t('unknown error'), `Socket error: ${JSON.stringify(err)}`);
+  });
+  socket.on('error', (err) => {
+    showSnackbarError(t('unknown error'), `Socket error: ${String(err)}`);
+  });
+};
 
 watch(
   () => createPoolDialog.devices,
