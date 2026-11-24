@@ -142,8 +142,8 @@
                 <tr
                   v-for="item in items"
                   :key="item.path"
-                  :class="['cursor-pointer', activeItem && activeItem.path === item.path ? 'bg-primary bg-opacity-10' : '']"
-                  @click="setActiveItem(item)"
+                  :class="['cursor-pointer', 'no-select', isSelected(item) ? 'bg-primary bg-opacity-10' : '']"
+                  @click="onRowClick($event, item)"
                   @dblclick.stop.prevent="handleRowDblClick(item)"
                   @contextmenu.prevent="openContextMenu($event, item)"
                 >
@@ -171,7 +171,7 @@
                         :loading="item.calculating"
                         @click.stop="calculateDirectorySize(item)"
                         title="Calculate directory size"
-                        :color="activeItem && activeItem.path === item.path ? 'accent' : 'primary'"
+                        :color="isSelected(item) ? 'accent' : 'primary'"
                       >
                         <v-icon size="16">mdi-calculator</v-icon>
                       </v-btn>
@@ -242,14 +242,14 @@
             <v-divider vertical class="mx-1 align-self-center" style="height: 24px" />
             <v-tooltip :text="$t('copy')" location="top">
               <template #activator="{ props }">
-                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="!activeItem" @click="openOperationDialog(activeItem, 'copy')">
+                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="selectedItems.length === 0" @click="openOperationDialog(selectedItems, 'copy')">
                   <v-icon size="20">mdi-content-copy</v-icon>
                 </v-btn>
               </template>
             </v-tooltip>
             <v-tooltip :text="$t('move')" location="top">
               <template #activator="{ props }">
-                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="!activeItem" @click="openOperationDialog(activeItem, 'move')">
+                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="selectedItems.length === 0" @click="openOperationDialog(selectedItems, 'move')">
                   <v-icon size="20">mdi-arrow-right-bold</v-icon>
                 </v-btn>
               </template>
@@ -438,7 +438,24 @@
     <v-card class="pa-0" :title="operationDialog.operation === 'copy' ? $t('copy') : $t('move')" :prepend-icon="operationDialog.operation === 'copy' ? 'mdi-content-copy' : 'mdi-arrow-right-bold'">
       <v-card-text class="py-0">
         <v-container class="px-0">
-          <v-text-field v-model="operationDialog.source" :label="$t('source path')" readonly />
+          <div v-if="Array.isArray(operationDialog.source)" class="mb-4">
+            <v-text-field
+              :model-value="`${operationDialog.source.length} ${$t('items selected')}`"
+              :label="$t('source path')"
+              :append-inner-icon="operationDialog.showSources ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+              readonly
+              hide-details
+              @click:append-inner="operationDialog.showSources = !operationDialog.showSources"
+            />
+            <v-expand-transition>
+              <v-list v-if="operationDialog.showSources" density="compact" class="mt-1 pa-0 text-caption" style="max-height: 150px; overflow-y: auto">
+                <v-list-item v-for="path in operationDialog.source" :key="path" class="px-2" min-height="24">
+                  <span style="word-break: break-all">{{ path }}</span>
+                </v-list-item>
+              </v-list>
+            </v-expand-transition>
+          </div>
+          <v-text-field v-else v-model="operationDialog.source" :label="$t('source path')" readonly />
           <v-text-field
             v-model="operationDialog.destination"
             :label="$t('destination path')"
@@ -495,50 +512,52 @@
     <v-list>
       <v-list-item v-if="contextMenu.item" density="compact" style="background: rgba(var(--v-theme-primary), 0.08); pointer-events: none">
         <template #prepend>
-          <v-icon color="primary">{{ contextMenu.item?.type === 'directory' ? 'mdi-folder' : 'mdi-file' }}</v-icon>
+          <v-icon color="primary">{{ multiSelected ? 'mdi-file-multiple' : contextMenu.item?.type === 'directory' ? 'mdi-folder' : 'mdi-file' }}</v-icon>
         </template>
-        <v-list-item-title style="color: rgb(var(--v-theme-primary))">{{ contextMenu.item?.name }}</v-list-item-title>
+        <v-list-item-title style="color: rgb(var(--v-theme-primary))">
+          {{ multiSelected ? `${selectedItems.length} ${$t('items selected')}` : contextMenu.item?.name }}
+        </v-list-item-title>
       </v-list-item>
       <v-divider />
-      <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="openEditFileDialog(contextMenu.item)" density="compact">
+      <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="openEditFileDialog(contextMenu.item)" density="compact" :disabled="multiSelected">
         <template #prepend><v-icon>mdi-pencil</v-icon></template>
         <v-list-item-title>{{ $t('edit') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="openRenameFileDialog(contextMenu.item)" density="compact">
+      <v-list-item @click="openRenameFileDialog(contextMenu.item)" density="compact" :disabled="multiSelected">
         <template #prepend><v-icon>mdi-rename</v-icon></template>
         <v-list-item-title>{{ $t('rename') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="openDeleteFileDialog(contextMenu.item)" density="compact">
+      <v-list-item @click="openDeleteFileDialog(contextMenu.item)" density="compact" :disabled="multiSelected">
         <template #prepend><v-icon>mdi-delete</v-icon></template>
         <v-list-item-title>{{ $t('delete') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="downloadFile(contextMenu.item.path)" density="compact">
+      <v-list-item v-if="contextMenu.item && contextMenu.item.type !== 'directory'" @click="downloadFile(contextMenu.item.path)" density="compact" :disabled="multiSelected">
         <template #prepend><v-icon>mdi-download</v-icon></template>
         <v-list-item-title>{{ $t('download') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item v-if="contextMenu.item && contextMenu.item.type === 'directory'" @click="calculateDirectorySize(contextMenu.item)" density="compact">
+      <v-list-item v-if="contextMenu.item && contextMenu.item.type === 'directory'" @click="calculateDirectorySize(contextMenu.item)" density="compact" :disabled="multiSelected">
         <template #prepend><v-icon>mdi-calculator</v-icon></template>
         <v-list-item-title>{{ $t('calculate directory size') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item v-if="contextMenu.item && contextMenu.item.type === 'directory'" @click="addDirectoryAsBookmark(contextMenu.item)" density="compact">
+      <v-list-item v-if="contextMenu.item && contextMenu.item.type === 'directory'" @click="addDirectoryAsBookmark(contextMenu.item)" density="compact" :disabled="multiSelected">
         <template #prepend><v-icon>mdi-bookmark-plus</v-icon></template>
         <v-list-item-title>{{ $t('add as bookmark') }}</v-list-item-title>
       </v-list-item>
       <v-divider />
-      <v-list-item @click="openOperationDialog(contextMenu.item, 'copy')" density="compact">
+      <v-list-item @click="openOperationDialog(multiSelected ? selectedItems : contextMenu.item, 'copy')" density="compact">
         <template #prepend><v-icon>mdi-content-copy</v-icon></template>
         <v-list-item-title>{{ $t('copy') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="openOperationDialog(contextMenu.item, 'move')" density="compact">
+      <v-list-item @click="openOperationDialog(multiSelected ? selectedItems : contextMenu.item, 'move')" density="compact">
         <template #prepend><v-icon>mdi-arrow-right-bold</v-icon></template>
         <v-list-item-title>{{ $t('move') }}</v-list-item-title>
       </v-list-item>
       <v-divider />
-      <v-list-item @click="openChModDialog(contextMenu.item)" density="compact">
+      <v-list-item @click="openChModDialog(contextMenu.item)" density="compact" :disabled="multiSelected">
         <template #prepend><v-icon>mdi-shield-key-outline</v-icon></template>
         <v-list-item-title>{{ $t('adjust permissions') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="openChOwnDialog(contextMenu.item)" density="compact">
+      <v-list-item @click="openChOwnDialog(contextMenu.item)" density="compact" :disabled="multiSelected">
         <template #prepend><v-icon>mdi-account-key</v-icon></template>
         <v-list-item-title>{{ $t('adjust ownership') }}</v-list-item-title>
       </v-list-item>
@@ -577,7 +596,11 @@ const currentPath = ref('/mnt');
 const items = ref([]);
 const canGoUp = ref(false);
 const parentPath = ref(null);
-const activeItem = ref(null);
+const selectedPaths = ref([]);
+const anchorPath = ref(null);
+const selectedItems = computed(() => items.value.filter((i) => selectedPaths.value.includes(i.path)));
+const multiSelected = computed(() => selectedItems.value.length > 1);
+const activeItem = computed(() => (selectedItems.value.length === 1 ? selectedItems.value[0] : null));
 const dragOverTable = ref(false);
 const dragCounter = ref(0);
 const { overlay } = useOverlay();
@@ -638,6 +661,7 @@ const operationDialog = reactive({
   source: '',
   destination: '',
   onConflict: 'fail',
+  showSources: false,
 });
 const renameFileDialog = reactive({
   value: false,
@@ -710,7 +734,8 @@ const loadPath = async (path = '/') => {
     canGoUp.value = !!data.canGoUp;
     parentPath.value = data.parentPath;
     items.value = Array.isArray(data.items) ? data.items : [];
-    activeItem.value = null;
+    selectedPaths.value = [];
+    anchorPath.value = null;
   } finally {
     loading.value = false;
   }
@@ -825,7 +850,7 @@ const setChown = async (path, user = '500', group = '500', recursive = false) =>
 };
 
 const startFileOperation = async (operation, source, destination, onConflict = 'fail') => {
-  if (!source || source.trim() === '') {
+  if (Array.isArray(source) ? source.length === 0 : !source || source.trim() === '') {
     showSnackbarError(t('source path cannot be empty'));
     return;
   }
@@ -1013,9 +1038,31 @@ const handleDrop = async (e) => {
   }
 };
 
-const setActiveItem = (item) => {
-  activeItem.value = item;
-  selectedFilePath.value = item?.path || '';
+const isSelected = (item) => selectedPaths.value.includes(item.path);
+
+const setSelection = (paths) => {
+  selectedPaths.value = paths;
+  selectedFilePath.value = paths.length === 1 ? paths[0] : '';
+};
+
+const onRowClick = (e, item) => {
+  if (e.ctrlKey || e.metaKey) {
+    setSelection(isSelected(item) ? selectedPaths.value.filter((p) => p !== item.path) : [...selectedPaths.value, item.path]);
+    anchorPath.value = item.path;
+  } else if (e.shiftKey && anchorPath.value) {
+    const from = items.value.findIndex((i) => i.path === anchorPath.value);
+    const to = items.value.findIndex((i) => i.path === item.path);
+    if (from === -1 || to === -1) {
+      setSelection([item.path]);
+      anchorPath.value = item.path;
+    } else {
+      const [start, end] = from < to ? [from, to] : [to, from];
+      setSelection(items.value.slice(start, end + 1).map((i) => i.path));
+    }
+  } else {
+    setSelection([item.path]);
+    anchorPath.value = item.path;
+  }
 };
 
 const navigateInto = (item) => {
@@ -1115,10 +1162,13 @@ const openChOwnDialog = (item) => {
   setChownDialog.group = item.permissions.owner == 'mos' ? '500' : item.permissions.owner == 'root' ? '0' : '';
   setChownDialog.recursive = false;
 };
-const openOperationDialog = (item, operation) => {
+const openOperationDialog = (itemOrItems, operation) => {
+  const list = (Array.isArray(itemOrItems) ? itemOrItems : [itemOrItems]).filter(Boolean);
+  if (list.length === 0) return;
   operationDialog.value = true;
-  operationDialog.source = item.path;
+  operationDialog.source = list.length === 1 ? list[0].path : list.map((i) => i.path);
   operationDialog.destination = '';
+  operationDialog.showSources = false;
   operationDialog.operation = operation;
   operationDialog.onConflict = 'fail';
 };
@@ -1154,6 +1204,10 @@ const calculateDirectorySize = async (item) => {
 
 const openContextMenu = (e, item) => {
   e.preventDefault();
+  if (!isSelected(item)) {
+    setSelection([item.path]);
+    anchorPath.value = item.path;
+  }
   contextMenu.x = e.clientX;
   contextMenu.y = e.clientY;
   contextMenu.item = item;
@@ -1273,6 +1327,9 @@ const addDirectoryAsBookmark = async (item) => {
 <style scoped>
 .cursor-pointer {
   cursor: pointer;
+}
+.no-select {
+  user-select: none;
 }
 .actions-toolbar {
   display: flex;

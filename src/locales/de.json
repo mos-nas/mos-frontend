@@ -1898,5 +1898,6 @@
   "installation cancelled": "Installation abgebrochen",
   "cancelling": "Wird abgebrochen",
   "no auth token found": "Kein Auth Token gefunden",
-  "connection error": "Verbindungsfehler"
+  "connection error": "Verbindungsfehler",
+  "items selected": "Elemente ausgewählt"
 }

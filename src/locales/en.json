@@ -1898,5 +1898,6 @@
   "installation cancelled": "Installation cancelled",
   "cancelling": "Cancelling",
   "no auth token found": "No auth token found",
-  "connection error": "Connection error"
+  "connection error": "Connection error",
+  "items selected": "items selected"
 }

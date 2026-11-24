@@ -14,7 +14,7 @@
               <div class="d-flex align-center justify-space-between mb-2">
                 <div>
                   <v-list-item-title>{{ $t(operation.operation) }}</v-list-item-title>
-                  <v-list-item-subtitle class="text-caption">{{ $t('from') }}: {{ operation.source }}</v-list-item-subtitle>
+                  <v-list-item-subtitle class="text-caption">{{ $t('from') }}: {{ Array.isArray(operation.source) ? operation.source.join(', ') : operation.source }}</v-list-item-subtitle>
                   <v-list-item-subtitle class="text-caption">{{ $t('to') }}: {{ operation.destination }}</v-list-item-subtitle>
                 </div>
                 <div class="d-flex align-center ga-2">

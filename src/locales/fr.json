@@ -1705,5 +1705,6 @@
   "could not load templates": "Impossible de charger les modèles",
   "or add more repositories to expand your selection": "Ou ajoutez d'autres référentiels pour agrandir votre sélection",
   "manage repositories": "Gérer les référentiels",
-  "spaces in the container name are removed automatically": "Spaces in the container name are removed automatically"
+  "spaces in the container name are removed automatically": "Spaces in the container name are removed automatically",
+  "items selected": "éléments sélectionnés"
 }
