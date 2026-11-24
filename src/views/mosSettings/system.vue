@@ -55,7 +55,7 @@
             <span class="text-title-medium font-weight-medium">{{ $t('update settings') }}</span>
             <div class="d-flex flex-column flex-sm-row align-sm-center ga-2 ga-sm-6 mt-4">
               <div style="min-width: 280px">
-                <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" @update:model-value="onUpdateCheckToggle" density="compact" hide-details></v-switch>
+                <v-switch :label="$t('update checks')" color="green" inset v-model="settingsSystem.update_check.enabled" density="compact" hide-details></v-switch>
               </div>
               <v-text-field
                 :label="$t('update check schedule (cron)')"
@@ -68,12 +68,18 @@
                 @click:append-inner="openCronDialog(settingsSystem.update_check.update_check_schedule, (schedule) => (settingsSystem.update_check.update_check_schedule = schedule))"
               ></v-text-field>
             </div>
+            <div class="mt-4">
+              <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('webui notification')" color="green" inset v-model="settingsSystem.update_check.webui_notification" density="compact" hide-details></v-switch>
+              <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('update kernel')" color="green" inset v-model="settingsSystem.update.update_kernel" density="compact" hide-details></v-switch>
+              <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('update plugins')" color="green" inset v-model="settingsSystem.update.update_plugins" density="compact" hide-details></v-switch>
+            </div>
+            <span class="text-title-small font-weight-medium mt-4 d-block">{{ $t('auto update') }}</span>
             <div class="d-flex flex-column flex-sm-row align-sm-center ga-2 ga-sm-6 mt-4">
               <div style="min-width: 280px">
                 <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('auto update')" color="green" inset v-model="settingsSystem.update_check.auto_update.enabled" density="compact" hide-details></v-switch>
               </div>
               <v-text-field
-                :label="$t('update check schedule (cron)')"
+                :label="$t('auto update schedule')"
                 v-model="settingsSystem.update_check.auto_update.auto_update_schedule"
                 :disabled="!settingsSystem.update_check.enabled || !settingsSystem.update_check.auto_update.enabled"
                 append-inner-icon="mdi-calendar-clock"
@@ -84,9 +90,7 @@
               ></v-text-field>
             </div>
             <div class="mt-4">
-              <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('webui notification')" color="green" inset v-model="settingsSystem.update_check.webui_notification" density="compact" hide-details></v-switch>
-              <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('update kernel')" color="green" inset v-model="settingsSystem.update.update_kernel" density="compact" hide-details></v-switch>
-              <v-switch :disabled="!settingsSystem.update_check.enabled" :label="$t('update plugins')" color="green" inset v-model="settingsSystem.update.update_plugins" density="compact" hide-details></v-switch>
+              <v-switch :disabled="!settingsSystem.update_check.enabled || !settingsSystem.update_check.auto_update.enabled" :label="$t('update kernel')" color="green" inset v-model="settingsSystem.update_check.auto_update.update_kernel" density="compact" hide-details></v-switch>
             </div>
             <v-divider class="my-2"></v-divider>
             <span class="text-title-medium font-weight-medium">{{ $t('display settings') }}</span>
@@ -300,13 +304,6 @@ import { useOverlay } from '@/composables/useOverlay';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 import CronScheduleDialog from '@/components/cronScheduleDialog.vue';
 
-function onUpdateCheckToggle(enabled) {
-  if (!enabled) {
-    settingsSystem.value.update_check.auto_update.enabled = false;
-    settingsSystem.value.update_check.webui_notification = false;
-  }
-}
-
 const fsDialog = ref(false);
 const fsDialogCallback = ref(null);
 const cronDialogApplyCallback = ref(null);
@@ -361,6 +358,7 @@ const settingsSystem = ref({
     auto_update: {
       enabled: false,
       auto_update_schedule: '0 5 * * SAT',
+      update_kernel: true,
     },
   },
   logsize: 200,
