@@ -220,7 +220,7 @@
             </v-tooltip>
             <v-tooltip :text="$t('delete')" location="top">
               <template #activator="{ props }">
-                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="!activeItem" @click="openDeleteFileDialog(activeItem)">
+                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="selectedItems.length === 0" @click="openDeleteFileDialog(multiSelected ? selectedItems : activeItem)">
                   <v-icon size="20">mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -257,14 +257,14 @@
             <v-divider vertical class="mx-1 align-self-center" style="height: 24px" />
             <v-tooltip :text="$t('adjust permissions')" location="top">
               <template #activator="{ props }">
-                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="!activeItem" @click="openChModDialog(activeItem)">
+                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="selectedItems.length === 0" @click="openChModDialog(multiSelected ? selectedItems : activeItem)">
                   <v-icon size="20">mdi-shield-key-outline</v-icon>
                 </v-btn>
               </template>
             </v-tooltip>
             <v-tooltip :text="$t('adjust ownership')" location="top">
               <template #activator="{ props }">
-                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="!activeItem" @click="openChOwnDialog(activeItem)">
+                <v-btn v-bind="props" variant="text" color="primary" icon :disabled="selectedItems.length === 0" @click="openChOwnDialog(multiSelected ? selectedItems : activeItem)">
                   <v-icon size="20">mdi-account-key</v-icon>
                 </v-btn>
               </template>
@@ -288,9 +288,18 @@
 
   <!-- Delete File Dialog -->
   <v-dialog v-model="deleteFileDialog.value" max-width="500" persistent>
-    <v-card class="pa-0" :title="`${$t('delete')} - ${deleteFileDialog.path}`" prepend-icon="mdi-delete">
+    <v-card
+      class="pa-0"
+      :title="deleteFileDialog.paths.length > 1 ? `${$t('delete')} - ${deleteFileDialog.paths.length} ${$t('items selected')}` : `${$t('delete')} - ${deleteFileDialog.path}`"
+      prepend-icon="mdi-delete"
+    >
       <v-card-text>
         <v-container class="pb-4 pt-0 px-0">{{ $t('are you sure you want to delete this file') }}?</v-container>
+        <v-list v-if="deleteFileDialog.paths.length > 1" density="compact" class="mb-4 pa-0 text-caption bg-transparent" style="max-height: 200px; overflow-y: auto">
+          <v-list-item v-for="p in deleteFileDialog.paths" :key="p" class="px-2" min-height="24">
+            <span :title="p" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">• {{ p.split('/').pop() }}</span>
+          </v-list-item>
+        </v-list>
         <v-checkbox v-if="deleteFileDialog.pathType === 'directory'" v-model="deleteFileDialog.recursive" :label="$t('recursive')" :disabled="loading" hide-details="auto" density="compact" />
         <v-checkbox v-model="deleteFileDialog.force" :label="$t('force')" :disabled="loading" hide-details="auto" density="compact" />
       </v-card-text>
@@ -298,9 +307,7 @@
       <v-card-actions>
         <v-spacer />
         <v-btn color="onPrimary" @click="deleteFileDialog.value = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="red" @click="deleteFile(deleteFileDialog.path, deleteFileDialog.force, deleteFileDialog.recursive)">
-          {{ $t('delete') }}
-        </v-btn>
+        <v-btn color="red" @click="confirmDelete">{{ $t('delete') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -381,7 +388,7 @@
 
   <!-- Chmod Dialog -->
   <v-dialog v-model="setChmodDialog.value" max-width="500" persistent>
-    <v-card class="pa-0" :title="$t('adjust permissions')" prepend-icon="mdi-lock">
+    <v-card class="pa-0" :title="setChmodDialog.paths.length > 1 ? `${$t('adjust permissions')} - ${setChmodDialog.paths.length} ${$t('items selected')}` : $t('adjust permissions')" prepend-icon="mdi-lock">
       <v-card-text class="py-0">
         <v-container class="px-0">
           <v-text-field v-model="setChmodDialog.permissions" :label="$t('permissions')" :disabled="loading" />
@@ -392,7 +399,7 @@
       <v-card-actions>
         <v-spacer />
         <v-btn color="onPrimary" @click="setChmodDialog.value = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="primary" @click="setChmod(setChmodDialog.path, setChmodDialog.permissions, setChmodDialog.recursive)">
+        <v-btn color="primary" @click="confirmChmod">
           {{ $t('adjust') }}
         </v-btn>
       </v-card-actions>
@@ -401,7 +408,7 @@
 
   <!-- Chown Dialog -->
   <v-dialog v-model="setChownDialog.value" max-width="500" persistent>
-    <v-card class="pa-0" :title="$t('adjust ownership')" prepend-icon="mdi-account-lock">
+    <v-card class="pa-0" :title="setChownDialog.paths.length > 1 ? `${$t('adjust ownership')} - ${setChownDialog.paths.length} ${$t('items selected')}` : $t('adjust ownership')" prepend-icon="mdi-account-lock">
       <v-card-text class="py-0">
         <v-container class="px-0">
           <v-select
@@ -426,7 +433,7 @@
       <v-card-actions>
         <v-spacer />
         <v-btn color="onPrimary" @click="setChownDialog.value = false">{{ $t('cancel') }}</v-btn>
-        <v-btn color="primary" @click="setChown(setChownDialog.path, setChownDialog.user, setChownDialog.group, setChownDialog.recursive)">
+        <v-btn color="primary" @click="confirmChown">
           {{ $t('adjust') }}
         </v-btn>
       </v-card-actions>
@@ -527,7 +534,7 @@
         <template #prepend><v-icon>mdi-rename</v-icon></template>
         <v-list-item-title>{{ $t('rename') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="openDeleteFileDialog(contextMenu.item)" density="compact" :disabled="multiSelected">
+      <v-list-item @click="openDeleteFileDialog(multiSelected ? selectedItems : contextMenu.item)" density="compact">
         <template #prepend><v-icon>mdi-delete</v-icon></template>
         <v-list-item-title>{{ $t('delete') }}</v-list-item-title>
       </v-list-item>
@@ -535,11 +542,11 @@
         <template #prepend><v-icon>mdi-download</v-icon></template>
         <v-list-item-title>{{ $t('download') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item v-if="contextMenu.item && contextMenu.item.type === 'directory'" @click="calculateDirectorySize(contextMenu.item)" density="compact" :disabled="multiSelected">
+      <v-list-item v-if="contextIsDirectories" @click="calculateSize(multiSelected ? selectedItems : contextMenu.item)" density="compact">
         <template #prepend><v-icon>mdi-calculator</v-icon></template>
         <v-list-item-title>{{ $t('calculate directory size') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item v-if="contextMenu.item && contextMenu.item.type === 'directory'" @click="addDirectoryAsBookmark(contextMenu.item)" density="compact" :disabled="multiSelected">
+      <v-list-item v-if="contextIsDirectories" @click="addAsBookmark(multiSelected ? selectedItems : contextMenu.item)" density="compact">
         <template #prepend><v-icon>mdi-bookmark-plus</v-icon></template>
         <v-list-item-title>{{ $t('add as bookmark') }}</v-list-item-title>
       </v-list-item>
@@ -553,11 +560,11 @@
         <v-list-item-title>{{ $t('move') }}</v-list-item-title>
       </v-list-item>
       <v-divider />
-      <v-list-item @click="openChModDialog(contextMenu.item)" density="compact" :disabled="multiSelected">
+      <v-list-item @click="openChModDialog(multiSelected ? selectedItems : contextMenu.item)" density="compact">
         <template #prepend><v-icon>mdi-shield-key-outline</v-icon></template>
         <v-list-item-title>{{ $t('adjust permissions') }}</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="openChOwnDialog(contextMenu.item)" density="compact" :disabled="multiSelected">
+      <v-list-item @click="openChOwnDialog(multiSelected ? selectedItems : contextMenu.item)" density="compact">
         <template #prepend><v-icon>mdi-account-key</v-icon></template>
         <v-list-item-title>{{ $t('adjust ownership') }}</v-list-item-title>
       </v-list-item>
@@ -579,7 +586,7 @@ import { ref, computed, watch, onMounted, reactive, onBeforeUnmount, onUnmounted
 import { useI18n } from 'vue-i18n';
 import { useOverlay } from '@/composables/useOverlay';
 import { useApi } from '@/composables/useApi';
-import { showSnackbarError, showSnackbarSuccess } from '@/composables/snackbar';
+import { showSnackbarError, showSnackbarSuccess, showSnackbarWarning } from '@/composables/snackbar';
 import FileEditDialog from '@/components/fileEditDialog.vue';
 import fsNavigatorDialog from '@/components/fsNavigatorDialog.vue';
 import fsOperationsDialog from '@/components/fsOperationsDialog.vue';
@@ -601,6 +608,9 @@ const anchorPath = ref(null);
 const selectedItems = computed(() => items.value.filter((i) => selectedPaths.value.includes(i.path)));
 const multiSelected = computed(() => selectedItems.value.length > 1);
 const activeItem = computed(() => (selectedItems.value.length === 1 ? selectedItems.value[0] : null));
+const contextIsDirectories = computed(() =>
+  multiSelected.value ? selectedItems.value.every((i) => i.type === 'directory') : contextMenu.item?.type === 'directory',
+);
 const dragOverTable = ref(false);
 const dragCounter = ref(0);
 const { overlay } = useOverlay();
@@ -615,6 +625,7 @@ const includeHiddenFiles = ref(false);
 const deleteFileDialog = reactive({
   value: false,
   path: null,
+  paths: [],
   pathType: '',
   recursive: false,
   force: false,
@@ -643,12 +654,14 @@ const createFileDialog = reactive({
 const setChmodDialog = reactive({
   value: false,
   path: '',
+  paths: [],
   permissions: '777',
   recursive: false,
 });
 const setChownDialog = reactive({
   value: false,
   path: '',
+  paths: [],
   userddsel: 'mos',
   userdd: ['mos', 'root', 'custom'],
   user: '500',
@@ -741,20 +754,63 @@ const loadPath = async (path = '/') => {
   }
 };
 
-const deleteFile = async (path, force = false, recursive = false) => {
+const deleteFile = async (path, force = false, recursive = false, { batch = false } = {}) => {
   const payload = { path: path, force: force, recursive: recursive };
   try {
     await call('/api/v1/mos/delete', {
       method: 'POST',
       body: payload,
-      errorLabel: t('file could not be deleted'),
-      successLabel: t('successfully deleted'),
+      errorLabel: batch ? `${t('file could not be deleted')}: ${path}` : t('file could not be deleted'),
+      successLabel: batch ? undefined : t('successfully deleted'),
+      showOverlay: !batch,
     });
-    reload();
+    return true;
   } catch (e) {
+    return false;
+  } finally {
+    if (!batch) {
+      reload();
+      clearDeleteDialog();
+    }
+  }
+};
+
+const confirmDelete = () => {
+  const { path, paths, force, recursive } = deleteFileDialog;
+  if (paths.length > 1) return deleteMultipleFiles(paths, force, recursive);
+  return deleteFile(path, force, recursive);
+};
+
+// Runs fn sequentially for every entry with the overlay shown; returns the number of failures
+const runBatch = async (entries, fn) => {
+  overlay.value = true;
+  let failed = 0;
+  try {
+    for (const entry of entries) {
+      if (!(await fn(entry))) failed++;
+    }
+  } finally {
+    overlay.value = false;
+  }
+  return failed;
+};
+
+const reportBatch = (total, failed, successKey, failKey) => {
+  const ok = total - failed;
+  if (failed === 0) showSnackbarSuccess(t(successKey, ok));
+  else showSnackbarWarning(`${t(successKey, ok)}, ${t(failKey, failed)}`);
+};
+
+const deleteMultipleFiles = async (paths, force = false, recursive = false) => {
+  deleteFileDialog.value = false;
+  let failed = 0;
+  try {
+    failed = await runBatch(paths, (path) => deleteFile(path, force, recursive, { batch: true }));
   } finally {
     clearDeleteDialog();
   }
+  reportBatch(paths.length, failed, 'items successfully deleted', 'items could not be deleted');
+  reload();
 };
 
 const createFolder = async (path, folderName, user = '500', group = '500', permissions = '777') => {
@@ -807,10 +863,10 @@ const createFile = async (path, fileName, content = '', user = '500', group = '5
   }
 };
 
-const setChmod = async (path, permissions = '777', recursive = false) => {
+const setChmod = async (path, permissions = '777', recursive = false, { batch = false } = {}) => {
   if (!path || path.trim() === '') {
     showSnackbarError(t('path cannot be empty'));
-    return;
+    return false;
   }
   const payload = { path: path, permissions: permissions, recursive: recursive };
 
@@ -818,20 +874,36 @@ const setChmod = async (path, permissions = '777', recursive = false) => {
     await call('/api/v1/mos/chmod', {
       method: 'POST',
       body: payload,
-      errorLabel: t('permissions could not be set'),
-      successLabel: t('permissions successfully set'),
+      errorLabel: batch ? `${t('permissions could not be set')}: ${path}` : t('permissions could not be set'),
+      successLabel: batch ? undefined : t('permissions successfully set'),
+      showOverlay: !batch,
     });
-    reload();
+    if (!batch) reload();
+    return true;
   } catch (e) {
+    return false;
   } finally {
-    setChmodDialog.value = false;
+    if (!batch) setChmodDialog.value = false;
   }
 };
 
-const setChown = async (path, user = '500', group = '500', recursive = false) => {
+const setChmodMultiple = async (paths, permissions = '777', recursive = false) => {
+  setChmodDialog.value = false;
+  const failed = await runBatch(paths, (path) => setChmod(path, permissions, recursive, { batch: true }));
+  reportBatch(paths.length, failed, 'items permissions set', 'items permissions could not be set');
+  reload();
+};
+
+const confirmChmod = () => {
+  const { path, paths, permissions, recursive } = setChmodDialog;
+  if (paths.length > 1) return setChmodMultiple(paths, permissions, recursive);
+  return setChmod(path, permissions, recursive);
+};
+
+const setChown = async (path, user = '500', group = '500', recursive = false, { batch = false } = {}) => {
   if (!path || path.trim() === '') {
     showSnackbarError(t('path cannot be empty'));
-    return;
+    return false;
   }
   const payload = { path: path, user: user, group: group, recursive: recursive };
 
@@ -839,14 +911,30 @@ const setChown = async (path, user = '500', group = '500', recursive = false) =>
     await call('/api/v1/mos/chown', {
       method: 'POST',
       body: payload,
-      errorLabel: t('ownership could not be set'),
-      successLabel: t('ownership successfully set'),
+      errorLabel: batch ? `${t('ownership could not be set')}: ${path}` : t('ownership could not be set'),
+      successLabel: batch ? undefined : t('ownership successfully set'),
+      showOverlay: !batch,
     });
-    reload();
+    if (!batch) reload();
+    return true;
   } catch (e) {
+    return false;
   } finally {
-    setChownDialog.value = false;
+    if (!batch) setChownDialog.value = false;
   }
+};
+
+const setChownMultiple = async (paths, user = '500', group = '500', recursive = false) => {
+  setChownDialog.value = false;
+  const failed = await runBatch(paths, (path) => setChown(path, user, group, recursive, { batch: true }));
+  reportBatch(paths.length, failed, 'items ownership set', 'items ownership could not be set');
+  reload();
+};
+
+const confirmChown = () => {
+  const { path, paths, user, group, recursive } = setChownDialog;
+  if (paths.length > 1) return setChownMultiple(paths, user, group, recursive);
+  return setChown(path, user, group, recursive);
 };
 
 const startFileOperation = async (operation, source, destination, onConflict = 'fail') => {
@@ -1111,15 +1199,20 @@ watch(
   },
 );
 
-const openDeleteFileDialog = (item) => {
-  if (!item) return;
+const openDeleteFileDialog = (itemOrItems) => {
+  const list = (Array.isArray(itemOrItems) ? itemOrItems : [itemOrItems]).filter(Boolean);
+  if (list.length === 0) return;
   deleteFileDialog.value = true;
-  deleteFileDialog.path = item.path;
-  deleteFileDialog.pathType = item.type;
+  deleteFileDialog.path = list[0].path;
+  deleteFileDialog.paths = list.map((i) => i.path);
+  deleteFileDialog.pathType = list.some((i) => i.type === 'directory') ? 'directory' : list[0].type;
+  deleteFileDialog.recursive = false;
+  deleteFileDialog.force = false;
 };
 const clearDeleteDialog = () => {
   deleteFileDialog.value = false;
   deleteFileDialog.path = null;
+  deleteFileDialog.paths = [];
   deleteFileDialog.pathType = '';
   deleteFileDialog.recursive = false;
   deleteFileDialog.force = false;
@@ -1148,18 +1241,30 @@ const openCreateFileDialog = (currentPath) => {
   createFileDialog.group = '500';
   createFileDialog.permissions = '777';
 };
-const openChModDialog = (item) => {
+const toList = (itemOrItems) => (Array.isArray(itemOrItems) ? itemOrItems : [itemOrItems]).filter(Boolean);
+const commonValue = (list, getter) => {
+  const first = getter(list[0]);
+  return list.every((i) => getter(i) === first) ? first : null;
+};
+const openChModDialog = (itemOrItems) => {
+  const list = toList(itemOrItems);
+  if (list.length === 0) return;
   setChmodDialog.value = true;
-  setChmodDialog.path = item.path;
-  setChmodDialog.permissions = item.permissions.octal;
+  setChmodDialog.path = list[0].path;
+  setChmodDialog.paths = list.map((i) => i.path);
+  setChmodDialog.permissions = commonValue(list, (i) => i.permissions.octal) ?? '';
   setChmodDialog.recursive = false;
 };
-const openChOwnDialog = (item) => {
+const openChOwnDialog = (itemOrItems) => {
+  const list = toList(itemOrItems);
+  if (list.length === 0) return;
+  const owner = commonValue(list, (i) => i.permissions.owner);
   setChownDialog.value = true;
-  setChownDialog.path = item.path;
-  setChownDialog.userddsel = item.permissions.owner === 'mos' ? 'mos' : item.permissions.owner === 'root' ? 'root' : 'custom';
-  setChownDialog.user = item.permissions.owner == 'mos' ? '500' : item.permissions.owner == 'root' ? '0' : '';
-  setChownDialog.group = item.permissions.owner == 'mos' ? '500' : item.permissions.owner == 'root' ? '0' : '';
+  setChownDialog.path = list[0].path;
+  setChownDialog.paths = list.map((i) => i.path);
+  setChownDialog.userddsel = owner === 'mos' ? 'mos' : owner === 'root' ? 'root' : 'custom';
+  setChownDialog.user = owner === 'mos' ? '500' : owner === 'root' ? '0' : '';
+  setChownDialog.group = owner === 'mos' ? '500' : owner === 'root' ? '0' : '';
   setChownDialog.recursive = false;
 };
 const openOperationDialog = (itemOrItems, operation) => {
@@ -1181,25 +1286,41 @@ const openAllOperationsDialog = () => {
   allOperationsDialogVisible.value = true;
 };
 
-const calculateDirectorySize = async (item) => {
-  if (item.type !== 'directory') return;
+const calculateSize = (itemOrItems) => {
+  const dirs = toList(itemOrItems).filter((i) => i.type === 'directory');
+  if (dirs.length === 0) return;
+  if (dirs.length > 1) return calculateMultipleDirectorySizes(dirs);
+  return calculateDirectorySize(dirs[0]);
+};
+
+const calculateDirectorySize = async (item, { batch = false } = {}) => {
+  if (item.type !== 'directory') return false;
 
   try {
     item.calculating = true;
     const data = await call('/api/v1/mos/fsnavigator/calc', {
       method: 'POST',
       body: { path: item.path },
-      errorLabel: t('error calculating directory size'),
-      successLabel: t('directory size calculated'),
+      errorLabel: batch ? `${t('error calculating directory size')}: ${item.path}` : t('error calculating directory size'),
+      successLabel: batch ? undefined : t('directory size calculated'),
       showOverlay: false,
     });
 
     if (data) {
       item.calculated_size_human = data.size_human;
     }
+    return true;
+  } catch (e) {
+    return false;
   } finally {
     item.calculating = false;
   }
+};
+
+const calculateMultipleDirectorySizes = async (items) => {
+  const results = await Promise.all(items.map((item) => calculateDirectorySize(item, { batch: true })));
+  const failed = results.filter((ok) => !ok).length;
+  reportBatch(items.length, failed, 'items size calculated', 'items size could not be calculated');
 };
 
 const openContextMenu = (e, item) => {
@@ -1233,34 +1354,6 @@ const openBookmarksDialog = () => {
 const navigateToBookmark = (bookmark) => {
   loadPath(bookmark.path);
   bookmarksSidePanel.open = false;
-};
-
-const addCurrentPathAsBookmark = async () => {
-  if (!bookmarksSidePanel.newBookmarkName.trim()) {
-    showSnackbarError(t('bookmark name cannot be empty'));
-    return;
-  }
-
-  bookmarksSidePanel.loading = true;
-  try {
-    await call('/api/v1/mos/fsnavigator/bookmarks', {
-      method: 'PUT',
-      body: {
-        name: bookmarksSidePanel.newBookmarkName.trim(),
-        path: currentPath.value,
-      },
-      successLabel: t('bookmark created successfully'),
-      errorLabel: t('bookmark could not be created'),
-    });
-
-    bookmarksSidePanel.newBookmarkName = '';
-    await loadBookmarks();
-  } catch (e) {
-    const [userMessage, apiErrorMessage] = String(e?.message || e).split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
-  } finally {
-    bookmarksSidePanel.loading = false;
-  }
 };
 
 const deleteBookmark = async (path) => {
@@ -1297,30 +1390,51 @@ const onBookmarksReordered = async () => {
   }
 };
 
-const addDirectoryAsBookmark = async (item) => {
-  if (!item || item.type !== 'directory') return;
+const addAsBookmark = (itemOrItems) => {
+  const dirs = toList(itemOrItems).filter((i) => i.type === 'directory');
+  if (dirs.length === 0) return;
+  if (dirs.length > 1) return addMultipleDirectoriesAsBookmarks(dirs);
+  return addDirectoryAsBookmark(dirs[0]);
+};
 
+const addDirectoryAsBookmark = async (item, { batch = false } = {}) => {
   const bookmarkName = item.path.split('/').filter(Boolean).pop() || 'Bookmark';
-  bookmarksSidePanel.loading = true;
+  const payload = { name: bookmarkName, path: item.path };
+  if (!batch) bookmarksSidePanel.loading = true;
 
   try {
     await call('/api/v1/mos/fsnavigator/bookmarks', {
       method: 'PUT',
-      body: {
-        name: bookmarkName,
-        path: item.path,
-      },
-      successLabel: t('bookmark created successfully'),
-      errorLabel: t('bookmark could not be created'),
+      body: payload,
+      successLabel: batch ? undefined : t('bookmark created successfully'),
+      errorLabel: batch ? `${t('bookmark could not be created')}: ${item.path}` : t('bookmark could not be created'),
     });
 
-    await loadBookmarks();
+    if (!batch) await loadBookmarks();
+    return true;
   } catch (e) {
-    const [userMessage, apiErrorMessage] = String(e?.message || e).split('|$|');
-    showSnackbarError(userMessage, apiErrorMessage);
+    if (!batch) {
+      const [userMessage, apiErrorMessage] = String(e?.message || e).split('|$|');
+      showSnackbarError(userMessage, apiErrorMessage);
+    }
+    return false;
+  } finally {
+    if (!batch) bookmarksSidePanel.loading = false;
+  }
+};
+
+const addMultipleDirectoriesAsBookmarks = async (items) => {
+  bookmarksSidePanel.loading = true;
+  let failed = 0;
+  try {
+    for (const item of items) {
+      if (!(await addDirectoryAsBookmark(item, { batch: true }))) failed++;
+    }
+    await loadBookmarks();
   } finally {
     bookmarksSidePanel.loading = false;
   }
+  reportBatch(items.length, failed, 'items bookmarked', 'items could not be bookmarked');
 };
 </script>
 
