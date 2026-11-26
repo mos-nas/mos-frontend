@@ -760,7 +760,8 @@ const deleteFile = async (path, force = false, recursive = false, { batch = fals
     await call('/api/v1/mos/delete', {
       method: 'POST',
       body: payload,
-      errorLabel: batch ? `${t('file could not be deleted')}: ${path}` : t('file could not be deleted'),
+      errorLabel: t('file could not be deleted'),
+      showError: !batch,
       successLabel: batch ? undefined : t('successfully deleted'),
       showOverlay: !batch,
     });
@@ -874,7 +875,8 @@ const setChmod = async (path, permissions = '777', recursive = false, { batch = 
     await call('/api/v1/mos/chmod', {
       method: 'POST',
       body: payload,
-      errorLabel: batch ? `${t('permissions could not be set')}: ${path}` : t('permissions could not be set'),
+      errorLabel: t('permissions could not be set'),
+      showError: !batch,
       successLabel: batch ? undefined : t('permissions successfully set'),
       showOverlay: !batch,
     });
@@ -911,7 +913,8 @@ const setChown = async (path, user = '500', group = '500', recursive = false, { 
     await call('/api/v1/mos/chown', {
       method: 'POST',
       body: payload,
-      errorLabel: batch ? `${t('ownership could not be set')}: ${path}` : t('ownership could not be set'),
+      errorLabel: t('ownership could not be set'),
+      showError: !batch,
       successLabel: batch ? undefined : t('ownership successfully set'),
       showOverlay: !batch,
     });
@@ -1301,7 +1304,8 @@ const calculateDirectorySize = async (item, { batch = false } = {}) => {
     const data = await call('/api/v1/mos/fsnavigator/calc', {
       method: 'POST',
       body: { path: item.path },
-      errorLabel: batch ? `${t('error calculating directory size')}: ${item.path}` : t('error calculating directory size'),
+      errorLabel: t('error calculating directory size'),
+      showError: !batch,
       successLabel: batch ? undefined : t('directory size calculated'),
       showOverlay: false,
     });
@@ -1407,7 +1411,9 @@ const addDirectoryAsBookmark = async (item, { batch = false } = {}) => {
       method: 'PUT',
       body: payload,
       successLabel: batch ? undefined : t('bookmark created successfully'),
-      errorLabel: batch ? `${t('bookmark could not be created')}: ${item.path}` : t('bookmark could not be created'),
+      errorLabel: t('bookmark could not be created'),
+      showError: !batch,
+      showOverlay: !batch,
     });
 
     if (!batch) await loadBookmarks();
@@ -1427,9 +1433,7 @@ const addMultipleDirectoriesAsBookmarks = async (items) => {
   bookmarksSidePanel.loading = true;
   let failed = 0;
   try {
-    for (const item of items) {
-      if (!(await addDirectoryAsBookmark(item, { batch: true }))) failed++;
-    }
+    failed = await runBatch(items, (item) => addDirectoryAsBookmark(item, { batch: true }));
     await loadBookmarks();
   } finally {
     bookmarksSidePanel.loading = false;
