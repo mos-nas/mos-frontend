@@ -38,7 +38,7 @@
                   <v-text-field v-model.number="providers[provider].smtp_port" :label="$t('smtp port')" type="number" class="mt-4" hide-details="auto"></v-text-field>
                   <v-switch v-model="providers[provider].smtp_tls" :label="$t('smtp tls')" color="green" density="compact" inset class="mt-2" hide-details="auto"></v-switch>
                   <v-text-field v-model="providers[provider].smtp_user" :label="$t('smtp user')" class="mt-4" hide-details="auto"></v-text-field>
-                  <v-text-field v-model="providers[provider].smtp_password" :label="$t('smtp password')" type="password" class="mt-4" hide-details="auto"></v-text-field>
+                  <v-text-field v-model="providers[provider].smtp_password" :label="$t('smtp password')" :type="showSmtpPassword ? 'text' : 'password'" :append-inner-icon="showSmtpPassword ? 'mdi-eye-off' : 'mdi-eye'" @click:append-inner="showSmtpPassword = !showSmtpPassword" class="mt-4" hide-details="auto"></v-text-field>
                   <v-text-field v-model="providers[provider].from" :label="$t('sender')" type="email" class="mt-4" hide-details="auto"></v-text-field>
                   <v-text-field :model-value="getEmailToValue()" @update:model-value="setEmailToValue" :label="$t('receiver')" class="mt-4" hide-details="auto"></v-text-field>
                   <v-text-field v-model="providers[provider].subject" :label="$t('subject')" class="mt-4" hide-details="auto"></v-text-field>
@@ -181,6 +181,7 @@ const { t } = useI18n();
 const { call } = useApi();
 const EMAIL_PROVIDER = 'email';
 const providers = ref({});
+const showSmtpPassword = ref(false);
 const jsonEditors = ref({});
 const selectedProvider = ref(null);
 const showAddProviderDialog = ref(false);

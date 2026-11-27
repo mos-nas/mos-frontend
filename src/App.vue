@@ -109,27 +109,14 @@ html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.logo-wrapper {
-  animation: float 3s ease-in-out infinite;
+  gap: 0rem;
 }
 
 .mos-logo {
+  display: block;
   width: 150px;
   height: 150px;
   opacity: 0.9;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-15px);
-  }
 }
 
 .loading-text {
@@ -140,6 +127,7 @@ html {
   letter-spacing: 0.5px;
   animation: pulse 2s ease-in-out infinite;
   min-height: 1.5em;
+  margin-top: -1rem;
 }
 
 @keyframes pulse {
